@@ -4,4 +4,4 @@ cat > /usr/local/bin/audit-read-secret << 'EOF'
 cat /var/www/html/secret_config.php
 EOF
 chmod +x /usr/local/bin/audit-read-secret
-echo $1 "ALL=(ALL) NOPASSWD: /usr/local/bin/audit-read-secret" > /etc/sudoers.d/audit
+echo $1 "ALL=(root) NOPASSWD: /usr/local/bin/audit-read-secret" > /etc/sudoers.d/audit
