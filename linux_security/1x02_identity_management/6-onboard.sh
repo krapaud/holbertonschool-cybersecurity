@@ -1,6 +1,6 @@
 #!/bin/bash
 useradd -m $1
-usermod -L $1
+passwd -l $1
 mkdir -p /home/$1/.ssh
 chmod 700 /home/$1/.ssh
 echo "$2" >> /home/$1/.ssh/authorized_keys
