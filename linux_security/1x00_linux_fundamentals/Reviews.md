@@ -4,7 +4,7 @@ Questions de révision typiques en entretien d'embauche. À maîtriser sans docu
 
 ---
 
-## 9. Le piège du `chmod 777`
+## Le piège du `chmod 777`
 
 **Pourquoi `chmod 777` est-il considéré comme une vulnérabilité de sécurité, même sur un serveur privé ?**
 
@@ -18,7 +18,7 @@ Questions de révision typiques en entretien d'embauche. À maîtriser sans docu
 
 ---
 
-## 10. Le bit `x` sur un répertoire
+## Le bit `x` sur un répertoire
 
 **Contexte :** un répertoire `/data` a les permissions `r--`. À l'intérieur se trouve `secret.txt`, lisible par tous.
 
@@ -32,7 +32,7 @@ Questions de révision typiques en entretien d'embauche. À maîtriser sans docu
 
 ---
 
-## 11. Le SUID sur un éditeur de texte
+## Le SUID sur un éditeur de texte
 
 **Pourquoi est-il extrêmement dangereux de placer le bit SUID (`u+s`) sur un éditeur comme `vim` ou `nano` ?**
 
@@ -44,7 +44,7 @@ Questions de révision typiques en entretien d'embauche. À maîtriser sans docu
 
 ---
 
-## 12. La précédence des groupes
+## La précédence des groupes
 
 **Contexte :** `bob` n'est pas `alice`, mais il est membre du groupe `devs`.
 
@@ -66,7 +66,7 @@ Non. Voici pourquoi :
 
 ---
 
-## 13. L'utilité du Sticky Bit
+## L'utilité du Sticky Bit
 
 **Dans un répertoire partagé comme `/tmp`, pourquoi le Sticky Bit (`+t`) est-il indispensable ?**
 
@@ -88,7 +88,7 @@ ls -ld /tmp
 
 ---
 
-## 14. Le processus "unkillable" et les descripteurs de fichiers
+## Le processus "unkillable" et les descripteurs de fichiers
 
 **Vous avez supprimé un fichier de log avec `rm`, mais `df` montre que l'espace disque n'est pas libéré. Un processus écrit encore sur son descripteur de fichier. Comment trouver ce PID ?**
 
@@ -119,7 +119,7 @@ La terminaison du processus ferme ses descripteurs, et le noyau libère alors l'
 
 ---
 
-## 15. Le piège de l'octal — SUID sur un script
+## Le piège de l'octal — SUID sur un script
 
 **Vous exécutez `chmod 4755 script.sh`. Que représente le `4` ? Que représente le `7` ? Le SUID fonctionnera-t-il réellement sur un script bash sous Linux moderne ?**
 
