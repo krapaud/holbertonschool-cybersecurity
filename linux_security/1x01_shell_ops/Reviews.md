@@ -4,7 +4,7 @@ Questions de révision typiques en entretien d'embauche. À maîtriser sans docu
 
 ---
 
-## 12. `grep` vs `awk`
+## `grep` vs `awk`
 
 **Quand utiliser `grep` plutôt que `awk` ? Quel est le rôle principal de chacun ?**
 
@@ -39,7 +39,7 @@ awk -F: '{print $1, $3}' /etc/passwd
 
 ---
 
-## 13. La puissance du Pipe — UUOC
+## La puissance du Pipe — UUOC
 
 **Ces deux commandes produisent-elles le même résultat ? Sont-elles équivalentes en efficacité ?**
 
@@ -74,7 +74,7 @@ journalctl -u nginx | grep "Error"
 
 ---
 
-## 14. Les Ancres Regex
+## Les Ancres Regex
 
 **Pourquoi `grep "admin"` est-il potentiellement dangereux dans un fichier de logs ? Comment corriger cela ?**
 
@@ -109,7 +109,7 @@ grep "\badmin\b" file.log
 
 ---
 
-## 15. `sort` avant `uniq`
+## `sort` avant `uniq`
 
 **Pourquoi faut-il toujours exécuter `sort` avant `uniq` ? Que se passe-t-il sinon ?**
 
@@ -135,7 +135,7 @@ sort fichier.txt | uniq -c | sort -rn
 
 ---
 
-## 16. Le Code de Retour `$?`
+## Le Code de Retour `$?`
 
 **Que vaut `$?` dans les cas suivants ?**
 
@@ -177,7 +177,7 @@ Toute la logique conditionnelle bash repose sur ce mécanisme. Des outils comme 
 
 ---
 
-## 17. Guillemets simples vs doubles
+## Guillemets simples vs doubles
 
 **Contexte :**
 
