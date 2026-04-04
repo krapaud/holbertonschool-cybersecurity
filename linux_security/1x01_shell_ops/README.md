@@ -5,7 +5,7 @@
 
 ---
 
-## 0. Le Redirecteur Global — Gérer les descripteurs de fichiers
+## Le Redirecteur Global — Gérer les descripteurs de fichiers
 
 ### Commandes clés : `exec`, `>>`, `2>&1`
 
@@ -42,7 +42,7 @@ echo "Error: Work Failed" >&2
 
 ---
 
-## 1. Pas de fichiers temporaires — La substitution de processus
+## Pas de fichiers temporaires — La substitution de processus
 
 ### Commandes clés : `diff`, `<(...)`, substitution de processus
 
@@ -75,7 +75,7 @@ Le shell crée des pseudo-fichiers (sous `/dev/fd/`) pour chaque `<(...)` et les
 
 ---
 
-## 2. Le Processeur en Masse — `find` et `xargs`
+## Le Processeur en Masse — `find` et `xargs`
 
 ### Commandes clés : `find`, `xargs`, `mv`
 
@@ -98,7 +98,7 @@ find "$1" -maxdepth 1 -name "*.log" | xargs -I {} mv {} {}.old
 
 ---
 
-## 3. L'Anonymiseur — `sed` et les expressions régulières
+## L'Anonymiseur — `sed` et les expressions régulières
 
 ### Commandes clés : `sed`, regex IPv4
 
@@ -128,7 +128,7 @@ sed 's/[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/[REDACTED_IP]/g' "
 
 ---
 
-## 4. Le Filtre Avancé — `awk` et la logique conditionnelle
+## Le Filtre Avancé — `awk` et la logique conditionnelle
 
 ### Commandes clés : `ls -l`, `awk`
 
@@ -157,7 +157,7 @@ Décomposition de la sortie de `ls -l` :
 
 ---
 
-## 5. Le Nettoyeur d'Utilisateurs — Validation et gestion de comptes
+## Le Nettoyeur d'Utilisateurs — Validation et gestion de comptes
 
 ### Commandes clés : `while read`, `id`, `usermod -L`
 
@@ -187,7 +187,7 @@ done < "$1"
 
 ---
 
-## 6. L'Attente de Service — Boucle `until` et vérification de port
+## L'Attente de Service — Boucle `until` et vérification de port
 
 ### Commandes clés : `until`, `nc` (netcat), `sleep`
 
@@ -213,7 +213,7 @@ echo "Service UP!"
 
 ---
 
-## 7. Le Rotateur de Logs — Automatisation de maintenance
+## Le Rotateur de Logs — Automatisation de maintenance
 
 ### Commandes clés : `gzip`, `mv`, `-d`, `-f`, validation d'arguments
 
