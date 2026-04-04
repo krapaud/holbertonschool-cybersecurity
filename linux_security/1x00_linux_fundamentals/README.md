@@ -5,7 +5,7 @@
 
 ---
 
-## 0. Who Dis ? — Transfert de fichiers et vérification d'identité
+## Who Dis ? — Transfert de fichiers et vérification d'identité
 
 ### Commandes clés : `whoami`, `scp`, `ssh`, `chmod`
 
@@ -51,7 +51,7 @@ On peut passer une commande directement à `ssh` sans ouvrir un shell interactif
 
 ---
 
-## 1. The Needle in the Haystack — Recherche avancée avec `find`
+## The Needle in the Haystack — Recherche avancée avec `find`
 
 ### Commandes clés : `find`, redirection de `stderr`
 
@@ -78,7 +78,7 @@ Lors d'une recherche récursive, `find` tente d'accéder à des répertoires aux
 
 ---
 
-## 2. Content Mining — Grep récursif pour trouver des secrets
+## Content Mining — Grep récursif pour trouver des secrets
 
 ### Commandes clés : `grep`, `-r`, `-l`
 
@@ -101,7 +101,7 @@ On cherche ici la chaîne littérale `password =` dans tout `/etc`. C'est une te
 
 ---
 
-## 3. The Piping Logic — Chaîner les commandes avec les pipes
+## The Piping Logic — Chaîner les commandes avec les pipes
 
 ### Commandes clés : `ls`, `awk`, `sort`, `uniq`, `head`
 
@@ -128,7 +128,7 @@ Décomposition :
 
 ---
 
-## 4. The SUID Audit — Chasse aux vecteurs d'élévation de privilèges
+## The SUID Audit — Chasse aux vecteurs d'élévation de privilèges
 
 ### Commandes clés : `find -perm`
 
@@ -153,7 +153,7 @@ find "$1" -perm -4000 -type f 2>/dev/null
 
 ---
 
-## 5. The Immortal File — Attributs étendus avec `chattr`
+## The Immortal File — Attributs étendus avec `chattr`
 
 ### Commandes clés : `chattr`, `lsattr`
 
@@ -183,7 +183,7 @@ rm /home/larry/malware.sh
 
 ---
 
-## 6. The Collaboration Folder — SGID et Sticky Bit
+## The Collaboration Folder — SGID et Sticky Bit
 
 ### Commandes clés : `mkdir`, `chown`, `chmod`, bits spéciaux
 
@@ -226,7 +226,7 @@ chmod +t "$1"     # Sticky Bit
 
 ---
 
-## 7. The Audit Gateway — `sudo` pour déléguer sans ACL
+## The Audit Gateway — `sudo` pour déléguer sans ACL
 
 ### Commandes clés : `sudo`, `visudo`, wrapper script
 
@@ -259,7 +259,7 @@ echo "auditor ALL=(root) NOPASSWD: /usr/local/bin/audit-read-secret" \
 
 ---
 
-## 8. The Log Creation Policy — `logrotate` et SGID pour les logs
+## The Log Creation Policy — `logrotate` et SGID pour les logs
 
 ### Commandes clés : `logrotate`, `chmod g+s`, `chown`
 
