@@ -1,2 +1,2 @@
 #!/bin/bash
-ss -lnt4 | awk -F':' 'NR>1{print $2}'
+ss -lt4 | awk 'NR>1{split($4,a,":"); print a[2]}'
