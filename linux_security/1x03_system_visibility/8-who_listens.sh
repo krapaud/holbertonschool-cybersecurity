@@ -1,2 +1,2 @@
 #!/bin/bash
-ss -lnt4p sport = :$1
+lsof -i :$1
