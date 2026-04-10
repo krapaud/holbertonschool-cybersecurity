@@ -1,2 +1,2 @@
 #!/bin/bash
-ps -p $1 -o ppid=$1
+ps -p $1 -o ppid= | tr -d " "
