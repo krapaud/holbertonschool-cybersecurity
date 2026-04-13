@@ -15,7 +15,8 @@ check_services() {
     if pgrep -f "$service"; then
         echo "OK: $service is running"
     else
-        eval "$service"
+        start_cmd="START_${service}"
+        eval "${!start_cmd}"
         echo "FIXED: Restarted $service"
     fi
     done
