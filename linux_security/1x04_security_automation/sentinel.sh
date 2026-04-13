@@ -35,3 +35,4 @@ check_integrity() {
     done
 }
 check_services
+check_integrity
