@@ -10,3 +10,13 @@ fi
 if [ -z "$FILES_TO_WATCH" ]; then
     exit 1
 fi
+check_service() {
+    for service in "${SERVICES[@]}"; do
+    if pgrep -f "$service"; then
+        echo "OK: $service is running"
+    else
+        eval "$service"
+        echo "FIXED: Restarted $service"
+    fi
+    done
+}
