@@ -26,7 +26,7 @@ check_integrity() {
         hash_file=$(md5sum "$file" | awk '{print $1}')
         gold="/var/backups/sentinel/$(basename "$file").gold"
         hash_gold=$(md5sum "$gold" | awk '{print $1}')
-        if [ $hash_files = $hash_gold ]; then
+        if [ $hash_file = $hash_gold ]; then
             echo "OK: $file integrity verified"
         else
             cp "$gold" "$file"
