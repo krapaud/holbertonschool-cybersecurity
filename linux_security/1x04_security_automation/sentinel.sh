@@ -27,10 +27,12 @@ log() {
 check_services() {
     for service in "${SERVICES[@]}"; do
     if pgrep -f "$service" > /dev/null; then
+        echo "OK: $service is running"
         log "SERVICE" "$service" "OK" "$service is running"
     else
         start_cmd="START_${service}"
         eval "${!start_cmd}"
+        echo "FIXED: Restarted $service"
         log "SERVICE" "$service" "FIXED" "Restarted $service"
     fi
     done
@@ -41,9 +43,11 @@ check_integrity() {
         gold="/var/backups/sentinel/$(basename "$file").gold"
         hash_gold=$(md5sum "$gold" | awk '{print $1}')
         if [ $hash_file = $hash_gold ]; then
+            echo "OK: $file integrity verified"
             log "INTEGRITY" "$file" "OK" "integrity verified"
         else
             cp "$gold" "$file"
+            echo "FIXED: Restored $file"
             log "INTEGRITY" "$file" "FIXED" "Restored $file"
         fi
     done
