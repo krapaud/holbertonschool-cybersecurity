@@ -35,9 +35,17 @@ check_integrity() {
     done
 }
 check_ports(){
-    ss -lntp | awk 'NR>1{split($4, a, ":"); print a[2]}'
-    for port in ; do
-        if 
+    for port in $(ss -lntp | awk 'NR>1{split($4, a, ":"); print a[2]}'); do
+        allowed=false
+        for allowed_port in "${ALLOWED_PORTS[@]}"; do
+            if [ "$port" = "$allowed_port" ]; then
+                allowed=true
+            fi
+        done
+        if [ "$allowed" = false ]; then
+            ss -K dport = :$port
+            echo "ALERT: Killed rogue process on port $port"
+        fi
     done
 }
 check_services
