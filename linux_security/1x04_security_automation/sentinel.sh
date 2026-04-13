@@ -34,5 +34,12 @@ check_integrity() {
         fi
     done
 }
+check_ports(){
+    ss -lntp | awk 'NR>1{split($4, a, ":"); print a[2]}'
+    for port in ; do
+        if 
+    done
+}
 check_services
 check_integrity
+check_ports
