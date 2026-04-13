@@ -10,14 +10,28 @@ fi
 if [ -z "$FILES_TO_WATCH" ]; then
     exit 1
 fi
+log() {
+    local timestamp=$(date --utc +%FT%TZ)
+    local component=$1
+    local target=$2
+    local status=$3
+    local details=$4
+    echo "{
+    \"timestamp\": \"$timestamp\",
+    \"component\": \"$component\",
+    \"target\": \"$target\",
+    \"status\": \"$status\",
+    \"details\": \"$details\"
+    }" >> /var/log/sentinel.log
+}
 check_services() {
     for service in "${SERVICES[@]}"; do
-    if pgrep -f "$service"; then
-        echo "OK: $service is running"
+    if pgrep -f "$service" > /dev/null; then
+        log "SERVICE" "$service" "OK" "$service is running"
     else
         start_cmd="START_${service}"
         eval "${!start_cmd}"
-        echo "FIXED: Restarted $service"
+        log "SERVICE" "$service" "FIXED" "Restarted $service"
     fi
     done
 }
@@ -27,14 +41,14 @@ check_integrity() {
         gold="/var/backups/sentinel/$(basename "$file").gold"
         hash_gold=$(md5sum "$gold" | awk '{print $1}')
         if [ $hash_file = $hash_gold ]; then
-            echo "OK: $file integrity verified"
+            log "INTEGRITY" "$file" "OK" "integrity verified"
         else
             cp "$gold" "$file"
-            echo "FIXED: Restored $file"
+            log "INTEGRITY" "$file" "FIXED" "Restored $file"
         fi
     done
 }
-check_ports(){
+check_ports() {
     for port in $(ss -lntp | awk 'NR>1{split($4, a, ":"); print a[2]}'); do
         allowed=false
         for allowed_port in "${ALLOWED_PORTS[@]}"; do
@@ -43,8 +57,8 @@ check_ports(){
             fi
         done
         if [ "$allowed" = false ]; then
-            fuser -k "$port/tcp"
-            echo "ALERT: Killed rogue process on port $port"
+            ss -K sport = :$port 2>/dev/null
+            log "PORT" "$port" "ALERT" "Killed rogue process on port $port"
         fi
     done
 }
