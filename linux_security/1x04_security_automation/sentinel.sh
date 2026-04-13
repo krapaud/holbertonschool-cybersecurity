@@ -43,7 +43,7 @@ check_ports(){
             fi
         done
         if [ "$allowed" = false ]; then
-            ss -K dport = :$port
+            fuser -k "$port/tcp"
             echo "ALERT: Killed rogue process on port $port"
         fi
     done
