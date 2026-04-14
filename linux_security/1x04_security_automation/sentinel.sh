@@ -14,7 +14,7 @@ if [ -z "$ALLOWED_PORTS" ]; then
     exit 1
 fi
 log() {
-    local timestamp=$(date --utc +%FT%TZ)
+    local timestamp=$(date -u +%FT%TZ)
     local component=$1
     local target=$2
     local status=$3
