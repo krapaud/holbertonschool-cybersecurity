@@ -64,7 +64,7 @@ check_ports() {
             fi
         done
         if [ "$allowed" = true ]; then
-            log "PORT" "$port" "OK" "Port $port is allowed"
+            :
         else
             ss -K sport = :$port 2>/dev/null
             echo "ALERT: Killed rogue process on port $port"
