@@ -10,6 +10,9 @@ fi
 if [ -z "$FILES_TO_WATCH" ]; then
     exit 1
 fi
+if [ -z "$ALLOWED_PORTS" ]; then
+    exit 1
+fi
 log() {
     local timestamp=$(date --utc +%FT%TZ)
     local component=$1
@@ -22,7 +25,7 @@ log() {
     \"target\": \"$target\",
     \"status\": \"$status\",
     \"details\": \"$details\"
-    }" >> /var/log/sentinel.log
+}" >> /var/log/sentinel.log
 }
 check_services() {
     for service in "${SERVICES[@]}"; do
@@ -60,7 +63,9 @@ check_ports() {
                 allowed=true
             fi
         done
-        if [ "$allowed" = false ]; then
+        if [ "$allowed" = true ]; then
+            log "PORT" "$port" "OK" "Port $port is allowed"
+        else
             ss -K sport = :$port 2>/dev/null
             echo "ALERT: Killed rogue process on port $port"
             log "PORT" "$port" "ALERT" "Killed rogue process on port $port"
