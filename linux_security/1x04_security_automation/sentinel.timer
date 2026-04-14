@@ -2,7 +2,7 @@
 Description=Sentinel Security Agent
 
 [Timer]
-OnCalendar=*:0/5
+OnUnitActiveSec=5min
 Persistent=true
 Unit=sentinel.service
 
