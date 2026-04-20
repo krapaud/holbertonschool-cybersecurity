@@ -16,3 +16,5 @@ fi
 log "Hardening framework initialized"
 harden_ssh
 harden_network
+harden_identity
+harden_system
