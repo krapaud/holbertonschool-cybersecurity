@@ -1,1 +1,1 @@
-# Hardening Automation
+# Hardening
