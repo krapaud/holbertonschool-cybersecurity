@@ -30,4 +30,5 @@ EOF
         sed -i 's/^net.ipv4.icmp_echo_ignore_all.*/net.ipv4.icmp_echo_ignore_all=1/' /etc/sysctl.conf
         log "N-03: ICMP ignore already configured"
     fi
+    report "[INFO]" "Firewall policy created: ports $SSH_PORT, $ALLOW_HTTP, $ALLOW_HTTPS ALLOWED"
 }

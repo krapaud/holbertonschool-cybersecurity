@@ -26,4 +26,5 @@ harden_ssh() {
     else
         log "S-02: PermitRootLogin already configured"
     fi
+    report "[INFO]" "SSH configured on port $SSH_PORT"
 }

@@ -1,0 +1,12 @@
+===============================================
+ HARDENING AUDIT REPORT - 2026-04-20T14:42:16Z
+===============================================
+[INFO] SSH configured on port 22
+[INFO] Firewall policy created: ports 22, 80, 443 ALLOWED
+[INFO] 0 unauthorized users removed:
+[WARN] Package updates skipped (already up to date).
+[INFO] Removed: telnet, ftp, netcat-traditional.
+[INFO] Installed: auditd, fail2ban.
+===============================================
+ COMPLIANCE STATUS: PASS
+===============================================

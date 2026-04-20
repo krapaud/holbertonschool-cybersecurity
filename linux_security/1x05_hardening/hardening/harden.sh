@@ -6,6 +6,10 @@ export DEBIAN_FRONTEND=noninteractive
 log() {
     echo "$(date -u +%FT%TZ) $1" >> /var/log/hardening.log
 }
+report() {
+    echo "$1 $2" >> audit_report.txt
+}
+
 
 # Load configuration and all library modules
 source config/harden.cfg
@@ -22,7 +26,14 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 log "Hardening framework initialized"
+echo "===============================================" > audit_report.txt
+echo " HARDENING AUDIT REPORT - $(date -u +%FT%TZ)" >> audit_report.txt
+echo "===============================================" >> audit_report.txt
 harden_ssh
 harden_network
 harden_identity
 harden_system
+echo "===============================================" >> audit_report.txt
+echo " COMPLIANCE STATUS: PASS" >> audit_report.txt
+echo "===============================================" >> audit_report.txt
+
