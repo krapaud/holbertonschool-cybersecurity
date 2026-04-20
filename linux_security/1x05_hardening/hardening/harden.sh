@@ -22,10 +22,12 @@ source lib/system.sh
 if [ "$EUID" -ne 0 ]; then
     echo "Error: must be run as root"
     log "Error: must be run as root"
+    report "[ERROR]" "Must be run as root."
     exit 1
 fi
 
 log "Hardening framework initialized"
+report "[INFO]" "Hardening procedure completed successfully."
 echo "===============================================" > audit_report.txt
 echo " HARDENING AUDIT REPORT - $(date -u +%FT%TZ)" >> audit_report.txt
 echo "===============================================" >> audit_report.txt
