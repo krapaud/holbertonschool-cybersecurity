@@ -38,4 +38,3 @@ harden_system
 echo "===============================================" >> audit_report.txt
 echo " COMPLIANCE STATUS: PASS" >> audit_report.txt
 echo "===============================================" >> audit_report.txt
-
