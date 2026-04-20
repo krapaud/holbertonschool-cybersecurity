@@ -1,6 +1,6 @@
 #!/bin/bash
-mkdir -p /etc/hardening/
 harden_network() {
+    mkdir -p /etc/hardening/
     cat > /etc/hardening/firewall.rules << EOF
     DEFAULT_INPUT=deny
     DEFAULT_OUTPUT=allow

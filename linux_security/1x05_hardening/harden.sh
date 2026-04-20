@@ -1,4 +1,6 @@
 #!/bin/bash
+cd "$(dirname "$0")"
+export DEBIAN_FRONTEND=noninteractive
 log() {
     echo "$(date -u +%FT%TZ) $1" >> /var/log/hardening.log
 }
