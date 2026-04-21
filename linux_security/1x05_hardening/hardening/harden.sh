@@ -27,10 +27,10 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 log "Hardening framework initialized"
-report "[INFO]" "Hardening procedure completed successfully."
 echo "===============================================" > audit_report.txt
 echo " HARDENING AUDIT REPORT - $(date -u +%FT%TZ)" >> audit_report.txt
 echo "===============================================" >> audit_report.txt
+report "[INFO]" "Hardening procedure completed successfully."
 harden_ssh
 harden_network
 harden_identity
