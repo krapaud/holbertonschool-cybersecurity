@@ -47,11 +47,12 @@ harden_identity() {
             userdel "$user"
             log "I-03: Deleted user $user"
             removed_count=$((removed_count + 1))
-            removed_users="$removed_users $user"
+            # I-03: Append user to list, comma-separated if multiple
+            removed_users="${removed_users:+$removed_users, }$user"
         fi
     done
 
-    report "[INFO]" "$removed_count unauthorized users removed:$removed_users"
+    report "[INFO]" "$removed_count unauthorized users removed:$removed_users."
 
     # I-04: Lock root password to prevent direct login
     passwd -l root

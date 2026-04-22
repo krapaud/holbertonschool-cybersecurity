@@ -26,7 +26,7 @@ harden_ssh() {
     else
         log "S-02: PermitRootLogin already configured"
     fi
-    report "[INFO]" "SSH configured on port $SSH_PORT"
-    # S-01/S-02: Reload SSH daemon to apply configuration changes
-    systemctl reload sshd
+    report "[INFO]" "SSH configured on port $SSH_PORT."
+    # S-01/S-02: Reload SSH daemon to apply configuration changes, ignore errors if no init system
+    service ssh reload 2>/dev/null || true
 }
