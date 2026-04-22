@@ -31,4 +31,6 @@ EOF
         log "N-03: ICMP ignore already configured"
     fi
     report "[INFO]" "Firewall policy created: ports $SSH_PORT, $ALLOW_HTTP, $ALLOW_HTTPS ALLOWED"
+    # N-03: Apply kernel parameters immediately without reboot
+    sysctl -p /etc/sysctl.conf
 }
