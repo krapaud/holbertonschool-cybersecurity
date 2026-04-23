@@ -3,6 +3,14 @@
 # S-01 and S-02 - Harden SSH configuration
 # We use sed to modify existing lines or add them if missing
 harden_ssh() {
+    # S-01/S-02: Abort if sshd_config is missing
+    if [ ! -f /etc/ssh/sshd_config ]; then
+        log "S-01: /etc/ssh/sshd_config not found"
+        report "[ERROR]" "SSH configuration file not found."
+        STATUS="FAIL"
+        return 1
+    fi
+
     # S-01: Disable password auth - force public key only
     if ! grep -q "^PasswordAuthentication no" /etc/ssh/sshd_config; then
         sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config

@@ -52,9 +52,18 @@ harden_identity() {
         fi
     done
 
-    report "[INFO]" "$removed_count unauthorized users removed:$removed_users."
+    if [ "$removed_count" -eq 0 ]; then
+        report "[INFO]" "No unauthorized users found."
+    else
+        report "[INFO]" "$removed_count unauthorized users removed: $removed_users."
+    fi
 
     # I-04: Lock root password to prevent direct login
-    passwd -l root
-    log "I-04: Root password locked"
+    if ! passwd -l root; then
+        log "I-04: Failed to lock root password"
+        report "[ERROR]" "Failed to lock root password."
+        STATUS="FAIL"
+    else
+        log "I-04: Root password locked"
+    fi
 }

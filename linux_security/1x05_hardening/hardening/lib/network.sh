@@ -4,13 +4,19 @@
 harden_network() {
     # N-01/N-02: Write firewall policy using values from config
     mkdir -p /etc/hardening/
-    cat > /etc/hardening/firewall.rules << EOF
+    if ! cat > /etc/hardening/firewall.rules << EOF
     DEFAULT_INPUT=deny
     DEFAULT_OUTPUT=allow
     ALLOW_TCP=$SSH_PORT
     ALLOW_TCP=$ALLOW_HTTP
     ALLOW_TCP=$ALLOW_HTTPS
 EOF
+    then
+        log "N-01: Failed to write firewall.rules"
+        report "[ERROR]" "Failed to write firewall policy."
+        STATUS="FAIL"
+        return 1
+    fi
     log "Firewall Rules created"
 
     # N-03: Disable IP forwarding to prevent packet routing
