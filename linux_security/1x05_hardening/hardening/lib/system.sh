@@ -13,19 +13,19 @@ harden_system() {
     fi
 
     # H-02: Remove insecure legacy tools (clear-text protocols)
-    apt remove --purge telnet ftp netcat-traditional -y
-    log "H-02: Uninstall telnet, ftp, netcat-traditional made"
+    apt remove --purge "${REMOVE_TOOLS[@]}" -y
+    log "H-02: Uninstall ${REMOVE_TOOLS[*]} made"
     apt autoremove --purge -y
     log "H-02: Clean Orphelin dependance made"
-    report "[INFO]" "Removed: telnet, ftp, netcat-traditional."
+    report "[INFO]" "Removed: ${REMOVE_TOOLS[*]}."
 
     # H-03: Install security monitoring tools
-    if ! apt-get install -y auditd fail2ban; then
-        log "H-03: Failed to install auditd and fail2ban"
+    if ! apt-get install -y "${INSTALL_TOOLS[@]}"; then
+        log "H-03: Failed to install ${INSTALL_TOOLS[*]}"
         report "[ERROR]" "Failed to install security tools."
         STATUS="FAIL"
     else
-        log "H-03: Install auditd and fail2ban made"
-        report "[INFO]" "Installed: auditd, fail2ban."
+        log "H-03: Install ${INSTALL_TOOLS[*]} made"
+        report "[INFO]" "Installed: ${INSTALL_TOOLS[*]}."
     fi
 }
