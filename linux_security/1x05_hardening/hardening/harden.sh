@@ -5,6 +5,14 @@ export DEBIAN_FRONTEND=noninteractive
 # Global compliance status set to FAIL by any module on error
 STATUS="PASS"
 
+# Must run as root to modify system files
+if [ "$EUID" -ne 0 ]; then
+    echo "Error: must be run as root"
+    log "Error: must be run as root"
+    report "[ERROR]" "Must be run as root."
+    exit 1
+fi
+
 # Load configuration and all library modules
 source config/harden.cfg
 source lib/network.sh
@@ -19,14 +27,6 @@ log() {
 report() {
     echo "$1 $2" >> audit_report.txt
 }
-
-# Must run as root to modify system files
-if [ "$EUID" -ne 0 ]; then
-    echo "Error: must be run as root"
-    log "Error: must be run as root"
-    report "[ERROR]" "Must be run as root."
-    exit 1
-fi
 
 log "Hardening framework initialized"
 echo "===============================================" > audit_report.txt
