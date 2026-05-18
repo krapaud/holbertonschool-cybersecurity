@@ -1,0 +1,2 @@
+#!/bin/bash
+IFS='.' read -ra octets <<< "$1" ; mask=$(( 0xFFFFFFFF << (32 - $2) & 0xFFFFFFFF )) ; printf "%d.%d.%d.%d - %d.%d.%d.%d" $((${octets[0]} & (mask >> 24 & 255))) $((${octets[1]} & (mask >> 16 & 255))) $((${octets[2]} & (mask >> 8 & 255))) $(((${octets[3]} & (mask >> 0 & 255)) + 1)) $((${octets[0]} | (~(mask >> 24 & 255) & 255))) $((${octets[1]} | (~(mask >> 16 & 255) & 255))) $((${octets[2]} | (~(mask >> 8 & 255)& 255))) $(((${octets[3]} | (~(mask >> 0 & 255) & 255)) - 1))
