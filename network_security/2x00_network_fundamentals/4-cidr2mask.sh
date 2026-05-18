@@ -1,2 +1,2 @@
 #!/bin/bash
-binary="$(printf '%.0s1' $(seq 1 $1))$(printf '%.0s0' $(seq 1 $((32 - $1))))";printf "%d.%d.%d.%d\n" $(echo "ibase=2; ${binary:0:8}" | bc) $(echo "ibase=2; ${binary:8:8}" | bc) $(echo "ibase=2; ${binary:16:8}" | bc) $(echo "ibase=2; ${binary:24:8}" | bc)
+mask=$(( 0xFFFFFFFF << (32 - $1) & 0xFFFFFFFF )) ; printf "%d.%d.%d.%d\n" $(( mask >> 24 & 255 )) $(( mask >> 16 & 255 )) $(( mask >> 8 & 255 )) $(( mask & 255 ))
