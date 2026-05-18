@@ -1,10 +1,2 @@
 #!/bin/bash
-for octet in $(echo $1 | tr '.' ' '); do
-    binary=$(printf "%08d\n" $(echo "obase=2; $octet" | bc))
-    if [ -z "$result" ]; then
-        result="$binary"
-    else
-        result="$result.$binary"
-    fi
-done
-echo $result
+echo "$1" | awk -F'.' '{for (i=1; i<=4; i++) {"echo \"obase=2; " $i "\" | bc" | getline bin; if (i < 4) {printf "%08d.", bin} else {printf "%08d\n", bin}}}'
