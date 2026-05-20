@@ -1,2 +1,2 @@
 #!/bin/bash
-dig +short MX google.com
+dig +short MX $1
