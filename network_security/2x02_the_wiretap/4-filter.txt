@@ -1,0 +1,1 @@
+ip.addr == 10.10.10.99 and tcp.port == 23 and dns || http and !(tcp.port == 22)
