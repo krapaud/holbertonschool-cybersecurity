@@ -1,0 +1,18 @@
+# Claude Code
+.claude/
+
+# Captures réseau
+*.pcap
+*.pcapng
+*.cap
+
+# Fichiers temporaires
+*.tmp
+*.log
+*~
+
+# Éditeurs
+.vscode/
+.idea/
+*.swp
+*.swo
