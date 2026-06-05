@@ -1,4 +1,4 @@
-ip.addr == 10.10.10.99
+ip.src == 10.10.10.99
 tcp.port == 23
 dns || http
 tcp and !(tcp.port == 22)
