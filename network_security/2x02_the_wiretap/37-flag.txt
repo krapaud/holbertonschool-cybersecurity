@@ -1,1 +1,1 @@
-FLAG{dns_qu3r13s_r3v34l}
+FLAG{d4t4_1s_g0ld}
