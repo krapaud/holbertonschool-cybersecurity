@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(chmod +x /home/krapaud/Documents/Holberton_School/holbertonschool-cybersecurity/network_security/2x03_traffic_forensics/5-user_agent.sh)"
+    ]
+  }
+}
