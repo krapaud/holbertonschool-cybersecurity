@@ -1,2 +1,2 @@
 #!/bin/bash
-tshark -z io,phs -r $1 -q
+tshark -r $1 -r -q io,phs
