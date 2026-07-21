@@ -1,4 +1,2 @@
 #!/bin/bash
-TMPDIR=$(mktemp -d)
-tshark -r "$1" --export-objects http,$TMPDIR
-md5sum $TMPDIR/*
+tshark -r "$1" --export-objects http,$(mktemp -d) ; md5sum /tmp/carve/*
