@@ -1,4 +1,4 @@
-# Fondamentaux Réseau — Cours pour débutants
+# Fondamentaux Réseau : Cours pour débutants
 
 ---
 
@@ -103,7 +103,7 @@ Broadcast: 192.168.1.255  ← réservé
 
 Nombre d'hôtes = 2^(bits hôtes) - 2  →  /24 = 2^8 - 2 = **254 hôtes**
 
-### VLSM — Allocation efficace des adresses
+### VLSM : Allocation efficace des adresses
 
 Le **VLSM** (Variable Length Subnet Masking) permet de découper un réseau en sous-réseaux de tailles différentes selon les besoins.
 
@@ -131,7 +131,7 @@ IP destination AND mon masque = mon adresse réseau ?
 
 ### Pourquoi ARP n'est utilisé que localement ?
 
-**ARP** (Address Resolution Protocol) sert à trouver l'adresse **MAC** (physique) d'une IP sur le réseau local. Or, les paquets ne peuvent traverser les routeurs qu'avec des adresses IP — les adresses MAC restent locales à chaque réseau.
+**ARP** (Address Resolution Protocol) sert à trouver l'adresse **MAC** (physique) d'une IP sur le réseau local. Or, les paquets ne peuvent traverser les routeurs qu'avec des adresses IP : les adresses MAC restent locales à chaque réseau.
 
 - Destination **locale** → ARP pour trouver la MAC de la destination directement.
 - Destination **distante** → ARP pour trouver la MAC du **gateway** (routeur), qui se chargera de transmettre.
@@ -146,7 +146,7 @@ Destination     Gateway       Interface
 192.168.1.0/24  0.0.0.0       eth0       ← réseau local direct
 ```
 
-### TTL — Durée de vie d'un paquet
+### TTL : Durée de vie d'un paquet
 
 Le **TTL** (Time To Live) est un compteur décrémenté de 1 à chaque routeur traversé. Quand il atteint 0, le paquet est détruit et un message d'erreur est renvoyé à l'expéditeur.
 
@@ -160,7 +160,7 @@ Machine A → Routeur 1 (TTL 64→63) → Routeur 2 (TTL 63→62) → ... → De
 
 ## 4. Modèle OSI (Pratique)
 
-### Couche 2 — Data Link : pourquoi la MAC du gateway ?
+### Couche 2 : Data Link : pourquoi la MAC du gateway ?
 
 Ta machine veut envoyer un paquet à `8.8.8.8` (Google). Ce n'est pas local, donc elle doit passer par le **gateway** (routeur).
 
@@ -172,7 +172,7 @@ Mais sur le réseau physique (câble, Wi-Fi), les trames utilisent des **adresse
 
 Le routeur reçoit la trame, lit l'IP de destination, et répète le processus vers le prochain saut.
 
-### Couche 3 — Network : comment le routeur décide ?
+### Couche 3 : Network : comment le routeur décide ?
 
 À chaque saut, le routeur :
 1. Reçoit le paquet

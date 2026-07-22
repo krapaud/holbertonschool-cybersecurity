@@ -1,17 +1,17 @@
-# Linux Fundamentals — Mini-cours
+# Linux Fundamentals : Mini-cours
 
 > **Dépôt :** holbertonschool-cybersecurity  
 > **Répertoire :** `linux_security/1x00_linux_fundamentals`
 
 ---
 
-## Who Dis ? — Transfert de fichiers et vérification d'identité
+## Who Dis ? : Transfert de fichiers et vérification d'identité
 
 ### Commandes clés : `whoami`, `scp`, `ssh`, `chmod`
 
 Lorsqu'on intervient sur un serveur de production, la règle d'or est simple : **on ne bricole pas directement sur la cible**. On prépare un script en local, on le teste, puis on le déploie de façon propre et contrôlée.
 
-#### `whoami` — Qui suis-je ?
+#### `whoami` : Qui suis-je ?
 
 ```bash
 whoami
@@ -19,7 +19,7 @@ whoami
 
 Cette commande affiche le **nom d'utilisateur effectif** du processus courant. C'est le premier réflexe à avoir après une connexion ou une élévation de privilèges : confirmer son contexte d'exécution.
 
-#### `chmod` — Rendre un script exécutable
+#### `chmod` : Rendre un script exécutable
 
 ```bash
 chmod +x 0-its_me.sh
@@ -27,7 +27,7 @@ chmod +x 0-its_me.sh
 
 Sous Linux, un fichier texte n'est pas exécutable par défaut. `chmod +x` ajoute le bit d'exécution pour que le shell puisse le lancer directement avec `./`.
 
-#### `scp` — Copie sécurisée
+#### `scp` : Copie sécurisée
 
 ```bash
 # Envoyer un fichier vers la machine distante
@@ -39,7 +39,7 @@ scp student@<IP>:/home/student/0-flag.txt .
 
 `scp` (Secure Copy Protocol) utilise le protocole SSH pour transférer des fichiers de façon chiffrée. C'est la méthode standard pour déployer un payload connu sans toucher à la production.
 
-#### `ssh` — Exécution distante
+#### `ssh` : Exécution distante
 
 ```bash
 ssh student@<IP> "./0-its_me.sh"
@@ -51,11 +51,11 @@ On peut passer une commande directement à `ssh` sans ouvrir un shell interactif
 
 ---
 
-## The Needle in the Haystack — Recherche avancée avec `find`
+## The Needle in the Haystack : Recherche avancée avec `find`
 
 ### Commandes clés : `find`, redirection de `stderr`
 
-#### `find` — Trouver des fichiers par critères multiples
+#### `find` : Trouver des fichiers par critères multiples
 
 `find` est l'outil de recherche de base sous Linux. Sa puissance vient de la combinaison de critères :
 
@@ -70,7 +70,7 @@ On peut passer une commande directement à `ssh` sans ouvrir un shell interactif
 find "$1" -type f -mtime -7 -size +1M ! -name "*.gz" 2>/dev/null
 ```
 
-#### `2>/dev/null` — Ignorer les erreurs de permission
+#### `2>/dev/null` : Ignorer les erreurs de permission
 
 Lors d'une recherche récursive, `find` tente d'accéder à des répertoires auxquels l'utilisateur n'a peut-être pas accès, générant des `Permission denied`. La redirection `2>/dev/null` envoie la sortie d'erreur (`stderr`, descripteur 2) vers `/dev/null` (la poubelle), gardant la sortie propre.
 
@@ -78,11 +78,11 @@ Lors d'une recherche récursive, `find` tente d'accéder à des répertoires aux
 
 ---
 
-## Content Mining — Grep récursif pour trouver des secrets
+## Content Mining : Grep récursif pour trouver des secrets
 
 ### Commandes clés : `grep`, `-r`, `-l`
 
-#### `grep` — Chercher du contenu dans des fichiers
+#### `grep` : Chercher du contenu dans des fichiers
 
 ```bash
 grep -rl "password = " "$1" 2>/dev/null
@@ -101,11 +101,11 @@ On cherche ici la chaîne littérale `password =` dans tout `/etc`. C'est une te
 
 ---
 
-## The Piping Logic — Chaîner les commandes avec les pipes
+## The Piping Logic : Chaîner les commandes avec les pipes
 
 ### Commandes clés : `ls`, `awk`, `sort`, `uniq`, `head`
 
-#### Le pipe `|` — La philosophie Unix
+#### Le pipe `|` : La philosophie Unix
 
 Unix repose sur un principe : **chaque programme fait une seule chose, et la fait bien**. Le pipe `|` connecte la sortie d'une commande à l'entrée de la suivante, formant des pipelines puissants sans créer de fichiers temporaires.
 
@@ -128,11 +128,11 @@ Décomposition :
 
 ---
 
-## The SUID Audit — Chasse aux vecteurs d'élévation de privilèges
+## The SUID Audit : Chasse aux vecteurs d'élévation de privilèges
 
 ### Commandes clés : `find -perm`
 
-#### Le bit SUID — Pourquoi c'est dangereux
+#### Le bit SUID : Pourquoi c'est dangereux
 
 Le bit **SUID** (Set User ID) fait s'exécuter un programme avec les droits de son **propriétaire**, et non ceux de l'utilisateur qui le lance. C'est nécessaire pour des commandes comme `passwd` (qui doit pouvoir écrire `/etc/shadow` en tant que root).
 
@@ -153,11 +153,11 @@ find "$1" -perm -4000 -type f 2>/dev/null
 
 ---
 
-## The Immortal File — Attributs étendus avec `chattr`
+## The Immortal File : Attributs étendus avec `chattr`
 
 ### Commandes clés : `chattr`, `lsattr`
 
-#### Le bit Immutable — Au-delà des permissions classiques
+#### Le bit Immutable : Au-delà des permissions classiques
 
 Les permissions Unix (`rwx`) ne sont pas le seul mécanisme de protection des fichiers. Linux dispose d'**attributs étendus** gérés par `chattr` :
 
@@ -174,7 +174,7 @@ rm /home/larry/malware.sh
 
 | Attribut | Effet |
 | --- | --- |
-| `+i` (immutable) | Interdit toute modification, suppression, renommage — **même pour root** |
+| `+i` (immutable) | Interdit toute modification, suppression, renommage : **même pour root** |
 | `+a` (append only) | Seul l'ajout en fin de fichier est autorisé |
 
 > **Cas concret :** les rootkits utilisent parfois `chattr +i` pour se protéger. Pour contrer cela, il faut les droits CAP_LINUX_IMMUTABLE ou être root, puis utiliser `chattr -i` avant de supprimer.
@@ -183,7 +183,7 @@ rm /home/larry/malware.sh
 
 ---
 
-## The Collaboration Folder — SGID et Sticky Bit
+## The Collaboration Folder : SGID et Sticky Bit
 
 ### Commandes clés : `mkdir`, `chown`, `chmod`, bits spéciaux
 
@@ -226,7 +226,7 @@ chmod +t "$1"     # Sticky Bit
 
 ---
 
-## The Audit Gateway — `sudo` pour déléguer sans ACL
+## The Audit Gateway : `sudo` pour déléguer sans ACL
 
 ### Commandes clés : `sudo`, `visudo`, wrapper script
 
@@ -259,7 +259,7 @@ echo "auditor ALL=(root) NOPASSWD: /usr/local/bin/audit-read-secret" \
 
 ---
 
-## The Log Creation Policy — `logrotate` et SGID pour les logs
+## The Log Creation Policy : `logrotate` et SGID pour les logs
 
 ### Commandes clés : `logrotate`, `chmod g+s`, `chown`
 

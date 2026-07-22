@@ -1,10 +1,10 @@
-# The Wiretap — Cours pour débutants
+# The Wiretap : Cours pour débutants
 
 ---
 
 ## 1. Capturer du trafic réseau
 
-### tcpdump — L'enregistreur de paquets
+### tcpdump : L'enregistreur de paquets
 
 `tcpdump` est comme un magnétophone branché sur ton câble réseau. Il enregistre tout ce qui passe sur une interface réseau dans un fichier `.pcap` (Packet Capture).
 
@@ -16,11 +16,11 @@ sudo tcpdump -i eth0 -w capture.pcap
 - `-w fichier.pcap` : écrire dans un fichier au lieu d'afficher
 - `sudo` : obligatoire car lire le trafic réseau nécessite des droits root
 
-**Pourquoi sudo ?** Écouter le réseau c'est comme brancher un micro dans une salle — c'est une action sensible. Le noyau Linux l'interdit aux utilisateurs normaux.
+**Pourquoi sudo ?** Écouter le réseau c'est comme brancher un micro dans une salle : c'est une action sensible. Le noyau Linux l'interdit aux utilisateurs normaux.
 
 ### Les filtres BPF (Berkeley Packet Filter)
 
-Les filtres BPF permettent de capturer **seulement ce qui t'intéresse**. Imagine que tu enregistres un concert mais que tu ne veux que la voix du chanteur — le filtre BPF c'est ton égaliseur.
+Les filtres BPF permettent de capturer **seulement ce qui t'intéresse**. Imagine que tu enregistres un concert mais que tu ne veux que la voix du chanteur : le filtre BPF c'est ton égaliseur.
 
 **Syntaxe de base :**
 
@@ -51,7 +51,7 @@ Les parenthèses fonctionnent comme en maths : elles groupent les conditions.
 
 ### Filtres d'affichage Wireshark
 
-Wireshark a ses propres filtres — différents des filtres BPF de tcpdump. Les filtres BPF servent à **capturer**, les filtres Wireshark servent à **afficher**.
+Wireshark a ses propres filtres : différents des filtres BPF de tcpdump. Les filtres BPF servent à **capturer**, les filtres Wireshark servent à **afficher**.
 
 C'est comme la différence entre choisir quels films enregistrer sur ta clé USB (BPF) et chercher parmi les films déjà enregistrés (Wireshark).
 
@@ -112,15 +112,15 @@ Client                    Serveur
   |=== données ============>|
 ```
 
-- **SYN** : synchronize — demande de connexion
-- **ACK** : acknowledge — confirmation de réception
-- **FIN** : finish — demande de fermeture
+- **SYN** : synchronize : demande de connexion
+- **ACK** : acknowledge : confirmation de réception
+- **FIN** : finish : demande de fermeture
 
 **Pourquoi c'est important ?** Un scanner réseau envoie des SYN sans terminer la connexion. Filtrer `syn == 1 and ack == 0` permet de détecter ces scans.
 
-### ISN — Initial Sequence Number
+### ISN : Initial Sequence Number
 
-Quand une connexion TCP s'établit, chaque côté choisit un numéro de séquence de départ (ISN). C'est comme choisir un numéro de page pour commencer à écrire une lettre longue — les deux côtés se synchronisent pour savoir où en est la conversation.
+Quand une connexion TCP s'établit, chaque côté choisit un numéro de séquence de départ (ISN). C'est comme choisir un numéro de page pour commencer à écrire une lettre longue : les deux côtés se synchronisent pour savoir où en est la conversation.
 
 ```text
 SYN → seq=1234567890           # ISN du client
@@ -141,7 +141,7 @@ SYN-ACK → seq=9876543210       # ISN du serveur
 nmap -sn -PR 192.168.1.0/24
 ```
 
-Utilise ARP (couche 2) pour détecter les machines actives. ARP ne traverse pas les routeurs — ça ne marche que sur le réseau local. Très fiable : les machines ne peuvent pas ignorer ARP.
+Utilise ARP (couche 2) pour détecter les machines actives. ARP ne traverse pas les routeurs : ça ne marche que sur le réseau local. Très fiable : les machines ne peuvent pas ignorer ARP.
 
 **ICMP Mask Discovery (`-PM`) :**
 
@@ -161,13 +161,13 @@ nmap -sT -p 22,80,443 192.168.1.1
 
 Établit une vraie connexion TCP complète (3-way handshake). Pas besoin de root. **Facile à détecter** par les logs serveur car la connexion est complète.
 
-**SYN Scan (`-sS`) — le scan "furtif" :**
+**SYN Scan (`-sS`) : le scan "furtif" :**
 
 ```bash
 sudo nmap -sS -p 22,80,443 192.168.1.1
 ```
 
-Envoie un SYN, reçoit un SYN-ACK, puis envoie un RST (reset) au lieu de finaliser. La connexion n'est jamais complète — les anciens systèmes ne loggaient pas ça. Nécessite root (pour forger les paquets bruts).
+Envoie un SYN, reçoit un SYN-ACK, puis envoie un RST (reset) au lieu de finaliser. La connexion n'est jamais complète : les anciens systèmes ne loggaient pas ça. Nécessite root (pour forger les paquets bruts).
 
 | Réponse reçue | Signification |
 | --- | --- |
@@ -201,13 +201,13 @@ Essaie d'identifier le logiciel et sa version sur chaque port ouvert. nmap envoi
 
 ## 4. Protocoles non sécurisés
 
-### Telnet — Le protocole nu
+### Telnet : Le protocole nu
 
-Telnet transmet tout en **clair** — commandes, réponses, et mots de passe inclus. C'est comme écrire un mot de passe sur une carte postale : n'importe qui entre toi et le destinataire peut le lire.
+Telnet transmet tout en **clair** : commandes, réponses, et mots de passe inclus. C'est comme écrire un mot de passe sur une carte postale : n'importe qui entre toi et le destinataire peut le lire.
 
 Dans Wireshark, filtrer `telnet` et suivre le flux TCP (`Follow > TCP Stream`) montre la session complète en clair.
 
-### FTP — Transfert de fichiers sans chiffrement
+### FTP : Transfert de fichiers sans chiffrement
 
 FTP (port 21) transmet les credentials et les données en clair, tout comme Telnet. Il existe en deux modes :
 
@@ -218,10 +218,10 @@ FTP (port 21) transmet les credentials et les données en clair, tout comme Teln
 
 ### HTTP vs HTTPS
 
-- **HTTP** (port 80) : texte en clair — n'importe qui sur le réseau voit tes données
-- **HTTPS** (port 443) : chiffré avec TLS — seul le serveur destination peut lire
+- **HTTP** (port 80) : texte en clair : n'importe qui sur le réseau voit tes données
+- **HTTPS** (port 443) : chiffré avec TLS : seul le serveur destination peut lire
 
-Dans Wireshark, le trafic HTTPS apparaît comme `TLSv1.3` ou `TLSv1.2` — les données sont illisibles sans la clé privée du serveur. On peut quand même voir le **SNI** (Server Name Indication) dans le ClientHello, qui révèle le domaine visité.
+Dans Wireshark, le trafic HTTPS apparaît comme `TLSv1.3` ou `TLSv1.2` : les données sont illisibles sans la clé privée du serveur. On peut quand même voir le **SNI** (Server Name Indication) dans le ClientHello, qui révèle le domaine visité.
 
 ---
 

@@ -1,11 +1,11 @@
-# Shell Ops — Mini-cours
+# Shell Ops : Mini-cours
 
 > **Dépôt :** holbertonschool-cybersecurity  
 > **Répertoire :** `linux_security/1x01_shell_ops`
 
 ---
 
-## Le Redirecteur Global — Gérer les descripteurs de fichiers
+## Le Redirecteur Global : Gérer les descripteurs de fichiers
 
 ### Commandes clés : `exec`, `>>`, `2>&1`
 
@@ -26,7 +26,7 @@ exec >> "$1" 2>&1
 - `exec >> "$1"` : redirige stdout (descripteur 1) en mode ajout vers le fichier `$1`
 - `2>&1` : redirige stderr (descripteur 2) vers la même destination que stdout
 
-Tout ce qui suit dans le script — chaque `echo`, chaque commande — ira automatiquement dans le fichier sans aucune syntaxe supplémentaire.
+Tout ce qui suit dans le script : chaque `echo`, chaque commande : ira automatiquement dans le fichier sans aucune syntaxe supplémentaire.
 
 ```bash
 #!/bin/bash
@@ -36,13 +36,13 @@ echo "Doing Work"
 echo "Error: Work Failed" >&2
 ```
 
-> **Note :** `>&2` sur la dernière ligne envoie explicitement vers stderr — qui est, après le `exec`, redirigé vers le fichier.
+> **Note :** `>&2` sur la dernière ligne envoie explicitement vers stderr : qui est, après le `exec`, redirigé vers le fichier.
 
 **Fichiers :** `0-logging.sh`, `0-flag.txt`
 
 ---
 
-## Pas de fichiers temporaires — La substitution de processus
+## Pas de fichiers temporaires : La substitution de processus
 
 ### Commandes clés : `diff`, `<(...)`, substitution de processus
 
@@ -75,7 +75,7 @@ Le shell crée des pseudo-fichiers (sous `/dev/fd/`) pour chaque `<(...)` et les
 
 ---
 
-## Le Processeur en Masse — `find` et `xargs`
+## Le Processeur en Masse : `find` et `xargs`
 
 ### Commandes clés : `find`, `xargs`, `mv`
 
@@ -98,7 +98,7 @@ find "$1" -maxdepth 1 -name "*.log" | xargs -I {} mv {} {}.old
 
 ---
 
-## L'Anonymiseur — `sed` et les expressions régulières
+## L'Anonymiseur : `sed` et les expressions régulières
 
 ### Commandes clés : `sed`, regex IPv4
 
@@ -128,7 +128,7 @@ sed 's/[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/[REDACTED_IP]/g' "
 
 ---
 
-## Le Filtre Avancé — `awk` et la logique conditionnelle
+## Le Filtre Avancé : `awk` et la logique conditionnelle
 
 ### Commandes clés : `ls -l`, `awk`
 
@@ -157,11 +157,11 @@ Décomposition de la sortie de `ls -l` :
 
 ---
 
-## Le Nettoyeur d'Utilisateurs — Validation et gestion de comptes
+## Le Nettoyeur d'Utilisateurs : Validation et gestion de comptes
 
 ### Commandes clés : `while read`, `id`, `usermod -L`
 
-Ce script illustre le traitement ligne par ligne d'un fichier et la validation avant action — un principe fondamental en automatisation sécurisée.
+Ce script illustre le traitement ligne par ligne d'un fichier et la validation avant action : un principe fondamental en automatisation sécurisée.
 
 ```bash
 while IFS= read -r username; do
@@ -187,7 +187,7 @@ done < "$1"
 
 ---
 
-## L'Attente de Service — Boucle `until` et vérification de port
+## L'Attente de Service : Boucle `until` et vérification de port
 
 ### Commandes clés : `until`, `nc` (netcat), `sleep`
 
@@ -213,7 +213,7 @@ echo "Service UP!"
 
 ---
 
-## Le Rotateur de Logs — Automatisation de maintenance
+## Le Rotateur de Logs : Automatisation de maintenance
 
 ### Commandes clés : `gzip`, `mv`, `-d`, `-f`, validation d'arguments
 

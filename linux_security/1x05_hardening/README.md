@@ -1,11 +1,11 @@
-# Hardening — Mini-cours
+# Hardening : Mini-cours
 
 > **Dépôt :** holbertonschool-cybersecurity
 > **Répertoire :** `linux_security/1x05_hardening`
 
 ---
 
-## Vue d'ensemble — Framework de durcissement modulaire
+## Vue d'ensemble : Framework de durcissement modulaire
 
 Ce module implémente un framework de durcissement Linux automatisé, conforme aux politiques STIG-2024. L'objectif est de passer d'un système "par défaut" à un système "durci" en appliquant une série de règles reproductibles et auditables.
 
@@ -13,14 +13,14 @@ Ce module implémente un framework de durcissement Linux automatisé, conforme a
 
 ```text
 hardening/
-├── harden.sh           # Point d'entrée — orchestre l'exécution des modules
+├── harden.sh           # Point d'entrée : orchestre l'exécution des modules
 ├── config/
 │   └── harden.cfg      # Variables de configuration centralisées
 ├── lib/
-│   ├── ssh.sh          # Règles S-01, S-02 — Durcissement SSH
-│   ├── network.sh      # Règles N-01, N-02, N-03 — Durcissement réseau
-│   ├── identity.sh     # Règles I-01 à I-04 — Comptes et mots de passe
-│   └── system.sh       # Règles H-01 à H-03 — Paquets système
+│   ├── ssh.sh          # Règles S-01, S-02 : Durcissement SSH
+│   ├── network.sh      # Règles N-01, N-02, N-03 : Durcissement réseau
+│   ├── identity.sh     # Règles I-01 à I-04 : Comptes et mots de passe
+│   └── system.sh       # Règles H-01 à H-03 : Paquets système
 └── audit_report.txt    # Rapport de conformité généré à chaque exécution
 ```
 
@@ -28,7 +28,7 @@ Le script utilise un statut global `STATUS` initialisé à `PASS`. N'importe que
 
 ---
 
-## Règles SSH — `lib/ssh.sh`
+## Règles SSH : `lib/ssh.sh`
 
 ### S-01 : Authentification par clé publique uniquement
 
@@ -60,7 +60,7 @@ Interdire `PermitRootLogin` force les administrateurs à se connecter avec leur 
 
 ---
 
-## Règles réseau — `lib/network.sh`
+## Règles réseau : `lib/network.sh`
 
 ### N-01 / N-02 : Politique de pare-feu
 
@@ -99,20 +99,20 @@ sysctl -p /etc/sysctl.conf
 
 ---
 
-## Règles identité — `lib/identity.sh`
+## Règles identité : `lib/identity.sh`
 
 ### I-01 : Politique de mots de passe
 
 Le durcissement agit sur deux niveaux :
 
-**1. `/etc/login.defs`** — politique globale des comptes :
+**1. `/etc/login.defs`** : politique globale des comptes :
 
 ```bash
 sed -i "s/^PASS_MAX_DAYS.*/PASS_MAX_DAYS=90/" /etc/login.defs
 sed -i "s/^PASS_MIN_LEN.*/PASS_MIN_LEN=12/" /etc/login.defs
 ```
 
-**2. PAM (`/etc/pam.d/common-password`)** — complexité à la saisie :
+**2. PAM (`/etc/pam.d/common-password`)** : complexité à la saisie :
 
 ```bash
 echo "password requisite pam_pwquality.so minlen=12 ucredit=-1 lcredit=-1 dcredit=-1 ocredit=-1" \
@@ -161,7 +161,7 @@ passwd -l root
 
 ---
 
-## Règles système — `lib/system.sh`
+## Règles système : `lib/system.sh`
 
 ### H-01 : Mise à jour des paquets
 
@@ -180,8 +180,8 @@ apt autoremove --purge -y
 
 | Outil | Risque |
 | --- | --- |
-| `telnet` | Protocole en clair — identifiants visibles par sniffing réseau |
-| `ftp` | Même problème — données et credentials non chiffrés |
+| `telnet` | Protocole en clair : identifiants visibles par sniffing réseau |
+| `ftp` | Même problème : données et credentials non chiffrés |
 | `netcat-traditional` | Outil de tunneling réseau polyvalent, souvent utilisé pour les reverse shells |
 
 `--purge` supprime aussi les fichiers de configuration, ce qui évite de laisser des configurations résiduelles.

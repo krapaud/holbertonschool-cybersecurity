@@ -6,7 +6,7 @@ A modular Linux hardening framework implementing STIG-2024 security policies.
 
 ```text
 hardening/
-├── harden.sh           # Entry point — orchestrates all modules
+├── harden.sh           # Entry point : orchestrates all modules
 ├── config/
 │   └── harden.cfg      # Centralized configuration variables
 ├── lib/
@@ -85,7 +85,7 @@ The `audit_report.txt` file uses three severity levels:
 | --- | --- |
 | `[INFO]` | Rule applied or already compliant |
 | `[WARN]` | Non-critical notice (e.g. packages already up to date) |
-| `[ERROR]` | Rule failed — sets overall `COMPLIANCE STATUS` to `FAIL` |
+| `[ERROR]` | Rule failed : sets overall `COMPLIANCE STATUS` to `FAIL` |
 
 ### Sample output
 

@@ -1,4 +1,4 @@
-# Services Réseau — Cours pour débutants
+# Services Réseau : Cours pour débutants
 
 ---
 
@@ -71,7 +71,7 @@ Cela signifie : *"cette réponse est valide 300 secondes (5 min). Après ça, re
 
 ## 2. Sécurité DNS
 
-### /etc/hosts — le DNS local qui prime sur tout
+### /etc/hosts : le DNS local qui prime sur tout
 
 Avant de contacter un serveur DNS, ton système lit le fichier `/etc/hosts`. Ce fichier contient des correspondances statiques nom → IP.
 
@@ -90,7 +90,7 @@ Avant de contacter un serveur DNS, ton système lit le fichier `/etc/hosts`. Ce 
 
 C'est pour ça que ce fichier est une cible privilégiée des malwares.
 
-### SPF — Empêcher l'usurpation d'email
+### SPF : Empêcher l'usurpation d'email
 
 Le **SPF** (Sender Policy Framework) est un record **TXT** dans le DNS qui liste les serveurs autorisés à envoyer des emails pour un domaine.
 
@@ -107,7 +107,7 @@ dig TXT google.com
 
 Sans SPF, n'importe qui peut envoyer un email en se faisant passer pour `google.com`.
 
-### Zone Transfer (AXFR) — La fuite de données DNS
+### Zone Transfer (AXFR) : La fuite de données DNS
 
 Un **Zone Transfer** est le mécanisme par lequel un serveur DNS secondaire copie toute la zone DNS du serveur primaire pour rester synchronisé.
 
@@ -199,7 +199,7 @@ C'est pour ça qu'il est important de vérifier l'IP du serveur DHCP qui t'a att
 
 ## 4. Compétences pratiques
 
-### dig — Outil de référence pour le DNS
+### dig : Outil de référence pour le DNS
 
 ```bash
 dig google.com                    # requête A (IPv4)
@@ -216,7 +216,7 @@ dig @8.8.8.8 google.com           # interroger un serveur spécifique
 dig AXFR domaine.com @ns1.dom.com # tentative de zone transfer
 ```
 
-### nslookup — Débogage interactif
+### nslookup : Débogage interactif
 
 ```bash
 nslookup google.com               # requête simple
@@ -248,7 +248,7 @@ Le `nameserver` est l'IP à qui ta machine pose ses questions DNS. Si un attaqua
 
 ### Reverse DNS (PTR)
 
-Le reverse DNS permet de trouver le nom associé à une IP — l'inverse d'une requête A.
+Le reverse DNS permet de trouver le nom associé à une IP : l'inverse d'une requête A.
 
 ```bash
 dig +short -x 8.8.8.8    → dns.google.

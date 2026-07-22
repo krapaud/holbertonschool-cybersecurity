@@ -1,4 +1,4 @@
-# Holberton School — Cybersécurité
+# Holberton School : Cybersécurité
 
 Bienvenue dans le repo de cours cybersécurité de Holberton School. Ce dépôt regroupe tous les modules pratiques du parcours, organisés en deux grandes familles : la sécurité Linux et la sécurité réseau.
 
@@ -28,7 +28,7 @@ holbertonschool-cybersecurity/
 
 ## Modules Network Security
 
-### [2x00 — Fondamentaux Réseau](network_security/2x00_network_fundamentals/README.md)
+### [2x00 : Fondamentaux Réseau](network_security/2x00_network_fundamentals/README.md)
 
 Les bases indispensables avant de toucher à la sécurité réseau.
 
@@ -39,7 +39,7 @@ Les bases indispensables avant de toucher à la sécurité réseau.
 
 ---
 
-### [2x01 — Services Réseau](network_security/2x01_network_services/README.md)
+### [2x01 : Services Réseau](network_security/2x01_network_services/README.md)
 
 Les protocoles que tu rencontres tous les jours sur un réseau.
 
@@ -50,7 +50,7 @@ Les protocoles que tu rencontres tous les jours sur un réseau.
 
 ---
 
-### [2x02 — The Wiretap](network_security/2x02_the_wiretap/README.md)
+### [2x02 : The Wiretap](network_security/2x02_the_wiretap/README.md)
 
 Capturer et analyser du trafic réseau.
 
@@ -62,7 +62,7 @@ Capturer et analyser du trafic réseau.
 
 ---
 
-### [2x03 — Traffic Forensics](network_security/2x03_traffic_forensics/README.md)
+### [2x03 : Traffic Forensics](network_security/2x03_traffic_forensics/README.md)
 
 Analyser un incident à partir d'une capture réseau.
 
@@ -74,7 +74,7 @@ Analyser un incident à partir d'une capture réseau.
 
 ---
 
-### [2x04 — Perimeter Control](network_security/2x04_perimeter_control/README.md)
+### [2x04 : Perimeter Control](network_security/2x04_perimeter_control/README.md)
 
 Sécuriser le périmètre d'un serveur avec un pare-feu et un VPN.
 
@@ -89,4 +89,4 @@ Sécuriser le périmètre d'un serveur avec un pare-feu et un VPN.
 
 ## Auteur
 
-**Mickael Krapaud** — Étudiant Holberton School
+**Mickael Krapaud** : Étudiant Holberton School

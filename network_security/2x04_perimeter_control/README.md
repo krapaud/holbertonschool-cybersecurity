@@ -1,4 +1,4 @@
-# Perimeter Control — Cours pour débutants
+# Perimeter Control : Cours pour débutants
 
 ---
 
@@ -10,16 +10,16 @@ Avant de sécuriser un système, il faut savoir quels services écoutent. La com
 ss -l -tup
 ```
 
-- `-l` : listening — seulement les sockets en écoute
+- `-l` : listening : seulement les sockets en écoute
 - `-t` : TCP
 - `-u` : UDP
-- `-p` : process — afficher quel programme écoute
+- `-p` : process : afficher quel programme écoute
 
 **Analogie :** C'est comme faire le tour de ta maison pour vérifier quelles fenêtres et portes sont ouvertes avant de partir en vacances.
 
 ---
 
-## 2. nftables — Le pare-feu Linux moderne
+## 2. nftables : Le pare-feu Linux moderne
 
 nftables est le système de filtrage réseau intégré au noyau Linux depuis 2014, successeur d'iptables. Il contrôle quel trafic entre, sort ou traverse ta machine.
 
@@ -60,7 +60,7 @@ Chaque chain a une **policy** par défaut :
 - `policy accept` : tout passer par défaut (et les règles peuvent bloquer)
 - `policy drop` : tout bloquer par défaut (et les règles peuvent autoriser)
 
-Pour la sécurité, on utilise `policy drop` sur `input` et `forward` — on n'autorise que ce qu'on veut explicitement.
+Pour la sécurité, on utilise `policy drop` sur `input` et `forward` : on n'autorise que ce qu'on veut explicitement.
 
 ### Connection Tracking (`ct state`)
 
@@ -108,8 +108,8 @@ table ip nat {
 
 ### Filtrer par interface : `iif` et `oif`
 
-- `iif` : input interface — interface par laquelle le paquet **arrive**
-- `oif` : output interface — interface par laquelle le paquet **repart**
+- `iif` : input interface : interface par laquelle le paquet **arrive**
+- `oif` : output interface : interface par laquelle le paquet **repart**
 
 ```text
 iif lo accept          # accepter le loopback
@@ -135,11 +135,11 @@ systemctl enable nftables          # activer au démarrage
 
 ---
 
-## 3. WireGuard — VPN moderne
+## 3. WireGuard : VPN moderne
 
 WireGuard est un protocole VPN intégré au noyau Linux depuis 5.6. Il est plus simple et plus rapide que OpenVPN ou IPsec.
 
-**Analogie :** WireGuard crée un tunnel secret entre deux machines. Tout le trafic dedans est chiffré — comme un tuyau opaque entre deux pièces d'une maison.
+**Analogie :** WireGuard crée un tunnel secret entre deux machines. Tout le trafic dedans est chiffré : comme un tuyau opaque entre deux pièces d'une maison.
 
 ### Le principe des clés asymétriques
 
@@ -148,7 +148,7 @@ WireGuard utilise une paire de clés pour chaque pair :
 - **Clé privée** : ne quitte jamais la machine, ne se partage JAMAIS
 - **Clé publique** : dérivée de la clé privée, se partage avec les pairs
 
-C'est comme un cadenas (clé publique) et sa clé (clé privée). Tu peux donner ton cadenas à tout le monde — seul toi peux l'ouvrir.
+C'est comme un cadenas (clé publique) et sa clé (clé privée). Tu peux donner ton cadenas à tout le monde : seul toi peux l'ouvrir.
 
 ```bash
 wg genkey > private_key                    # générer une clé privée
@@ -183,7 +183,7 @@ Endpoint = <ip_publique_serveur>:51820
 AllowedIPs = 10.200.0.0/24       # trafic à faire passer dans le tunnel
 ```
 
-### AllowedIPs — ce que ça signifie
+### AllowedIPs : ce que ça signifie
 
 `AllowedIPs` a deux fonctions selon qu'on est serveur ou client :
 
@@ -207,7 +207,7 @@ Un handshake WireGuard se fait toutes les 3 minutes. Un timestamp de `0` signifi
 
 ---
 
-## 4. IP Forwarding — Devenir un routeur
+## 4. IP Forwarding : Devenir un routeur
 
 Par défaut, Linux ignore les paquets qui ne lui sont pas destinés. Pour qu'il les transmette (comme un routeur), il faut activer le **forwarding**.
 
@@ -223,7 +223,7 @@ echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf     # rendre persistant au rebo
 
 ---
 
-## 5. NAT — Masquerade
+## 5. NAT : Masquerade
 
 Les clients VPN ont des IPs privées (10.200.0.x). Internet ne peut pas leur répondre directement car ces IPs ne sont pas routables publiquement.
 

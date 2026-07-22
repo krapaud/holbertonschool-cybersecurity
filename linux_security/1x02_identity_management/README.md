@@ -1,11 +1,11 @@
-# Identity Management — Mini-cours
+# Identity Management : Mini-cours
 
 > **Dépôt :** holbertonschool-cybersecurity
 > **Répertoire :** `linux_security/1x02_identity_management`
 
 ---
 
-## 0. The Ghost User Hunter — Détecter les comptes root cachés
+## 0. The Ghost User Hunter : Détecter les comptes root cachés
 
 ### Commandes clés : `awk`, `/etc/passwd`
 
@@ -18,7 +18,7 @@ username:password:UID:GID:comment:home:shell
    $1       $2    $3  $4    $5     $6    $7
 ```
 
-Le **UID** (User ID) est le chiffre qui détermine les droits réels. Le noyau Linux ne connaît pas les noms — il ne raisonne qu'en UIDs. Un compte avec UID 0 **est** root, quel que soit son nom.
+Le **UID** (User ID) est le chiffre qui détermine les droits réels. Le noyau Linux ne connaît pas les noms : il ne raisonne qu'en UIDs. Un compte avec UID 0 **est** root, quel que soit son nom.
 
 #### Technique de persistance : le faux utilisateur root
 
@@ -41,7 +41,7 @@ awk -F: '$3 == 0 && $1 != "root" {print $1}' "$1"
 
 ---
 
-## 1. The Service Shells — Comptes de service avec shell interactif
+## 1. The Service Shells : Comptes de service avec shell interactif
 
 ### Commandes clés : `awk`, filtrage par UID et shell
 
@@ -67,7 +67,7 @@ awk -F: '$3 < 1000 && $1 != "root" && $7 ~ /(sh|bash)$/ {print $1}' "$1"
 
 ---
 
-## 2. The Dangerous Groups — Audit des appartenances à risque
+## 2. The Dangerous Groups : Audit des appartenances à risque
 
 ### Commandes clés : `awk`, `id`, `grep -w`
 
@@ -104,7 +104,7 @@ La commande `id <user>` retourne tous les groupes d'un utilisateur. `grep -qw` (
 
 ---
 
-## 3. SSH Configuration — Durcissement de l'accès distant
+## 3. SSH Configuration : Durcissement de l'accès distant
 
 ### Commandes clés : `sed`, `sshd -t`, `systemctl reload`
 
@@ -132,7 +132,7 @@ if sshd -t -f "$1"; then
 fi
 ```
 
-`sshd -t` teste la syntaxe du fichier de configuration **sans rechargement**. Un fichier corrompu sans cette validation peut verrouiller l'accès au serveur — situation critique en production.
+`sshd -t` teste la syntaxe du fichier de configuration **sans rechargement**. Un fichier corrompu sans cette validation peut verrouiller l'accès au serveur : situation critique en production.
 
 > **Règle d'or :** toujours valider avant de recharger SSH. Garder une session root ouverte en parallèle lors de toute modification.
 
@@ -140,7 +140,7 @@ fi
 
 ---
 
-## 4. Password Policy — PAM et la qualité des mots de passe
+## 4. Password Policy : PAM et la qualité des mots de passe
 
 ### Commandes clés : `apt-get`, `sed`, PAM
 
@@ -171,7 +171,7 @@ password requisite pam_pwquality.so retry=3 minlen=12 minclass=3
 
 ---
 
-## 5. Shadow Crypto Audit — Détecter les hashes obsolètes
+## 5. Shadow Crypto Audit : Détecter les hashes obsolètes
 
 ### Commandes clés : `awk`, `/etc/shadow`, identifiants d'algorithmes
 
@@ -185,7 +185,7 @@ L'identifiant `$id$` indique l'algorithme de hachage utilisé :
 
 | ID | Algorithme | Statut |
 | --- | --- | --- |
-| `$1$` | MD5 | **Cassé** — crackable en quelques minutes avec un GPU |
+| `$1$` | MD5 | **Cassé** : crackable en quelques minutes avec un GPU |
 | `$5$` | SHA-256 | Acceptable |
 | `$6$` | SHA-512 | Recommandé |
 | `$y$` | yescrypt | Moderne, résistant aux attaques GPU |
@@ -204,7 +204,7 @@ Le pattern `^\$1\$` correspond au hash MD5 en début du champ password. Les `\$`
 
 ---
 
-## 6. The Secure Onboarding — Création de compte sans mot de passe
+## 6. The Secure Onboarding : Création de compte sans mot de passe
 
 ### Commandes clés : `useradd`, `passwd -l`, `mkdir`, `chmod`, `chown`
 
@@ -242,7 +242,7 @@ chown -R "$1":"$1" /home/"$1"/.ssh
 
 ---
 
-## 7. Least Privilege Sudo — Configuration granulaire de sudo
+## 7. Least Privilege Sudo : Configuration granulaire de sudo
 
 ### Commandes clés : `sudoers`, `visudo -c`, `/etc/sudoers.d/`
 
@@ -265,7 +265,7 @@ junior ALL=(root) /usr/bin/systemctl restart apache2, /usr/bin/journalctl
 | `junior` | Username | L'utilisateur concerné |
 | `ALL` | Host | Tous les hôtes |
 | `(root)` | Run as | S'exécute en tant que root |
-| Sans `NOPASSWD` | — | Le mot de passe est requis |
+| Sans `NOPASSWD` | : | Le mot de passe est requis |
 
 #### Validation obligatoire
 

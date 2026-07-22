@@ -1,4 +1,4 @@
-# Network Security — Sommaire des modules
+# Network Security : Sommaire des modules
 
 Ce dossier regroupe tous les modules de sécurité réseau du parcours Holberton. L'objectif : comprendre le réseau en profondeur, capturer et analyser du trafic, détecter des attaques, et sécuriser un périmètre avec pare-feu et VPN.
 
@@ -6,21 +6,21 @@ Ce dossier regroupe tous les modules de sécurité réseau du parcours Holberton
 
 ## Modules
 
-### [2x00 — Network Fundamentals](2x00_network_fundamentals/README.md)
+### [2x00 : Network Fundamentals](2x00_network_fundamentals/README.md)
 
 Les bases indispensables du réseau avant d'aborder la sécurité.
 
 - Binaire et adressage IPv4 (32 bits, 4 octets)
 - Sous-réseaux : CIDR, calcul d'adresse réseau (AND bit à bit), broadcast
-- VLSM — allocation efficace des adresses
+- VLSM : allocation efficace des adresses
 - Décisions de routage : local vs distant, table de routage
-- ARP — résolution MAC locale, pourquoi il ne traverse pas les routeurs
-- TTL — durée de vie d'un paquet, protection contre les boucles
+- ARP : résolution MAC locale, pourquoi il ne traverse pas les routeurs
+- TTL : durée de vie d'un paquet, protection contre les boucles
 - Modèle OSI pratique : couches 2 (MAC, ARP) et 3 (routage IP)
 
 ---
 
-### [2x01 — Network Services](2x01_network_services/README.md)
+### [2x01 : Network Services](2x01_network_services/README.md)
 
 Les protocoles fondamentaux qu'on retrouve sur tous les réseaux.
 
@@ -29,25 +29,25 @@ Les protocoles fondamentaux qu'on retrouve sur tous les réseaux.
 - TTL et cache DNS
 - Sécurité DNS : `/etc/hosts`, SPF, Zone Transfer (AXFR)
 - DHCP : processus DORA (Discover, Offer, Request, Acknowledge)
-- Rogue DHCP — attaque Man-in-the-Middle via faux serveur DHCP
+- Rogue DHCP : attaque Man-in-the-Middle via faux serveur DHCP
 - Outils : `dig`, `nslookup`, `/etc/resolv.conf`
 
 ---
 
-### [2x02 — The Wiretap](2x02_the_wiretap/README.md)
+### [2x02 : The Wiretap](2x02_the_wiretap/README.md)
 
 Capturer et analyser du trafic réseau.
 
 - `tcpdump` : capture sur interface, écriture pcap
 - Filtres BPF : `host`, `port`, `tcp`, `icmp`, `src`, `dst`, combinaisons avec `and/or`
-- Filtres d'affichage Wireshark vs filtres BPF — la différence
+- Filtres d'affichage Wireshark vs filtres BPF : la différence
 - Handshake TCP 3-way (SYN / SYN-ACK / ACK), flags, ISN
 - `nmap` : ARP (`-PR`), ICMP Mask (`-PM`), Connect (`-sT`), SYN (`-sS`), UDP (`-sU`), version (`-sV`)
 - Protocoles en clair : Telnet, FTP, HTTP vs HTTPS/TLS
 
 ---
 
-### [2x03 — Traffic Forensics](2x03_traffic_forensics/README.md)
+### [2x03 : Traffic Forensics](2x03_traffic_forensics/README.md)
 
 Analyser un incident à partir d'une capture réseau avec `tshark`.
 
@@ -65,7 +65,7 @@ Analyser un incident à partir d'une capture réseau avec `tshark`.
 
 ---
 
-### [2x04 — Perimeter Control](2x04_perimeter_control/README.md)
+### [2x04 : Perimeter Control](2x04_perimeter_control/README.md)
 
 Sécuriser le périmètre d'un serveur avec pare-feu et VPN.
 

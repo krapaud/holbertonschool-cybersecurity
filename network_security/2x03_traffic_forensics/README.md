@@ -1,8 +1,8 @@
-# Traffic Forensics — Cours pour débutants
+# Traffic Forensics : Cours pour débutants
 
 ---
 
-## 1. tshark — Le Wireshark en ligne de commande
+## 1. tshark : Le Wireshark en ligne de commande
 
 `tshark` est la version terminal de Wireshark. Là où Wireshark a une interface graphique, tshark te permet d'automatiser l'analyse dans des scripts. Pense à lui comme un détective qui lit des boîtes noires d'avion depuis le terminal.
 
@@ -15,13 +15,13 @@ tshark -r fichier.pcap -T fields -e ip.src  # extraire un champ précis
 tshark -r fichier.pcap -q                 # mode silencieux (pour les stats)
 ```
 
-- `-r` : read — lire un fichier pcap
+- `-r` : read : lire un fichier pcap
 - `-Y` : filtre d'affichage (même syntaxe que Wireshark)
 - `-T fields` : afficher seulement certains champs (toujours avec `-e`)
 - `-e` : champ à extraire (ip.src, ip.dst, tcp.port, http.user_agent...)
-- `-q` : quiet — supprimer l'affichage normal (utile avec `-z`)
+- `-q` : quiet : supprimer l'affichage normal (utile avec `-z`)
 
-**Important :** `-r` et `-q` sont des options séparées. Ne les fusionne jamais (`-rq` ne fonctionne pas — tshark interprète `q` comme faisant partie du nom de fichier).
+**Important :** `-r` et `-q` sont des options séparées. Ne les fusionne jamais (`-rq` ne fonctionne pas : tshark interprète `q` comme faisant partie du nom de fichier).
 
 ### Statistiques avec `-z`
 
@@ -138,7 +138,7 @@ Les injections SQL passent souvent par les paramètres d'URL. On peut les cherch
 tshark -r fichier.pcap -Y 'http.request.uri contains "SELECT" || http.request.uri contains "UNION"' -T fields -e http.request.uri
 ```
 
-Les attaquants encodent parfois les caractères (`SELECT` → `%53%45%4c%45%43%54`) pour contourner les filtres — il faut aussi tester les versions encodées.
+Les attaquants encodent parfois les caractères (`SELECT` → `%53%45%4c%45%43%54`) pour contourner les filtres : il faut aussi tester les versions encodées.
 
 ### Détection RCE (Remote Code Execution)
 
@@ -158,7 +158,7 @@ Quand un attaquant obtient un shell, il l'ouvre vers son propre serveur (reverse
 tshark -r fichier.pcap -Y 'frame contains "uid=0" || frame contains "root"' -T fields -e tcp.dstport
 ```
 
-Le port destination indique vers où le shell est envoyé — c'est le port d'écoute de l'attaquant.
+Le port destination indique vers où le shell est envoyé : c'est le port d'écoute de l'attaquant.
 
 ---
 
@@ -166,7 +166,7 @@ Le port destination indique vers où le shell est envoyé — c'est le port d'é
 
 ### Beaconing (balise C2)
 
-Un malware "beacon" contacte régulièrement son serveur de commande (C2) à intervalle fixe — comme une montre qui sonne toutes les heures. Analyser les timestamps révèle ces intervalles réguliers.
+Un malware "beacon" contacte régulièrement son serveur de commande (C2) à intervalle fixe : comme une montre qui sonne toutes les heures. Analyser les timestamps révèle ces intervalles réguliers.
 
 ```bash
 tshark -r fichier.pcap -T fields -e frame.time_relative
@@ -204,7 +204,7 @@ tshark -r fichier.pcap --export-objects http,/tmp/carve && md5sum /tmp/carve/*
 
 `--export-objects http,dossier` : extraire tous les objets HTTP dans ce dossier.
 
-### Timeline — Reconstituer la chronologie
+### Timeline : Reconstituer la chronologie
 
 Reconstituer la chronologie d'un incident permet de comprendre la séquence des événements.
 

@@ -1,12 +1,12 @@
-# Linux Security — Sommaire des modules
+# Linux Security : Sommaire des modules
 
-Ce dossier regroupe tous les modules de sécurité Linux du parcours Holberton. L'objectif : maîtriser la sécurisation d'un système Linux de fond en comble — des permissions de fichiers jusqu'à l'automatisation d'un agent de surveillance.
+Ce dossier regroupe tous les modules de sécurité Linux du parcours Holberton. L'objectif : maîtriser la sécurisation d'un système Linux de fond en comble : des permissions de fichiers jusqu'à l'automatisation d'un agent de surveillance.
 
 ---
 
 ## Modules
 
-### [1x00 — Linux Fundamentals](1x00_linux_fundamentals/README.md)
+### [1x00 : Linux Fundamentals](1x00_linux_fundamentals/README.md)
 
 Les fondations indispensables avant de toucher à la sécurité.
 
@@ -22,7 +22,7 @@ Les fondations indispensables avant de toucher à la sécurité.
 
 ---
 
-### [1x01 — Shell Ops](1x01_shell_ops/README.md)
+### [1x01 : Shell Ops](1x01_shell_ops/README.md)
 
 Opérations shell avancées pour automatiser efficacement.
 
@@ -37,7 +37,7 @@ Opérations shell avancées pour automatiser efficacement.
 
 ---
 
-### [1x02 — Identity Management](1x02_identity_management/README.md)
+### [1x02 : Identity Management](1x02_identity_management/README.md)
 
 Gestion des identités et des droits sur un système Linux.
 
@@ -52,23 +52,23 @@ Gestion des identités et des droits sur un système Linux.
 
 ---
 
-### [1x03 — System Visibility](1x03_system_visibility/README.md)
+### [1x03 : System Visibility](1x03_system_visibility/README.md)
 
 Surveiller ce qui se passe sur un système en temps réel.
 
 - `ps` : lister les processus, trier par CPU, filtrer par état
 - `/proc/<PID>/environ` : lire les variables d'environnement d'un processus
 - Processus zombies : détection et signification
-- Hiérarchie des processus (PPID) — détecter les shells suspects
+- Hiérarchie des processus (PPID) : détecter les shells suspects
 - Signaux : SIGTERM (15), SIGKILL (9), SIGSTOP, SIGCONT
 - Ports en écoute : `ss -lnt4` et extraction des numéros de ports
 - Identifier le programme derrière un port : `lsof -iTCP`
 - Analyse de logs : filtrer par plage horaire avec `awk`
-- Segfaults dans les logs kernel — indicateur d'exploitation
+- Segfaults dans les logs kernel : indicateur d'exploitation
 
 ---
 
-### [1x04 — Security Automation](1x04_security_automation/README.md)
+### [1x04 : Security Automation](1x04_security_automation/README.md)
 
 Construire un agent de sécurité autonome avec systemd.
 
@@ -83,7 +83,7 @@ Construire un agent de sécurité autonome avec systemd.
 
 ---
 
-### [1x05 — Hardening](1x05_hardening/README.md)
+### [1x05 : Hardening](1x05_hardening/README.md)
 
 Framework de durcissement automatisé conforme STIG-2024.
 
