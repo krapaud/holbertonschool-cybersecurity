@@ -19,7 +19,8 @@ sentinel.conf        # Configuration : ce qu'on surveille
 sentinel.service     # Unité systemd : comment lancer sentinel
 sentinel.timer       # Timer systemd : quand le lancer (toutes les 5 min)
 setup_persistence.sh # Script d'installation : active le timer au démarrage
-```
+
+```text
 
 ---
 
@@ -29,7 +30,8 @@ setup_persistence.sh # Script d'installation : active le timer au démarrage
 SERVICES=("ssh" "cron")
 FILES_TO_WATCH=("/etc/passwd" "/etc/ssh/sshd_config")
 ALLOWED_PORTS=("22" "80")
-```
+
+```text
 
 La configuration est séparée du code. C'est un principe fondamental : le comportement est défini dans le code, les données (quoi surveiller) dans la config. Pour surveiller un nouveau service, on modifie la config, pas le script.
 
@@ -50,7 +52,8 @@ for service in "${SERVICES[@]}"; do
         echo "FIXED: Restarted $service"
     fi
 done
-```
+
+```text
 
 **`pgrep -f`** cherche un processus par son nom dans la liste complète des processus. `-f` permet de chercher dans la ligne de commande entière (pas seulement le nom court).
 
@@ -59,7 +62,9 @@ done
 **`eval "${!start_cmd}"`** : double déréférencement de variable.
 
 - `start_cmd="START_${service}"` construit le nom de variable `START_ssh`
+
 - `${!start_cmd}` récupère la valeur de la variable dont le nom est dans `start_cmd`
+
 - `eval` exécute cette valeur comme une commande
 
 C'est une technique pour appeler dynamiquement des commandes définies dans la config.
@@ -77,7 +82,8 @@ else
     cp "$gold" "$file"
     echo "FIXED: Restored $file"
 fi
-```
+
+```text
 
 **Principe :** chaque fichier critique a une copie de référence (`.gold`). À chaque ronde, Sentinel compare le hash MD5 du fichier actuel avec la copie de référence. Si ça diffère → le fichier a été modifié → restauration automatique.
 
@@ -86,6 +92,7 @@ fi
 **Pourquoi surveiller `/etc/passwd` et `sshd_config` ?**
 
 - `/etc/passwd` : une modification pourrait indiquer l'ajout d'un compte backdoor
+
 - `/etc/ssh/sshd_config` : une modification pourrait ré-autoriser l'accès root ou les mots de passe
 
 ### Surveillance des ports : `check_ports()`
@@ -103,7 +110,8 @@ for port in $(ss -lntp | awk 'NR>1{split($4, a, ":"); print a[2]}'); do
         echo "ALERT: Killed rogue process on port $port"
     fi
 done
-```
+
+```text
 
 **Logique :** pour chaque port ouvert sur le système, on vérifie s'il est dans la liste des ports autorisés. S'il ne l'est pas → processus non autorisé → on coupe la connexion avec `ss -K`.
 
@@ -130,13 +138,15 @@ log() {
     \"details\": \"$details\"
 }" >> /var/log/sentinel.log
 }
-```
+
+```text
 
 Les logs sont au format **JSON** : un format structuré lisible par des machines. Contrairement aux logs texte libres, JSON peut être ingéré par des outils comme Elasticsearch, Splunk, ou de simples `jq`.
 
 **`date -u +%FT%TZ`** : format ISO 8601 en UTC.
 
 - `-u` : UTC
+
 - `+%FT%TZ` : `2026-07-22T14:30:00Z` : format standardisé internationalement
 
 **`local`** : déclare des variables locales à la fonction. Elles n'existent que dans le scope de la fonction et n'écrasent pas les variables du script principal.
@@ -158,7 +168,8 @@ User=root
 
 [Install]
 WantedBy=multi-user.target
-```
+
+```text
 
 | Directive | Signification |
 | --- | --- |
@@ -174,7 +185,8 @@ WantedBy=multi-user.target
 OnUnitActiveSec=5min
 Persistent=true
 Unit=sentinel.service
-```
+
+```text
 
 | Directive | Signification |
 | --- | --- |
@@ -185,8 +197,11 @@ Unit=sentinel.service
 **Timer vs Cron :** les timers systemd ont plusieurs avantages sur cron :
 
 - Logs intégrés (`journalctl`)
+
 - Gestion des ratés (`Persistent=true`)
+
 - Dépendances systemd
+
 - Pas de syntaxe cryptique `*/5 * * * *`
 
 ### `setup_persistence.sh` : Installation
@@ -197,7 +212,8 @@ cp sentinel.timer /etc/systemd/system/
 systemctl daemon-reload          # recharger la liste des unités
 systemctl enable sentinel.timer  # activer au démarrage
 systemctl start sentinel.timer   # démarrer maintenant
-```
+
+```text
 
 `daemon-reload` est obligatoire après avoir ajouté ou modifié des fichiers `.service` ou `.timer` : systemd ne détecte pas automatiquement les changements.
 
@@ -223,7 +239,8 @@ systemctl list-timers sentinel.timer
 
 # Forcer une exécution immédiate
 systemctl start sentinel.service
-```
+
+```text
 
 ---
 
@@ -246,7 +263,9 @@ Sentinel tourne en root car il doit lire des fichiers système et tuer des proce
 Les logs JSON permettent de :
 
 - Corréler des événements entre systèmes
+
 - Alimenter des SIEM (Security Information and Event Management)
+
 - Générer des métriques et alertes automatiques
 
 ---
@@ -268,4 +287,5 @@ sudo ./sentinel.sh
 
 # Lire le fichier de log JSON
 cat /var/log/sentinel.log | python3 -m json.tool
-```
+
+```text

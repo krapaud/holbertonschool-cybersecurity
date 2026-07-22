@@ -15,13 +15,15 @@ hardening/
 │   ├── identity.sh     # User and password hardening (I-01 to I-04)
 │   └── system.sh       # System package hardening (H-01 to H-03)
 └── audit_report.txt    # Compliance report generated on each run
-```
+
+```text
 
 ## Usage
 
 ```bash
 sudo ./harden.sh
-```
+
+```text
 
 The script must be run as root. All actions are logged to `/var/log/hardening.log`. A compliance report is written to `audit_report.txt` at the end of each run.
 
@@ -103,6 +105,7 @@ The `audit_report.txt` file uses three severity levels:
 ===============================================
  COMPLIANCE STATUS: PASS
 ===============================================
-```
+
+```text
 
 A `COMPLIANCE STATUS: FAIL` is triggered if any module encounters an error (e.g. missing `sshd_config`, failed package install, or failed root password lock). All timestamped events are also written to `/var/log/hardening.log`.

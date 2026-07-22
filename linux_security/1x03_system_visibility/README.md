@@ -21,7 +21,8 @@ Pense à ça comme être le gardien d'un immeuble : tu as des caméras, des regi
 
 ```bash
 ps -eo pid,pcpu,comm --sort=-pcpu
-```
+
+```text
 
 | Option | Signification |
 | --- | --- |
@@ -33,7 +34,8 @@ ps -eo pid,pcpu,comm --sort=-pcpu
 
 ```bash
 ps -eo pid,pcpu,comm --sort=-pcpu | awk 'NR==2{print $1, $3}'
-```
+
+```text
 
 `NR==2` : la deuxième ligne (la première est l'en-tête, la deuxième est le processus le plus vorace).
 
@@ -46,13 +48,15 @@ ps -eo pid,pcpu,comm --sort=-pcpu | awk 'NR==2{print $1, $3}'
 /proc/1234/cmdline    # ligne de commande complète
 /proc/1234/status     # état, mémoire, UID...
 /proc/1234/fd/        # descripteurs de fichiers ouverts
-```
+
+```text
 
 **Lire les variables d'environnement d'un processus :**
 
 ```bash
 tr '\0' '\n' < /proc/$1/environ
-```
+
+```text
 
 Les variables sont séparées par des octets nuls (`\0`). `tr '\0' '\n'` les remplace par des sauts de ligne pour les rendre lisibles.
 
@@ -74,7 +78,8 @@ Un processus zombie est un processus **terminé** dont le parent n'a pas encore 
 
 ```bash
 ps -eo pid,state | awk '$2 == "Z" {print $1}'
-```
+
+```text
 
 Les zombies en eux-mêmes sont inoffensifs, mais un grand nombre révèle un problème dans le programme parent.
 
@@ -84,7 +89,8 @@ Chaque processus a un **parent** (PPID : Parent Process ID). Cette hiérarchie f
 
 ```bash
 ps -p $1 -o ppid= | tr -d ' '
-```
+
+```text
 
 `-o ppid=` : afficher seulement le PPID (le `=` supprime l'en-tête de colonne).
 `tr -d ' '` : supprimer les espaces en trop.
@@ -99,7 +105,8 @@ Linux communique avec les processus via des **signaux** : des messages courts en
 
 ```bash
 kill -<signal> <PID>
-```
+
+```text
 
 `kill` est mal nommé : il n'arrête pas forcément le processus, il envoie juste un signal.
 
@@ -114,7 +121,8 @@ kill -<signal> <PID>
 kill -15 $1       # SIGTERM : demande d'arrêt propre
 kill -9 $1        # SIGKILL : arrêt forcé immédiat
 kill -SIGSTOP $1  # Geler le processus
-```
+
+```text
 
 **Quand utiliser SIGKILL ?** Seulement quand SIGTERM ne répond pas. SIGTERM permet au processus de se terminer proprement (fermer les fichiers, sauvegarder l'état). SIGKILL ne lui laisse aucune chance : mais il ne peut pas être ignoré.
 
@@ -128,7 +136,8 @@ kill -SIGSTOP $1  # Geler le processus
 
 ```bash
 ss -lnt4
-```
+
+```text
 
 | Option | Signification |
 | --- | --- |
@@ -141,7 +150,8 @@ ss -lnt4
 
 ```bash
 ss -lnt4 | awk 'NR>1{split($4,a,":"); print a[2]}' | sort -n
-```
+
+```text
 
 La colonne `$4` contient `0.0.0.0:22` ou `127.0.0.1:3306`. `split($4, a, ":")` découpe sur `:` et `a[2]` est le numéro de port.
 
@@ -151,7 +161,8 @@ La colonne `$4` contient `0.0.0.0:22` ou `127.0.0.1:3306`. `split($4, a, ":")` d
 
 ```bash
 lsof -iTCP:$1 -sTCP:LISTEN -n -P
-```
+
+```text
 
 | Option | Signification |
 | --- | --- |
@@ -164,7 +175,8 @@ lsof -iTCP:$1 -sTCP:LISTEN -n -P
 
 ```bash
 lsof -iTCP:$1 -sTCP:LISTEN -n -P | awk 'NR==2{print $1}'
-```
+
+```text
 
 La deuxième ligne (NR==2) est le premier résultat réel. `$1` est la colonne COMMAND.
 
@@ -179,7 +191,8 @@ Les fichiers de log comme `/var/log/syslog` ou `/var/log/auth.log` suivent un fo
 ```text
 Feb  3 16:10:45 hostname sshd[1234]: Accepted publickey for student from 10.0.0.1
   $1    $2  $3     $4       $5                     message
-```
+
+```text
 
 Les trois premiers champs sont le timestamp : mois, jour, heure (`HH:MM:SS`).
 
@@ -188,11 +201,15 @@ Les trois premiers champs sont le timestamp : mois, jour, heure (`HH:MM:SS`).
 ```bash
 START=$(date --date="30 minutes ago" +"%H:%M:%S")
 awk -v start="$START" '$3 >= start && /sshd/' "$1"
-```
+
+```text
 
 - `date --date="30 minutes ago"` : calcule l'heure d'il y a 30 minutes
+
 - `-v start="$START"` : passe la variable shell à awk
+
 - `$3 >= start` : compare le champ timestamp
+
 - `&& /sshd/` : filtre uniquement les lignes contenant "sshd"
 
 **Pourquoi c'est utile ?** Après un incident, on cherche à construire une timeline. "Qu'est-ce qui s'est passé sur SSH dans les 30 dernières minutes avant l'alerte ?"
@@ -201,7 +218,8 @@ awk -v start="$START" '$3 >= start && /sshd/' "$1"
 
 ```bash
 grep segfault "$1"
-```
+
+```text
 
 Un **segfault** (segmentation fault) indique qu'un processus a tenté d'accéder à une zone mémoire interdite. En sécurité, c'est souvent le signe d'un **exploit en cours** : une tentative de buffer overflow ratée génère un segfault avant (parfois) de réussir.
 
@@ -213,7 +231,8 @@ Un pic soudain de segfaults pour un même service = indicateur d'attaque.
 
 ```bash
 ps -p $1 -o user=
-```
+
+```text
 
 `-o user=` : afficher l'utilisateur qui a lancé le processus (le `=` supprime l'en-tête).
 
@@ -251,4 +270,5 @@ awk -v start="$START" '$3 >= start && /sshd/' /var/log/auth.log
 
 # Segfaults dans les logs kernel
 grep segfault /var/log/kern.log
-```
+
+```text

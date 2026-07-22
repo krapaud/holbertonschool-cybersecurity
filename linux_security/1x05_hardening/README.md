@@ -22,7 +22,8 @@ hardening/
 │   ├── identity.sh     # Règles I-01 à I-04 : Comptes et mots de passe
 │   └── system.sh       # Règles H-01 à H-03 : Paquets système
 └── audit_report.txt    # Rapport de conformité généré à chaque exécution
-```
+
+```text
 
 Le script utilise un statut global `STATUS` initialisé à `PASS`. N'importe quel module peut le passer à `FAIL` en cas d'erreur, ce qui garantit un rapport de conformité final fiable.
 
@@ -39,7 +40,8 @@ L'authentification par mot de passe expose le service SSH aux attaques par force
 ```bash
 sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
 sed -i 's/^#\?PubkeyAuthentication.*/PubkeyAuthentication yes/' /etc/ssh/sshd_config
-```
+
+```text
 
 | Directive | Valeur | Effet |
 | --- | --- | --- |
@@ -52,7 +54,8 @@ Le pattern `^#\?` permet de cibler aussi bien les lignes commentées (`#Password
 
 ```bash
 sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
-```
+
+```text
 
 Interdire `PermitRootLogin` force les administrateurs à se connecter avec leur compte personnel puis à élever les privilèges via `sudo`. Cela crée une **trace d'audit** : on sait qui a fait quoi, et quand.
 
@@ -72,7 +75,8 @@ DEFAULT_OUTPUT=allow
 ALLOW_TCP=22
 ALLOW_TCP=80
 ALLOW_TCP=443
-```
+
+```text
 
 Le principe est le **deny-by-default** : tout trafic entrant est bloqué sauf ce qui est explicitement autorisé. Seuls SSH (22), HTTP (80) et HTTPS (443) sont ouverts.
 
@@ -88,7 +92,8 @@ Le principe est le **deny-by-default** : tout trafic entrant est bloqué sauf ce
 echo "net.ipv4.ip_forward=0" >> /etc/sysctl.conf
 echo "net.ipv4.icmp_echo_ignore_all=1" >> /etc/sysctl.conf
 sysctl -p /etc/sysctl.conf
-```
+
+```text
 
 | Paramètre | Valeur | Effet |
 | --- | --- | --- |
@@ -110,14 +115,16 @@ Le durcissement agit sur deux niveaux :
 ```bash
 sed -i "s/^PASS_MAX_DAYS.*/PASS_MAX_DAYS=90/" /etc/login.defs
 sed -i "s/^PASS_MIN_LEN.*/PASS_MIN_LEN=12/" /etc/login.defs
-```
+
+```text
 
 **2. PAM (`/etc/pam.d/common-password`)** : complexité à la saisie :
 
 ```bash
 echo "password requisite pam_pwquality.so minlen=12 ucredit=-1 lcredit=-1 dcredit=-1 ocredit=-1" \
     >> /etc/pam.d/common-password
-```
+
+```text
 
 | Paramètre PAM | Valeur | Signification |
 | --- | --- | --- |
@@ -133,7 +140,8 @@ echo "password requisite pam_pwquality.so minlen=12 ucredit=-1 lcredit=-1 dcredi
 
 ```bash
 echo "auth required pam_faillock.so deny=5" >> /etc/pam.d/common-auth
-```
+
+```text
 
 `pam_faillock` verrouille automatiquement un compte après N tentatives d'authentification échouées. Cela bloque les attaques par force brute sur les sessions locales et SSH avec mot de passe.
 
@@ -145,7 +153,8 @@ for user in $(awk -F: '$3 > 1000 {print $1}' /etc/passwd); do
         userdel "$user"
     fi
 done
-```
+
+```text
 
 Les comptes avec UID > 1000 sont des comptes utilisateurs standards. Tout compte dans cette plage qui n'appartient pas aux groupes `sudo` ou `wheel` est considéré non autorisé et supprimé.
 
@@ -155,7 +164,8 @@ Les comptes avec UID > 1000 sont des comptes utilisateurs standards. Tout compte
 
 ```bash
 passwd -l root
-```
+
+```text
 
 `passwd -l` préfixe le hash dans `/etc/shadow` avec `!`, ce qui invalide le mot de passe. Root reste accessible via `sudo` ou en console physique avec des mécanismes de récupération, mais ne peut plus s'authentifier directement par mot de passe.
 
@@ -167,7 +177,8 @@ passwd -l root
 
 ```bash
 apt-get update && apt-get upgrade -y
-```
+
+```text
 
 La mise à jour systématique des paquets corrige les **CVE** (Common Vulnerabilities and Exposures) connus. C'est la règle de durcissement avec le meilleur rapport coût/bénéfice.
 
@@ -176,7 +187,8 @@ La mise à jour systématique des paquets corrige les **CVE** (Common Vulnerabil
 ```bash
 apt remove --purge telnet ftp netcat-traditional -y
 apt autoremove --purge -y
-```
+
+```text
 
 | Outil | Risque |
 | --- | --- |
@@ -190,7 +202,8 @@ apt autoremove --purge -y
 
 ```bash
 apt-get install -y auditd fail2ban
-```
+
+```text
 
 | Outil | Rôle |
 | --- | --- |
@@ -216,7 +229,8 @@ apt-get install -y auditd fail2ban
 ===============================================
  COMPLIANCE STATUS: PASS
 ===============================================
-```
+
+```text
 
 Le statut final `PASS` / `FAIL` est déterminé par l'accumulation des erreurs rencontrées. Tout `[ERROR]` dans le rapport bascule le statut en `FAIL`.
 

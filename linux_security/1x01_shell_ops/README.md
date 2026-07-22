@@ -21,9 +21,11 @@ Ajouter `>> log.txt` à chaque `echo` est fastidieux. La bonne pratique est de r
 
 ```bash
 exec >> "$1" 2>&1
-```
+
+```text
 
 - `exec >> "$1"` : redirige stdout (descripteur 1) en mode ajout vers le fichier `$1`
+
 - `2>&1` : redirige stderr (descripteur 2) vers la même destination que stdout
 
 Tout ce qui suit dans le script : chaque `echo`, chaque commande : ira automatiquement dans le fichier sans aucune syntaxe supplémentaire.
@@ -34,7 +36,8 @@ exec >> "$1" 2>&1
 echo "Starting Task"
 echo "Doing Work"
 echo "Error: Work Failed" >&2
-```
+
+```text
 
 > **Note :** `>&2` sur la dernière ligne envoie explicitement vers stderr : qui est, après le `exec`, redirigé vers le fichier.
 
@@ -55,13 +58,15 @@ cut -d: -f1 /etc/passwd > a.txt
 cut -d: -f1 /etc/passwd | sort > b.txt
 diff a.txt b.txt
 rm a.txt b.txt
-```
+
+```text
 
 **Approche propre avec la substitution de processus :**
 
 ```bash
 diff <(cut -d: -f1 "$1") <(cut -d: -f1 "$1" | sort)
-```
+
+```text
 
 Le shell crée des pseudo-fichiers (sous `/dev/fd/`) pour chaque `<(...)` et les passe à `diff`. Aucun fichier temporaire n'est écrit sur le disque.
 
@@ -83,7 +88,8 @@ Pour renommer des centaines de fichiers, une boucle `for` fonctionne mais `xargs
 
 ```bash
 find "$1" -maxdepth 1 -name "*.log" | xargs -I {} mv {} {}.old
-```
+
+```text
 
 | Option | Signification |
 | --- | --- |
@@ -110,11 +116,13 @@ Une adresse IPv4 est composée de 4 octets (0-255) séparés par des points. En 
 
 ```text
 [0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}
-```
+
+```text
 
 ```bash
 sed 's/[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/[REDACTED_IP]/g' "$1"
-```
+
+```text
 
 | Élément | Signification |
 | --- | --- |
@@ -136,14 +144,16 @@ sed 's/[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/[REDACTED_IP]/g' "
 
 ```bash
 ls -l "$1" | awk 'NR>1 && $5 > 1024 {print $9}'
-```
+
+```text
 
 Décomposition de la sortie de `ls -l` :
 
 ```text
 -rw-r--r-- 1 student student 5000 Feb 3 16:10 big_1.log
  $1        $2  $3      $4    $5   $6 $7  $8    $9
-```
+
+```text
 
 | Condition `awk` | Signification |
 | --- | --- |
@@ -172,7 +182,8 @@ while IFS= read -r username; do
         echo "User $username not found"
     fi
 done < "$1"
-```
+
+```text
 
 | Élément | Signification |
 | --- | --- |
@@ -199,7 +210,8 @@ until nc -z "$1" 80 2>/dev/null; do
     sleep 1
 done
 echo "Service UP!"
-```
+
+```text
 
 | Commande | Signification |
 | --- | --- |
@@ -235,7 +247,8 @@ for logfile in "$1"/*.log; do
         echo "Skipping small file: $(basename "$logfile")"
     fi
 done
-```
+
+```text
 
 | Étape | Outil | Rôle |
 | --- | --- | --- |

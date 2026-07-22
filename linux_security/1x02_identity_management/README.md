@@ -16,7 +16,8 @@ Chaque ligne de `/etc/passwd` suit ce format :
 ```text
 username:password:UID:GID:comment:home:shell
    $1       $2    $3  $4    $5     $6    $7
-```
+
+```text
 
 Le **UID** (User ID) est le chiffre qui détermine les droits réels. Le noyau Linux ne connaît pas les noms : il ne raisonne qu'en UIDs. Un compte avec UID 0 **est** root, quel que soit son nom.
 
@@ -26,7 +27,8 @@ Un attaquant crée un compte anodin (`backup`, `support`) et modifie son UID à 
 
 ```bash
 awk -F: '$3 == 0 && $1 != "root" {print $1}' "$1"
-```
+
+```text
 
 | Élément | Signification |
 | --- | --- |
@@ -53,7 +55,8 @@ Si un développeur leur attribue `/bin/bash` "pour déboguer", une exploitation 
 
 ```bash
 awk -F: '$3 < 1000 && $1 != "root" && $7 ~ /(sh|bash)$/ {print $1}' "$1"
-```
+
+```text
 
 | Condition | Signification |
 | --- | --- |
@@ -94,7 +97,8 @@ while IFS=: read -r user _ uid _; do
         done
     fi
 done < "$1"
-```
+
+```text
 
 La commande `id <user>` retourne tous les groupes d'un utilisateur. `grep -qw` (quiet + word boundary) évite les faux positifs : `shadow` ne doit pas matcher `shadowsocks`.
 
@@ -122,7 +126,8 @@ La commande `id <user>` retourne tous les groupes d'un utilisateur. `grep -qw` (
 sed -i 's/^#*PermitRootLogin.*/PermitRootLogin no/' "$1"
 sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication no/' "$1"
 sed -i 's/^#*PubkeyAuthentication.*/PubkeyAuthentication yes/' "$1"
-```
+
+```text
 
 #### Validation obligatoire avant rechargement
 
@@ -130,7 +135,8 @@ sed -i 's/^#*PubkeyAuthentication.*/PubkeyAuthentication yes/' "$1"
 if sshd -t -f "$1"; then
     systemctl reload ssh
 fi
-```
+
+```text
 
 `sshd -t` teste la syntaxe du fichier de configuration **sans rechargement**. Un fichier corrompu sans cette validation peut verrouiller l'accès au serveur : situation critique en production.
 
@@ -156,7 +162,8 @@ Le fichier `/etc/pam.d/common-password` contrôle les règles appliquées par `p
 
 ```text
 password requisite pam_pwquality.so retry=3 minlen=12 minclass=3
-```
+
+```text
 
 | Paramètre | Signification |
 | --- | --- |
@@ -179,7 +186,8 @@ password requisite pam_pwquality.so retry=3 minlen=12 minclass=3
 
 ```text
 username:$id$salt$hash:last_change:min:max:warn:inactive:expire
-```
+
+```text
 
 L'identifiant `$id$` indique l'algorithme de hachage utilisé :
 
@@ -194,7 +202,8 @@ L'identifiant `$id$` indique l'algorithme de hachage utilisé :
 
 ```bash
 awk -F: '$2 ~ /^\$1\$/ {print $1}' "$1"
-```
+
+```text
 
 Le pattern `^\$1\$` correspond au hash MD5 en début du champ password. Les `\$` échappent le `$` qui a une signification spéciale en regex.
 
@@ -213,7 +222,9 @@ Le pattern `^\$1\$` correspond au hash MD5 en début du champ password. Les `\$`
 Envoyer un mot de passe par email est risqué :
 
 - L'email transite en clair par défaut
+
 - L'utilisateur peut ne jamais changer le mot de passe
+
 - Le mot de passe peut être intercepté, forwardé, archivé
 
 #### Pattern sécurisé : clé SSH dès la création
@@ -227,7 +238,8 @@ chmod 700 /home/"$1"/.ssh
 echo "$2" > /home/"$1"/.ssh/authorized_keys
 chmod 600 /home/"$1"/.ssh/authorized_keys
 chown -R "$1":"$1" /home/"$1"/.ssh
-```
+
+```text
 
 | Commande | Rôle |
 | --- | --- |
@@ -254,11 +266,13 @@ Donner `ALL=(ALL) ALL` à un opérateur junior signifie qu'une compromission de 
 
 ```text
 user  HOST=(run_as)  [NOPASSWD:]  commande1, commande2
-```
+
+```text
 
 ```text
 junior ALL=(root) /usr/bin/systemctl restart apache2, /usr/bin/journalctl
-```
+
+```text
 
 | Champ | Valeur | Signification |
 | --- | --- | --- |
@@ -274,7 +288,8 @@ echo "$1 ALL=(root) /usr/bin/systemctl restart apache2, /usr/bin/journalctl" \
     > /etc/sudoers.d/junior
 chmod 440 /etc/sudoers.d/junior
 visudo -c -f /etc/sudoers.d/junior
-```
+
+```text
 
 `visudo -c` vérifie la syntaxe du fichier sans l'ouvrir en édition. Un fichier sudoers syntaxiquement invalide peut bloquer **tous** les accès sudo sur le système.
 

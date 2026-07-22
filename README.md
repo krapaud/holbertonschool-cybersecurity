@@ -22,7 +22,8 @@ holbertonschool-cybersecurity/
     ├── 2x02_the_wiretap/            # Capture réseau, nmap, Wireshark
     ├── 2x03_traffic_forensics/      # Analyse forensique avec tshark
     └── 2x04_perimeter_control/      # Pare-feu nftables, WireGuard VPN
-```
+
+```text
 
 ---
 
@@ -33,8 +34,11 @@ holbertonschool-cybersecurity/
 Les bases indispensables avant de toucher à la sécurité réseau.
 
 - Binaire et adressage IPv4
+
 - Sous-réseaux, CIDR, VLSM
+
 - Modèle OSI pratique (couches 2 et 3)
+
 - Routage, ARP, TTL
 
 ---
@@ -44,8 +48,11 @@ Les bases indispensables avant de toucher à la sécurité réseau.
 Les protocoles que tu rencontres tous les jours sur un réseau.
 
 - DNS : résolution récursive/itérative, types de records, TTL, cache
+
 - Sécurité DNS : /etc/hosts, SPF, Zone Transfer (AXFR)
+
 - DHCP : processus DORA, rogue DHCP
+
 - Outils : `dig`, `nslookup`
 
 ---
@@ -55,9 +62,13 @@ Les protocoles que tu rencontres tous les jours sur un réseau.
 Capturer et analyser du trafic réseau.
 
 - `tcpdump` et filtres BPF pour la capture
+
 - Filtres d'affichage Wireshark
+
 - Handshake TCP, flags, ISN
+
 - `nmap` : scans SYN, Connect, UDP, ARP, ICMP Mask, détection de version
+
 - Protocoles non sécurisés : Telnet, FTP, HTTP
 
 ---
@@ -67,9 +78,13 @@ Capturer et analyser du trafic réseau.
 Analyser un incident à partir d'une capture réseau.
 
 - `tshark` : options `-r`, `-Y`, `-T fields`, `-e`, `-q`, `-z`
+
 - Hiérarchie des protocoles, identification des bavards, conversations TCP
+
 - Détection : scan SYN, énumération 404, injection SQL, RCE, reverse shell
+
 - Beaconing C2, tunneling DNS, tunneling ICMP
+
 - Carving de fichiers HTTP
 
 ---
@@ -79,10 +94,15 @@ Analyser un incident à partir d'une capture réseau.
 Sécuriser le périmètre d'un serveur avec un pare-feu et un VPN.
 
 - Audit des ports avec `ss`
+
 - `nftables` : tables, chains, hooks, politiques, connection tracking, `ip saddr`
+
 - NAT masquerade pour partager une connexion
+
 - WireGuard VPN : keypairs, `wg0.conf`, `client.conf`, `AllowedIPs`
+
 - IP forwarding avec `sysctl`
+
 - Déploiement à distance avec SCP + SSH
 
 ---
