@@ -61,13 +61,17 @@
 
 ## 4. Requirement Conflicts
 
-<!-- List where business needs conflict with security best practices -->
+- Finance team requires remote access to file transfers, but security best practice requires closing all external access by default.
+- FTP must stay operational during migration, but FTP sends all data in cleartext, creating a security risk during the transition period.
 
 ---
 
 ## 5. Open Questions
 
-<!-- What is still unknown and must be verified on-site -->
+- Is WireGuard already installed on the gateway?
+- Are there any existing nftables rules currently active?
+- Which ports are currently open and exposed to the internet?
+- How many Finance team workstations need VPN access?
 
 ---
 
