@@ -22,17 +22,17 @@
 
 | Item | Current State | Target State | Gap | Risk Level |
 | --- | --- | --- | --- | --- |
-| Network architecture | Single flat subnet (192.168.1.x), all devices share the same network. | Three isolated networks: WAN, LAN, and DMZ. | Network has not been segmented yet. | CRITICAL |
-| Database isolation | Database sits on the same switch as all other devices, no isolation. | Database placed in its own isolated segment. | Any device on the network can reach the database directly. | CRITICAL |
-| Guest WiFi network | Guest WiFi is on the same switch as internal devices, no isolation. | Guest WiFi placed in its own isolated segment. | Guests can potentially reach internal systems. | CRITICAL |
+| Network architecture | Single flat subnet (192.168.1.x), all devices share the same network. | Three isolated networks: WAN, LAN, and DMZ. | Network has not been segmented yet. | Critical |
+| Database isolation | Database sits on the same switch as all other devices, no isolation. | Database placed in its own isolated segment. | Any device on the network can reach the database directly. | Critical |
+| Guest WiFi network | Guest WiFi is on the same switch as internal devices, no isolation. | Guest WiFi placed in its own isolated segment. | Guests can potentially reach internal systems. | Critical |
 
 ### 2.2 Remote Access (SSH)
 
 | Item | Current State | Target State | Gap | Risk Level |
 | --- | --- | --- | --- | --- |
-| SSH exposure | SSH is open to the entire internet, no VPN is in place. | SSH only accessible through VPN, not exposed publicly. | No VPN exists, anyone on the internet can attempt to connect. | CRITICAL |
-| Root authentication | Root login is enabled, anyone with valid credentials can connect as root. | Root login disabled, users authenticate with personal accounts and use sudo. | Root login is still active, no sudo policy is in place. | CRITICAL |
-| Access control | No IP restriction is in place, any internet user can attempt to connect. | SSH access limited to VPN users only. | No access control or IP filtering is configured. | CRITICAL |
+| SSH exposure | SSH is open to the entire internet, no VPN is in place. | SSH only accessible through VPN, not exposed publicly. | No VPN exists, anyone on the internet can attempt to connect. | Critical |
+| Root authentication | Root login is enabled, anyone with valid credentials can connect as root. | Root login disabled, users authenticate with personal accounts and use sudo. | Root login is still active, no sudo policy is in place. | Critical |
+| Access control | No IP restriction is in place, any internet user can attempt to connect. | SSH access limited to VPN users only. | No access control or IP filtering is configured. | Critical |
 
 ### 2.3 Legacy FTP (Finance)
 
