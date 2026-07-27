@@ -43,8 +43,8 @@
 
 | Item | Current State | Target State | Gap | Risk Level |
 | --- | --- | --- | --- | --- |
-| Default policy | | | | |
-| Active rules | | | | |
+| Default policy | No firewall configured, all traffic is allowed by default. | Default deny policy, only explicitly allowed traffic passes. | No firewall or deny policy is in place, needs to be configured from scratch. | Critical |
+| Active rules | No rules exist, all traffic flows freely. | Rules in place to allow only VPN traffic, SSH via VPN, and block everything else including direct FTP access. | No rules exist, needs to be built from scratch. | Critical |
 
 ---
 
