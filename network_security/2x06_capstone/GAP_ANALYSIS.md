@@ -35,9 +35,9 @@
 
 | Item | Current State | Target State | Gap | Risk Level |
 | --- | --- | --- | --- | --- |
-| Data encryption | FTP sends all data in cleartext, nothing is encrypted. | All file transfers go through SFTP, data is encrypted in transit. | FTP is still in use, SFTP has not been deployed. | CRITICAL |
-| Authentication | FTP sends credentials in cleartext over the network. | Credentials protected by SSH-based authentication via SFTP. | No secure authentication is in place. | CRITICAL |
-| Network exposure | FTP server is accessible from the entire internal network, no restriction in place. | FTP server accessible only to Finance team members. | No restriction in place, FTP server is reachable by all users on the network. | CRITICAL |
+| Data encryption | FTP sends all data in cleartext, nothing is encrypted. | All file transfers go through SFTP, data is encrypted in transit. | FTP is still in use, SFTP has not been deployed. | Critical |
+| Authentication | FTP sends credentials in cleartext over the network. | Credentials protected by SSH-based authentication via SFTP. | No secure authentication is in place. | Critical |
+| Network exposure | FTP server is accessible from the entire internal network, no restriction in place. | FTP server accessible only to Finance team members. | No restriction in place, FTP server is reachable by all users on the network. | Critical |
 
 ### 2.4 Firewall
 
