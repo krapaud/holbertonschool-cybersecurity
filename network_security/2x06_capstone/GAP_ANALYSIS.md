@@ -1,8 +1,11 @@
 # GAP ANALYSIS : LogiCorp Security Overhaul
 
 **Client:** LogiCorp
+
 **Consultant:** IronShield Consulting
+
 **Date:** 2026-07-27
+
 **Status:** Phase 1 - Pre-audit (based on documentation only)
 
 ---
