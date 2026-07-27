@@ -53,7 +53,9 @@
 
 ## 3. Business Constraints
 
-<!-- List the constraints that limit available solutions -->
+- **Finance team works remotely:** Remote access must remain available, VPN solution must support external connections from home.
+- **FTP dependency:** FTP is actively used by the Finance team for data transfers, it cannot be removed without first migrating to SFTP.
+- **Limited budget:** Budget is limited, solutions must prioritize open-source tools such as WireGuard, nftables, and SFTP over expensive commercial alternatives.
 
 ---
 
