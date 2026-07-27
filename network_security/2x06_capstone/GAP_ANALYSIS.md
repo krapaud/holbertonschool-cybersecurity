@@ -27,9 +27,9 @@
 
 | Item | Current State | Target State | Gap | Risk Level |
 | --- | --- | --- | --- | --- |
-| SSH exposure | | | | |
-| Root authentication | | | | |
-| Access control | | | | |
+| SSH exposure | SSH exposed to the entire internet, no VPN, root login enabled. | SSH accessible only through VPN, root login disabled. | Root login not disabled, no sudo-based access control in place. | Critical |
+| Root authentication | Root login is enabled, anyone with credentials can connect as root | Root login disabled, users must connect with personal accounts and escalate with sudo | No VPN exists, SSH is reachable directly from the internet. | Critical |
+| Access control | No access control in place, any internet user can attempt to connect via SSH. | SSH access restricted to authorized personnel connected through VPN only | No IP restriction or access control mechanism exists. | Critical |
 
 ### 2.3 Legacy FTP (Finance)
 
