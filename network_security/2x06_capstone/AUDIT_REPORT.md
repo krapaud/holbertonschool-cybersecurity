@@ -33,7 +33,7 @@
 
 **ARP table:** 10.42.0.1 (gateway only)
 
-**Discrepancy:** Documentation references a 192.168.1.x flat network. Live system uses 10.42.0.0/16. No WireGuard interface present, confirming VPN is not deployed.
+**Discrepancy:** The documentation mentions a 192.168.1.x network, but the live machine uses 10.42.0.0/16. There is also no VPN interface present, which confirms that WireGuard is not installed.
 
 ---
 
@@ -43,10 +43,10 @@
 
 | Port | Service | Process | Notes |
 | --- | --- | --- | --- |
-| 21 | FTP | vsftpd (root) | Cleartext protocol, exposed on all interfaces |
-| 22 | SSH | sshd (root) | Exposed on all interfaces, no VPN protection |
-| 3000 | Web terminal | ttyd (root) | Undocumented, provides root shell via browser |
-| 3001 | VS Code server | openvscode-server (root) | Undocumented, full IDE access via browser |
+| 21 | FTP | vsftpd (root) | Sends everything in cleartext, open to everyone |
+| 22 | SSH | sshd (root) | Open to the internet, no VPN required |
+| 3000 | Web terminal | ttyd (root) | Not in documentation, gives a root shell in the browser |
+| 3001 | VS Code server | openvscode-server (root) | Not in documentation, full code editor access in the browser |
 
 ### Open UDP Ports
 
@@ -63,20 +63,20 @@ ss -ulnp
 
 ### Finding : FTP cleartext : FLAG{CL34RT3XT_FTP}
 
-I checked the FTP server configuration to understand how it was set up:
+I read the FTP configuration file to understand how it was set up:
 
 ```bash
 cat /etc/vsftpd.conf
 ```
 
-Two critical settings stood out:
+Two things immediately stood out:
 
 ```text
 ssl_enable=NO
 anonymous_enable=YES
 ```
 
-FTP is running with no encryption and anonymous access enabled. Any traffic between the Finance team and the server is transmitted in cleartext, including usernames, passwords, and file contents. Any attacker on the same network can capture this data with Wireshark.
+The first line means there is no encryption at all on FTP connections. The second means anyone can connect to the FTP server without a username or password. So the Finance team's files are being transferred completely in the open, and anyone can connect and browse the server without even needing an account.
 
 ---
 
@@ -84,24 +84,24 @@ FTP is running with no encryption and anonymous access enabled. Any traffic betw
 
 | Control | Status | Notes |
 | --- | --- | --- |
-| Firewall (nftables) | Disabled | `/etc/run.sh` explicitly runs `nft flush ruleset` at startup, all rules are cleared |
-| SELinux / AppArmor | Cannot be verified | No systemd, container environment |
+| Firewall (nftables) | Disabled | The startup script clears all firewall rules every time the machine boots |
+| SELinux / AppArmor | Cannot be verified | Container environment, no systemd |
 
 **How I found it:**
 
-I read the startup script to understand what runs at boot:
+I read the startup script to see what the machine does when it starts:
 
 ```bash
 cat /etc/run.sh
 ```
 
-The script explicitly disables the firewall:
+Inside, there is a line that deletes all firewall rules:
 
 ```bash
 nft flush ruleset 2>/dev/null
 ```
 
-This means the firewall is cleared every time the machine restarts. There is no persistent traffic filtering in place.
+This means even if someone adds firewall rules manually, they get wiped out every time the machine restarts. The machine has no active firewall protection.
 
 ---
 
@@ -109,8 +109,8 @@ This means the firewall is cleared every time the machine restarts. There is no 
 
 | User | Shell | Sudo | Notes |
 | --- | --- | --- | --- |
-| root | /bin/bash | Full | Not accessible remotely (direct login disabled) |
-| student | /bin/bash | Unknown | Audit user, no sudo available |
+| root | /bin/bash | Full | Admin account |
+| student | /bin/bash | Unknown | Audit user |
 | sync | /bin/sync | None | System user |
 
 **Commands used:**
@@ -121,40 +121,34 @@ ls -la ~/.ssh/
 cat ~/.ssh/authorized_keys
 ```
 
-**SSH authorized keys:** Two ed25519 keys loaded for `mur.mickael@gmail.com`. Presence of two keys for the same identity should be investigated.
+**SSH keys:** Two SSH keys are registered for `mur.mickael@gmail.com`. Having two keys for the same person is unusual and should be checked.
 
-### Finding : SSH root login enabled : FLAG{R00T_SSH_1S_D4NG3R}
+### Finding : Root login enabled over SSH : FLAG{R00T_SSH_1S_D4NG3R}
 
-I read the SSH server configuration to check for dangerous settings:
+I read the SSH configuration file to check how SSH was set up:
 
 ```bash
 cat /etc/ssh/sshd_config
 ```
 
-Two critical misconfigurations appeared immediately:
+Two dangerous settings were active:
 
 ```text
 PermitRootLogin yes
 PasswordAuthentication yes
 ```
 
-At the bottom of the file, hidden in a comment next to "Legacy access - do not remove":
+This means anyone on the internet can try to log in directly as root using a password. There is no VPN required, no IP restriction, nothing. At the bottom of the file, hidden in a comment saying "Legacy access - do not remove", the flag was there. That kind of comment is a classic trick to make people leave the dangerous setting in place.
 
-```text
-# FLAG{R00T_SSH_1S_D4NG3R}
-```
+### Finding : Root password is easy to guess
 
-Direct root SSH access is enabled with password authentication. Combined with no VPN and no IP restriction, any attacker on the internet can brute-force root credentials. The comment "do not remove" is exactly the kind of social engineering an attacker uses to keep their backdoor in place.
-
-### Finding : Predictable root password
-
-Inside `/etc/run.sh`, the root password is set at every boot with this command:
+Inside `/etc/run.sh`, the root password is set automatically at every boot:
 
 ```bash
 echo root:`echo $HOSTNAME | cut -d '-' -f 1` | chpasswd
 ```
 
-The hostname is `8602d15dcce94e8f87817344e12e8477-2377118072`. The command extracts everything before the first `-`, giving `8602d15dcce94e8f87817344e12e8477` as the root password. Anyone who can read the hostname can immediately derive the root credentials.
+The hostname of the machine is visible in the terminal prompt. The password is just the first part of that hostname. So anyone who can see the hostname can figure out the root password immediately.
 
 ---
 
@@ -164,9 +158,9 @@ The hostname is `8602d15dcce94e8f87817344e12e8477-2377118072`. The command extra
 | --- | --- | --- | --- |
 | vsftpd | 63 | root | FTP server |
 | sshd | 89 | root | SSH server |
-| cron | 78 | root | Scheduler |
-| ttyd | 91 | root | Web terminal on port 3000, undocumented |
-| openvscode-server | 96/105/116 | root | VS Code server on port 3001, undocumented |
+| cron | 78 | root | Task scheduler |
+| ttyd | 91 | root | Web terminal on port 3000, not in documentation |
+| openvscode-server | 96/105/116 | root | VS Code in browser on port 3001, not in documentation |
 
 **Commands used:**
 
@@ -180,17 +174,17 @@ ps aux
 
 | Schedule | User | Command | Risk |
 | --- | --- | --- | --- |
-| Every minute | root | `/usr/bin/curl http://192.168.1.200/ping` | Critical - backdoor beacon |
+| Every minute | root | `/usr/bin/curl http://192.168.1.200/ping` | Critical |
 
-### Finding : Backdoor cron job : FLAG{CR0N_B4CKD00R}
+### Finding : Hidden cron job sending requests to an internal server : FLAG{CR0N_B4CKD00R}
 
-While auditing running processes with `ps aux`, I noticed that root was executing a `curl` command every minute pointing to an internal address:
+While looking at all running processes, I noticed that root was running a `curl` command every single minute pointing to an internal address:
 
 ```text
 root  173  0.0  0.0  2892  1032  ?  Ss  07:58  0:00  /bin/sh -c /usr/bin/curl http://192.168.1.200/ping
 ```
 
-A root process making outbound HTTP requests every minute is a classic sign of a beacon. I checked the cron configuration:
+A root process repeatedly calling an internal server is suspicious. I looked at the scheduled tasks to find where it came from:
 
 ```bash
 cat /etc/cron.d/logicorp
@@ -203,15 +197,15 @@ Output:
 # FLAG{CR0N_B4CKD00R}
 ```
 
-Someone planted a cron job that runs as root and phones home to an internal address every minute. This is a persistence mechanism likely left behind after the ransomware attack.
+This is a hidden task that was planted on the machine. Every minute, the server silently contacts another machine at 192.168.1.200. This is how an attacker keeps a connection to a compromised machine without needing to log in again.
 
 ---
 
 ## 8. Sensitive Data Exposure
 
-### Finding : World-readable database backup : FLAG{S3NS1T1V3_B4CKUP_EXP0S3D}
+### Finding : Database backup readable by anyone : FLAG{S3NS1T1V3_B4CKUP_EXP0S3D}
 
-While listing directories in `/opt/`, I noticed a `logicorp` folder:
+While exploring the filesystem, I found a `logicorp` folder in `/opt/`:
 
 ```bash
 ls /opt/
@@ -226,23 +220,23 @@ root_password_backup=123456
 FLAG{S3NS1T1V3_B4CKUP_EXP0S3D}
 ```
 
-A database backup file is sitting in a world-readable directory with no access control. It contains a plaintext root password. Anyone who can SSH into the machine can read the entire backup and extract credentials.
+There is a database backup file that any user on the machine can read. Inside it, there is a root password stored in plain text. This means anyone who manages to get a basic account on the machine can immediately get the admin password from this file.
 
-### Finding : IDS log manipulation : FLAG{1DS_D3T3CT10N_W0RKS}
+### Finding : Security logs can be faked : FLAG{1DS_D3T3CT10N_W0RKS}
 
-Inside `/etc/run.sh`, the startup script injects fake entries directly into the Suricata log:
+Inside `/etc/run.sh`, the startup script writes directly into the security alert log:
 
 ```bash
 echo "FLAG{1DS_D3T3CT10N_W0RKS}" >> /var/log/suricata/fast.log
 ```
 
-Confirmed by reading the log:
+I confirmed by reading the log:
 
 ```bash
 cat /var/log/suricata/fast.log
 ```
 
-An attacker with control over initialization scripts can inject fake entries into the IDS log, making detection unreliable and masking real attack activity.
+The security tool that is supposed to detect attacks (Suricata) writes its alerts to a log file. But that file can be written to by anyone with access to the startup script. This means an attacker could add fake alerts to hide real ones, or delete real alerts to cover their tracks.
 
 ---
 
@@ -250,13 +244,13 @@ An attacker with control over initialization scripts can inject fake entries int
 
 | Item | Documentation | Reality | Risk |
 | --- | --- | --- | --- |
-| Port 3000 | Not mentioned | ttyd web terminal running as root | Critical |
-| Port 3001 | Not mentioned | OpenVSCode server running as root | Critical |
-| Cron job | Not mentioned | Backdoor beacon to 192.168.1.200 every minute | Critical |
-| Firewall | Not mentioned | Explicitly disabled at startup via `nft flush ruleset` | Critical |
-| Root password | Not mentioned | Derived from hostname, trivially predictable | Critical |
-| Database backup | Not mentioned | World-readable backup with plaintext credentials | Critical |
-| IDS logs | Not mentioned | Startup script injects fake entries into Suricata log | High |
+| Port 3000 | Not mentioned | Web terminal running as root in browser | Critical |
+| Port 3001 | Not mentioned | VS Code server running as root in browser | Critical |
+| Cron job | Not mentioned | Hidden task sending requests to 192.168.1.200 every minute | Critical |
+| Firewall | Not mentioned | Wiped at every boot, no rules active | Critical |
+| Root password | Not mentioned | Derived from hostname, easy to figure out | Critical |
+| Database backup | Not mentioned | Readable by any user, contains plain text password | Critical |
+| Security logs | Not mentioned | Can be written to by startup script | High |
 | Network range | 192.168.1.x | 10.42.0.0/16 | Informational |
 
 ---
@@ -265,12 +259,12 @@ An attacker with control over initialization scripts can inject fake entries int
 
 | Finding | Severity | Flag |
 | --- | --- | --- |
-| Backdoor cron job beaconing to 192.168.1.200 | Critical | FLAG{CR0N_B4CKD00R} |
-| Root login enabled with password auth, no VPN | Critical | FLAG{R00T_SSH_1S_D4NG3R} |
-| FTP in cleartext, anonymous access enabled | Critical | FLAG{CL34RT3XT_FTP} |
-| World-readable database backup with plaintext credentials | Critical | FLAG{S3NS1T1V3_B4CKUP_EXP0S3D} |
-| IDS log manipulated by startup script | High | FLAG{1DS_D3T3CT10N_W0RKS} |
-| Predictable root password derived from hostname | Critical | - |
-| Undocumented web terminal (ttyd) running as root on port 3000 | Critical | - |
-| Undocumented VS Code server running as root on port 3001 | Critical | - |
-| Firewall explicitly disabled at every boot | Critical | - |
+| Hidden cron job contacting internal server every minute | Critical | FLAG{CR0N_B4CKD00R} |
+| Root login open to the internet with no protection | Critical | FLAG{R00T_SSH_1S_D4NG3R} |
+| FTP sends everything in cleartext, anyone can connect | Critical | FLAG{CL34RT3XT_FTP} |
+| Database backup readable by any user, contains plain text password | Critical | FLAG{S3NS1T1V3_B4CKUP_EXP0S3D} |
+| Security alert log can be faked by startup script | High | FLAG{1DS_D3T3CT10N_W0RKS} |
+| Root password derived from hostname, easy to guess | Critical | - |
+| Web terminal giving root access via browser on port 3000 | Critical | - |
+| VS Code server giving root access via browser on port 3001 | Critical | - |
+| Firewall rules wiped at every reboot | Critical | - |
