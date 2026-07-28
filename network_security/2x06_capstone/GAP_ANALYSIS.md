@@ -12,7 +12,7 @@
 
 ## 1. Executive Summary
 
-<!-- 3-4 sentences: why LogiCorp is vulnerable and what this engagement aims to fix -->
+LogiCorp's infrastructure was compromised through lateral movement enabled by a flat network with no segmentation. In addition, SSH is exposed to the entire internet without VPN protection, and the Finance team uses FTP which transmits credentials and data in cleartext. IronShield Consulting has been engaged to deploy a WireGuard VPN, segment the network into isolated zones, and migrate file transfers from FTP to SFTP. The objective of this engagement is to deliver a hardened, segmented infrastructure that prevents lateral movement and protects LogiCorp's critical assets.
 
 ---
 
