@@ -61,7 +61,7 @@ ss -tlnp
 ss -ulnp
 ```
 
-### Finding : FTP cleartext — FLAG{CL34RT3XT_FTP}
+### Finding : FTP cleartext : FLAG{CL34RT3XT_FTP}
 
 I checked the FTP server configuration to understand how it was set up:
 
@@ -123,7 +123,7 @@ cat ~/.ssh/authorized_keys
 
 **SSH authorized keys:** Two ed25519 keys loaded for `mur.mickael@gmail.com`. Presence of two keys for the same identity should be investigated.
 
-### Finding : SSH root login enabled — FLAG{R00T_SSH_1S_D4NG3R}
+### Finding : SSH root login enabled : FLAG{R00T_SSH_1S_D4NG3R}
 
 I read the SSH server configuration to check for dangerous settings:
 
@@ -182,7 +182,7 @@ ps aux
 | --- | --- | --- | --- |
 | Every minute | root | `/usr/bin/curl http://192.168.1.200/ping` | Critical - backdoor beacon |
 
-### Finding : Backdoor cron job — FLAG{CR0N_B4CKD00R}
+### Finding : Backdoor cron job : FLAG{CR0N_B4CKD00R}
 
 While auditing running processes with `ps aux`, I noticed that root was executing a `curl` command every minute pointing to an internal address:
 
@@ -209,7 +209,7 @@ Someone planted a cron job that runs as root and phones home to an internal addr
 
 ## 8. Sensitive Data Exposure
 
-### Finding : World-readable database backup — FLAG{S3NS1T1V3_B4CKUP_EXP0S3D}
+### Finding : World-readable database backup : FLAG{S3NS1T1V3_B4CKUP_EXP0S3D}
 
 While listing directories in `/opt/`, I noticed a `logicorp` folder:
 
@@ -228,7 +228,7 @@ FLAG{S3NS1T1V3_B4CKUP_EXP0S3D}
 
 A database backup file is sitting in a world-readable directory with no access control. It contains a plaintext root password. Anyone who can SSH into the machine can read the entire backup and extract credentials.
 
-### Finding : IDS log manipulation — FLAG{1DS_D3T3CT10N_W0RKS}
+### Finding : IDS log manipulation : FLAG{1DS_D3T3CT10N_W0RKS}
 
 Inside `/etc/run.sh`, the startup script injects fake entries directly into the Suricata log:
 
