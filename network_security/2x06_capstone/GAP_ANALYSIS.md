@@ -77,4 +77,7 @@
 
 ## 6. Preliminary Recommendations
 
-<!-- First solution ideas BEFORE accessing the lab -->
+- Deploy nftables with a default deny policy as the first priority.
+- Install and configure WireGuard VPN, restrict SSH access behind it.
+- Segment the network into isolated zones: LAN, DMZ, and a dedicated database segment.
+- Migrate Finance file transfers from FTP to SFTP.
