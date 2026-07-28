@@ -33,7 +33,7 @@
 
 **ARP table:** 10.42.0.1 (gateway only)
 
-**Discrepancy:** The documentation mentions a 192.168.1.x network, but the live machine uses 10.42.0.0/16. There is also no VPN interface present, which confirms that WireGuard is not installed.
+**Discrepancy:** No VPN interface is present, which confirms that WireGuard is not installed.
 
 ---
 
@@ -251,7 +251,6 @@ The security tool that is supposed to detect attacks (Suricata) writes its alert
 | Root password | Not mentioned | Derived from hostname, easy to figure out | Critical |
 | Database backup | Not mentioned | Readable by any user, contains plain text password | Critical |
 | Security logs | Not mentioned | Can be written to by startup script | High |
-| Network range | 192.168.1.x | 10.42.0.0/16 | Informational |
 
 ---
 
