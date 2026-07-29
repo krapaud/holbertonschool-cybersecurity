@@ -22,7 +22,9 @@ This document is built from the following sources:
 
 ## 1. Technology Choice : WireGuard
 
-WireGuard was chosen because it is simple to configure, has a very small attack surface compared to OpenVPN or IPsec, and is built into the Linux kernel since version 5.6. The audit showed the gateway runs a recent Linux kernel, so no additional installation is needed beyond the WireGuard tools package.
+WireGuard was already identified as the target VPN solution in GAP_ANALYSIS.md (preliminary recommendations section). This document implements that choice.
+
+The technical reasons for choosing WireGuard over OpenVPN or IPsec are documented in the WireGuard official documentation and can be summarized as follows: WireGuard has a much smaller codebase (around 4000 lines vs over 100,000 for OpenVPN), which means a smaller attack surface and easier security auditing. It is built into the Linux kernel since version 5.6, so no additional compilation or kernel module is needed on the gateway. Its cryptography is modern and fixed, meaning there are no insecure cipher options to accidentally enable. Configuration is also significantly simpler than IPsec.
 
 ---
 
