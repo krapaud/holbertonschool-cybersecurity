@@ -10,6 +10,17 @@
 
 ---
 
+## Sources
+
+This document is built from two previous deliverables:
+
+- **GAP_ANALYSIS.md** : identifies the zones to create (WAN, DMZ, LAN, Database Zone, Guest WiFi), the business constraints (FTP must stay during migration, remote access must work), and the target security posture (Zero Trust, default deny, least privilege).
+- **AUDIT_REPORT.md** : documents the current reality found on the live machine : no active firewall (`nft flush ruleset` in run.sh), flat network (network.conf), database accessible from everywhere (db.conf), FTP with no encryption and anonymous access (vsftpd.conf), SSH open to the internet (sshd_config).
+
+The firewall rules below are the technical translation of the gap between what the GAP analysis says we need and what the audit says we currently have.
+
+---
+
 ## 1. Design Principles
 
 The audit confirmed that the gateway has no active firewall at all. The startup script wipes every rule at boot, so the machine is completely open to anything. The goal of this policy is to fix that by applying a default deny approach: everything is blocked unless there is a specific rule that allows it.
