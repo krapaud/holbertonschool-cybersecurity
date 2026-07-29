@@ -35,6 +35,24 @@
 
 **Discrepancy:** No VPN interface is present, which confirms that WireGuard is not installed.
 
+### Finding : Database server location confirmed : FLAG{Z3R0_TRU5T_Z0N3S}
+
+I read the database configuration file:
+
+```bash
+cat /etc/logicorp/db.conf
+```
+
+Output:
+
+```text
+DB_HOST=192.168.1.50
+DB_PORT=3306
+# FLAG{Z3R0_TRU5T_Z0N3S}
+```
+
+The database is a MySQL server at 192.168.1.50, on the same flat network as every other device. Any machine on the 192.168.1.x network can reach it directly on port 3306. There is no zone separation between the database and the rest of the infrastructure.
+
 ### Finding : Flat network confirmed : FLAG{AUD1T_FL4T_N3TW0RK}
 
 While exploring configuration files, I found a LogiCorp-specific network configuration:
@@ -140,6 +158,23 @@ cat ~/.ssh/authorized_keys
 
 **SSH keys:** Two SSH keys are registered for `mur.mickael@gmail.com`. Having two keys for the same person is unusual and should be checked.
 
+### Finding : Root login activity recorded : FLAG{R00T_L0G1N_D3T3CT3D}
+
+I found a security policy file that confirms root login attempts were noticed:
+
+```bash
+cat /etc/logicorp/security.policy
+```
+
+Output:
+
+```text
+root login should never happen
+FLAG{R00T_L0G1N_D3T3CT3D}
+```
+
+The policy explicitly states root login should never happen, yet `PermitRootLogin yes` is active in the SSH config. The policy is documented but not enforced.
+
 ### Finding : Root login enabled over SSH : FLAG{R00T_SSH_1S_D4NG3R}
 
 I read the SSH configuration file to check how SSH was set up:
@@ -184,6 +219,22 @@ The hostname of the machine is visible in the terminal prompt. The password is j
 ```bash
 ps aux
 ```
+
+### Finding : Unnecessary services running as root : FLAG{UNN3C3SS4RY_S3RV1C3}
+
+While reading LogiCorp configuration files, I found the flag in `/etc/logicorp/telnet.flag`:
+
+```bash
+cat /etc/logicorp/telnet.flag
+```
+
+Output:
+
+```text
+# FLAG{UNN3C3SS4RY_S3RV1C3}
+```
+
+Two services are running that have no business reason to exist: `ttyd` gives anyone who reaches port 3000 a full root shell in their browser, and `openvscode-server` gives full code editor access on port 3001. Both run as root and are not mentioned anywhere in the documentation. These services massively increase the attack surface of the machine.
 
 ---
 
@@ -286,3 +337,7 @@ The security tool that is supposed to detect attacks (Suricata) writes its alert
 | VS Code server giving root access via browser on port 3001 | Critical | - |
 | Firewall rules wiped at every reboot | Critical | - |
 | Network explicitly configured as flat in `/etc/logicorp/network.conf` | Critical | FLAG{AUD1T_FL4T_N3TW0RK} |
+| Unnecessary services (ttyd, openvscode) running as root | Critical | FLAG{UNN3C3SS4RY_S3RV1C3} |
+| Database (MySQL) on same flat network as all other devices | Critical | FLAG{Z3R0_TRU5T_Z0N3S} |
+| Root login policy documented but not enforced | High | FLAG{R00T_L0G1N_D3T3CT3D} |
+| fail2ban configured to detect SSH brute force | Informational | FLAG{SSH_BRUTE_BLOCKED} (triggers on ban) |
