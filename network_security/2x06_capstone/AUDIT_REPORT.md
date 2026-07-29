@@ -35,6 +35,23 @@
 
 **Discrepancy:** No VPN interface is present, which confirms that WireGuard is not installed.
 
+### Finding : Flat network confirmed : FLAG{AUD1T_FL4T_N3TW0RK}
+
+While exploring configuration files, I found a LogiCorp-specific network configuration:
+
+```bash
+cat /etc/logicorp/network.conf
+```
+
+Output:
+
+```text
+NETWORK_MODE=FLAT
+# FLAG{AUD1T_FL4T_N3TW0RK}
+```
+
+The network is explicitly configured as flat. This is the root cause of the ransomware attack: a guest WiFi device was able to reach the database directly because there was no separation between devices on the network.
+
 ---
 
 ## 3. Attack Surface
@@ -251,6 +268,7 @@ The security tool that is supposed to detect attacks (Suricata) writes its alert
 | Root password | Not mentioned | Derived from hostname, easy to figure out | Critical |
 | Database backup | Not mentioned | Readable by any user, contains plain text password | Critical |
 | Security logs | Not mentioned | Can be written to by startup script | High |
+| Network mode | Not mentioned | `/etc/logicorp/network.conf` explicitly set to FLAT | Critical |
 
 ---
 
@@ -267,3 +285,4 @@ The security tool that is supposed to detect attacks (Suricata) writes its alert
 | Web terminal giving root access via browser on port 3000 | Critical | - |
 | VS Code server giving root access via browser on port 3001 | Critical | - |
 | Firewall rules wiped at every reboot | Critical | - |
+| Network explicitly configured as flat in `/etc/logicorp/network.conf` | Critical | FLAG{AUD1T_FL4T_N3TW0RK} |
