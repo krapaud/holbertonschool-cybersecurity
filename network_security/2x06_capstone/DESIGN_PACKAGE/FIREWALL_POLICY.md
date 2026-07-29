@@ -12,10 +12,11 @@
 
 ## Sources
 
-This document is built from two previous deliverables:
+This document is built from the following sources:
 
 - **GAP_ANALYSIS.md** : identifies the zones to create (WAN, DMZ, LAN, Database Zone, Guest WiFi), the business constraints (FTP must stay during migration, remote access must work), and the target security posture (Zero Trust, default deny, least privilege).
 - **AUDIT_REPORT.md** : documents the current reality found on the live machine : no active firewall (`nft flush ruleset` in run.sh), flat network (network.conf), database accessible from everywhere (db.conf), FTP with no encryption and anonymous access (vsftpd.conf), SSH open to the internet (sshd_config).
+- **nftables official documentation** (`man nft`, wiki.nftables.org) : source for the configuration syntax, chain types, hooks, connection tracking statements, and IP address matching.
 
 The firewall rules below are the technical translation of the gap between what the GAP analysis says we need and what the audit says we currently have.
 
@@ -164,5 +165,13 @@ table inet filter {
     }
 }
 ```
+
+**nftables syntax explained:**
+
+- `table inet filter` : `inet` means the table applies to both IPv4 and IPv6 traffic. `filter` is just the table name.
+- `chain input` / `chain forward` / `chain output` : the three standard traffic directions. `input` is traffic arriving at the machine itself, `forward` is traffic passing through from one interface to another (zone to zone), `output` is traffic the machine itself generates.
+- `type filter hook input priority 0; policy drop;` : `hook input` attaches this chain to the kernel's input processing point. `priority 0` means it runs before any other rule at the same hook. `policy drop` is the default action if no rule matches.
+- `ct state established,related accept` : `ct` stands for connection tracking. `established` means the packet belongs to a connection already allowed. `related` means it is associated with an existing connection (for example, FTP data channels). This rule lets response traffic through without needing a separate rule for every return packet.
+- `ip saddr` / `ip daddr` : source address and destination address. `ip saddr 10.0.2.0/24` means "any IP in the 10.0.2.0/24 range." The `/24` notation means the first 24 bits of the address are fixed, which gives 256 addresses (10.0.2.0 to 10.0.2.255).
 
 This configuration must be saved to a file that runs at boot, replacing the current startup script behavior of flushing all rules.

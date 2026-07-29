@@ -59,6 +59,8 @@ The WireGuard server listens on **UDP port 51820** on the WAN interface. This is
 | Finance User 1 | 10.8.0.3 | SFTP access only |
 | Finance User 2 | 10.8.0.4 | SFTP access only |
 
+The numbers (Admin 1, Finance User 1, Finance User 2) are placeholders. In WireGuard, every individual device gets its own `[Peer]` block with its own key pair and its own IP address. Two people cannot share the same credentials. This means if LogiCorp has three Finance users, there would be three separate entries with three separate IPs. The numbering here simply shows that the pattern repeats for each person or device that needs VPN access.
+
 ---
 
 ## 4. Access Control
@@ -98,6 +100,11 @@ PublicKey = <finance2_public_key>
 AllowedIPs = 10.8.0.4/32
 ```
 
+**IP notation explained (server side):**
+
+- `Address = 10.8.0.1/24` : the server takes the address 10.8.0.1 and declares it owns the entire 10.8.0.0/24 subnet. The `/24` tells WireGuard that this machine is responsible for routing all addresses in that range.
+- `AllowedIPs = 10.8.0.2/32` on a peer entry : the `/32` means "only this single IP address, nothing else." It tells the server that packets from this peer can only come from 10.8.0.2. If a peer tried to send traffic claiming to be from 10.8.0.5, the server would drop it. Using `/32` per peer is how WireGuard enforces that each client can only use its own assigned address.
+
 ---
 
 ## 6. WireGuard Client Configuration (example for Finance User)
@@ -114,7 +121,10 @@ AllowedIPs = 10.0.1.0/24
 PersistentKeepalive = 25
 ```
 
-The `AllowedIPs` on the client side is set to 10.0.1.0/24 (DMZ only) for Finance users, so their VPN tunnel only routes DMZ traffic through the gateway. They keep their regular internet connection for everything else.
+**IP notation explained (client side):**
+
+- `Address = 10.8.0.3/24` : the client takes the address 10.8.0.3 inside the VPN tunnel.
+- `AllowedIPs = 10.0.1.0/24` on the peer (server) entry : this controls what traffic the client sends through the tunnel. Only packets destined for the 10.0.1.0/24 network (the DMZ) go through WireGuard. Everything else (regular internet browsing, etc.) stays on the client's normal connection. For an admin who needs to reach the LAN and the database as well, this line would list those subnets too.
 
 ---
 
