@@ -18,7 +18,7 @@ echo "[2/5] Stopping unnecessary services..."
 pkill ttyd 2>/dev/null || true
 pkill openvscode-server 2>/dev/null || true
 
-# Step 3: harden SSH - disable root login and password authentication
+# Step 3: harden SSH by disabling root login and password authentication
 echo "[3/5] Hardening SSH..."
 cp "$SSH_CONFIG" "$SSH_CONFIG.backup"
 
@@ -78,7 +78,7 @@ service vsftpd restart
 # Step 5: stop run.sh from wiping firewall rules at every reboot
 echo "[5/5] Fixing startup script..."
 cp "$STARTUP_SCRIPT" "$STARTUP_SCRIPT.backup"
-sed -i 's|nft flush ruleset|# nft flush ruleset - disabled by clean.sh|' "$STARTUP_SCRIPT"
+sed -i 's|nft flush ruleset|# nft flush ruleset (disabled by clean.sh)|' "$STARTUP_SCRIPT"
 grep -q "nft -f $NFT_CONFIG" "$STARTUP_SCRIPT" \
     || echo "nft -f $NFT_CONFIG" >> "$STARTUP_SCRIPT"
 
