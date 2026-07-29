@@ -121,6 +121,7 @@ The first line means there is no encryption at all on FTP connections. The secon
 | --- | --- | --- |
 | Firewall (nftables) | Disabled | The startup script clears all firewall rules every time the machine boots |
 | SELinux / AppArmor | Cannot be verified | Container environment, no systemd |
+| fail2ban | Installed but not running | SSH brute force detection configured but not started |
 
 **How I found it:**
 
@@ -137,6 +138,42 @@ nft flush ruleset 2>/dev/null
 ```
 
 This means even if someone adds firewall rules manually, they get wiped out every time the machine restarts. The machine has no active firewall protection.
+
+### Finding : fail2ban installed but not running : FLAG{SSH_BRUTE_BLOCKED}
+
+While checking what security tools were installed, I looked at the fail2ban configuration:
+
+```bash
+ls /etc/fail2ban/jail.d/
+cat /etc/fail2ban/jail.d/logicorp.conf
+```
+
+Output:
+
+```text
+[sshd]
+enabled = true
+```
+
+The SSH jail is configured to detect brute force attempts. I then checked the custom action file that LogiCorp added:
+
+```bash
+cat /etc/fail2ban/action.d/logicorp-flag.conf
+```
+
+Output:
+
+```text
+actionban = echo FLAG{SSH_BRUTE_BLOCKED} > /opt/logicorp/advanced_flags/ban.flag
+```
+
+However, checking the running processes confirmed that fail2ban is not actually running:
+
+```bash
+ps aux | grep fail2ban
+```
+
+The process list shows no fail2ban daemon. The tool is installed and configured, but never started. In a real audit where fail2ban is running, an attacker making repeated failed SSH login attempts would automatically get banned, and the ban action would write the flag to the filesystem. Here, the detection mechanism exists on paper but provides no actual protection.
 
 ---
 
