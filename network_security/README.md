@@ -113,3 +113,17 @@ Sécuriser le périmètre d'un serveur avec pare-feu et VPN.
 - IP forwarding : `sysctl -w net.ipv4.ip_forward=1`, persistance dans `/etc/sysctl.conf`
 
 - Déploiement distant : `scp` + `ssh`, panic button avec `at`
+
+---
+
+### [2x06 : Capstone - IronShield Consulting](2x06_capstone/README.md)
+
+Projet intégrateur : audit complet d'une infrastructure simulée (LogiCorp) et conception d'une architecture Zero Trust.
+
+- GAP Analysis : état actuel / état cible / écart / niveau de risque
+- Audit en boîte noire : `ps aux`, `ss -tlnp`, `cat` des configs, `find` sur le filesystem
+- Backdoor cron, mot de passe prévisible, FTP anonyme, SSH root exposé
+- Design Zero Trust : segmentation en zones (WAN, DMZ, LAN, Database, Guest WiFi)
+- Firewall nftables : politique default deny, règles par zone avec justification
+- VPN WireGuard : topologie hub-and-spoke, contrôle d'accès par rôle, notation `/32` par peer
+- Plan d'implémentation : ordre des opérations pour ne pas se bloquer soi-même
