@@ -8,21 +8,21 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "$SCRIPT_DIR/config.sh"
 
-# Step 1: remove the backdoor cron job found during the audit
+# Step 1: remove the backdoor cron job we found in the audit
 echo "[1/5] Removing backdoor cron job..."
 rm -f /etc/cron.d/logicorp
 service cron reload 2>/dev/null || true
 
-# Step 2: stop web-exposed services that have no business reason to run
+# Step 2: stop the two web services that were running without any documented reason
 echo "[2/5] Stopping unnecessary services..."
 pkill ttyd 2>/dev/null || true
 pkill openvscode-server 2>/dev/null || true
 
-# Step 3: harden SSH by disabling root login and password authentication
+# Step 3: lock down SSH so only key-based login works, and root can no longer log in directly
 echo "[3/5] Hardening SSH..."
 cp "$SSH_CONFIG" "$SSH_CONFIG.backup"
 
-# grep before sed handles any existing format (yes/no/commented out)
+# check the current format before rewriting to handle any variation (commented, yes, no)
 if grep -q "^PermitRootLogin" "$SSH_CONFIG"; then
     sed -i 's/^PermitRootLogin.*/PermitRootLogin no/' "$SSH_CONFIG"
 else
@@ -37,13 +37,17 @@ fi
 
 service ssh restart
 
-# Verify the changes actually took effect before moving on
+# make sure the restart actually picked up the new config before continuing
 grep -q "^PermitRootLogin no" "$SSH_CONFIG" \
     || { echo "ERROR: PermitRootLogin not set correctly"; exit 1; }
 grep -q "^PasswordAuthentication no" "$SSH_CONFIG" \
     || { echo "ERROR: PasswordAuthentication not set correctly"; exit 1; }
 
-# Step 4: disable anonymous FTP and add SSL (temporary fix, SFTP migration is the final solution)
+# Step 4: secure FTP without breaking it for Finance
+# We disable anonymous access and make SSL available, but we do NOT force it yet.
+# Forcing SSL now would break the Finance team's existing FTP clients immediately.
+# Once they have confirmed their clients support FTPS, force_local_logins_ssl=YES
+# and force_local_data_ssl=YES can be added manually as a follow-up step.
 echo "[4/5] Hardening FTP..."
 openssl req -x509 -nodes -days "$CERT_DAYS" -newkey rsa:2048 \
     -keyout "$CERT_KEY" \
@@ -63,19 +67,15 @@ else
     echo "ssl_enable=YES" >> "$FTP_CONFIG"
 fi
 
-# Append SSL options only if they are not already present
+# add the certificate paths so vsftpd knows where to find them
 grep -q "rsa_cert_file" "$FTP_CONFIG" \
     || echo "rsa_cert_file=$CERT_PEM" >> "$FTP_CONFIG"
 grep -q "rsa_private_key_file" "$FTP_CONFIG" \
     || echo "rsa_private_key_file=$CERT_KEY" >> "$FTP_CONFIG"
-grep -q "force_local_data_ssl" "$FTP_CONFIG" \
-    || echo "force_local_data_ssl=YES" >> "$FTP_CONFIG"
-grep -q "force_local_logins_ssl" "$FTP_CONFIG" \
-    || echo "force_local_logins_ssl=YES" >> "$FTP_CONFIG"
 
 service vsftpd restart
 
-# Step 5: stop run.sh from wiping firewall rules at every reboot
+# Step 5: stop the startup script from wiping firewall rules every time the machine reboots
 echo "[5/5] Fixing startup script..."
 cp "$STARTUP_SCRIPT" "$STARTUP_SCRIPT.backup"
 sed -i 's|nft flush ruleset|# nft flush ruleset (disabled by clean.sh)|' "$STARTUP_SCRIPT"

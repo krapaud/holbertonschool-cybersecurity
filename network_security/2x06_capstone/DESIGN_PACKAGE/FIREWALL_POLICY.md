@@ -98,6 +98,21 @@ These defaults are the foundation of the Zero Trust model. A machine that drops 
 | --- | --- | --- | --- | --- |
 | 1 | any | any | ACCEPT | The gateway needs outbound access to operate normally |
 
+### 4.4 NAT : Masquerade VPN traffic
+
+VPN clients connect from the 10.8.0.0/24 subnet. When they reach machines in LAN (10.0.2.0/24) or the Database zone (10.0.3.0/24), those machines need to send replies back. But internal machines have no route to 10.8.0.0/24, so replies would be dropped.
+
+Masquerading solves this: the gateway rewrites the source IP of VPN packets to its own internal address before forwarding them. Internal machines reply to the gateway, which then forwards the reply back to the VPN client. The connection works transparently for both sides.
+
+```bash
+table ip nat {
+    chain postrouting {
+        type nat hook postrouting priority 100; policy accept;
+        ip saddr 10.8.0.0/24 masquerade comment "Masquerade VPN traffic to internal networks"
+    }
+}
+```
+
 ---
 
 ## 5. Rule Ordering Rationale
