@@ -127,3 +127,6 @@ Projet intégrateur : audit complet d'une infrastructure simulée (LogiCorp) et 
 - Firewall nftables : politique default deny, règles par zone avec justification
 - VPN WireGuard : topologie hub-and-spoke, contrôle d'accès par rôle, notation `/32` par peer
 - Plan d'implémentation : ordre des opérations pour ne pas se bloquer soi-même
+- Scripts de durcissement : `clean.sh` (SSH, FTP, cron), `vpn_setup.sh` (WireGuard), `firewall.sh` (nftables + panic button), `config.sh` (variables centralisées)
+- Compliance check : `tests.sh` vérifie automatiquement que chaque étape de durcissement a bien été appliquée
+- Defense document : justification des choix techniques face aux questions du Senior Architect (FTP, segmentation, SPOF)

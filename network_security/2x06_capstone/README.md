@@ -46,6 +46,29 @@ The document style (headers, tables, notes under each rule) follows the same for
 
 ---
 
+## HARDENING Contents
+
+| File | Description |
+| --- | --- |
+| `config.sh` | All IPs, ports, and file paths in one place. Every script sources this file. Values can be overridden with environment variables without editing the file. |
+| `clean.sh` | Removes the backdoor cron, stops unnecessary services, hardens SSH (key-only, no root login), enables FTPS, and fixes the startup script. |
+| `vpn_setup.sh` | Installs WireGuard, generates the server key pair, creates the wg0 interface, enables IP forwarding. Must run before firewall.sh. |
+| `firewall.sh` | Applies nftables rules with default deny policy and NAT masquerade. Includes a panic button that automatically clears the rules after a few minutes if access is lost. |
+
+Run order: `clean.sh` then `vpn_setup.sh` then `firewall.sh`. See `HARDENING/README.md` for full usage instructions.
+
+---
+
+## VALIDATION Contents
+
+| File | Description |
+| --- | --- |
+| `tests.sh` | Runs 18 automated checks across firewall, services, access control, and network configuration. Prints `[PASS]` or `[FAIL]` for each check and exits with code 1 if anything fails. |
+
+See `VALIDATION/README.md` for a full explanation of how the script works.
+
+---
+
 ## Flags Found During Audit
 
 | Flag | Location | Finding |
