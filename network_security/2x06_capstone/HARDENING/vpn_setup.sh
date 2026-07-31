@@ -37,7 +37,8 @@ SERVER_PUBLIC_KEY=$(cat "$WG_DIR/server_public.key")
 
 # Step 3: write the server config with placeholder peer blocks for each user role
 echo "[3/4] Writing server configuration..."
-cat > "$WG_DIR/$WG_IFACE.conf" << EOF
+if [ ! -f "$WG_DIR/$WG_IFACE.conf" ]; then
+    cat > "$WG_DIR/$WG_IFACE.conf" << EOF
 [Interface]
 Address = $VPN_SERVER_IP
 ListenPort = $VPN_PORT
@@ -58,7 +59,10 @@ PrivateKey = $SERVER_PRIVATE_KEY
 # PublicKey = <finance2_public_key>
 # AllowedIPs = 10.8.0.4/32
 EOF
-chmod 600 "$WG_DIR/$WG_IFACE.conf"
+    chmod 600 "$WG_DIR/$WG_IFACE.conf"
+else
+    echo "  wg0.conf already exists, skipping to preserve peer configuration."
+fi
 
 # Save a client config template so users know what to put on their side
 cat > "$WG_DIR/client_template.conf" << EOF
@@ -79,8 +83,13 @@ sysctl -w net.ipv4.ip_forward=1
 grep -q "net.ipv4.ip_forward=1" /etc/sysctl.conf \
     || echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf
 
-wg-quick up "$WG_IFACE"
-systemctl enable "wg-quick@$WG_IFACE" 2>/dev/null || true
+if wg show "$WG_IFACE" >/dev/null 2>&1; then
+    echo "  $WG_IFACE already up, reloading config without restart..."
+    wg syncconf "$WG_IFACE" <(wg-quick strip "$WG_IFACE")
+else
+    wg-quick up "$WG_IFACE"
+    systemctl enable "wg-quick@$WG_IFACE" 2>/dev/null || true
+fi
 
 # Confirm the interface came up before handing over to the next script
 wg show "$WG_IFACE" >/dev/null \
