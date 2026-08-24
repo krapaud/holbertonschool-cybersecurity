@@ -1,4 +1,4 @@
-# Services Réseau — Cours pour débutants
+# Services Réseau : Cours pour débutants
 
 ---
 
@@ -12,7 +12,7 @@ Quand tu tapes `google.com` dans ton navigateur, ton ordinateur doit trouver l'I
 
 **Requête itérative** : le resolver demande à chaque serveur *"qui peut répondre ?"* et suit les indications étape par étape. C'est ce que font les resolvers entre eux.
 
-```
+```text
 [Ta machine] →→ (récursive) →→ [Resolver 8.8.8.8]
                                       ↓ (itérative)
                                [Root server]  → "demande à .com"
@@ -22,13 +22,14 @@ Quand tu tapes `google.com` dans ton navigateur, ton ordinateur doit trouver l'I
                                [Serveur google.com] → "142.250.x.x"
                                       ↓
 [Ta machine] ←← 142.250.x.x ←← [Resolver 8.8.8.8]
-```
+
+```text
 
 ### La hiérarchie DNS
 
 Le DNS est organisé comme une **arborescence inversée** :
 
-```
+```text
                     . (Root)
                    / \
                 .com  .fr  .org  ...
@@ -36,16 +37,19 @@ Le DNS est organisé comme une **arborescence inversée** :
           google.com  facebook.com
           /
     www.google.com
-```
+
+```text
 
 - **Root servers (.)** : 13 clusters de serveurs dans le monde. Ils ne connaissent pas les IPs, mais savent qui gère chaque extension (.com, .fr, .org...).
+
 - **Serveurs TLD** : gèrent les extensions (.com géré par Verisign, .fr par l'AFNIC...). Ils savent qui gère chaque domaine de leur zone.
+
 - **Serveurs autoritaires** : gèrent un domaine précis (ex: `google.com`). Ils connaissent les vraies réponses (IPs, MX, etc.).
 
 ### Les types de records DNS
 
 | Type | Nom | Rôle | Exemple |
-|------|-----|------|---------|
+| --- | --- | --- | --- |
 | **A** | Address | IP v4 d'un domaine | `google.com → 142.250.74.206` |
 | **AAAA** | IPv6 Address | IP v6 d'un domaine | `google.com → 2a00:1450::200e` |
 | **CNAME** | Canonical Name | Alias vers un autre domaine | `www.github.com → github.com` |
@@ -59,9 +63,10 @@ Le DNS est organisé comme une **arborescence inversée** :
 
 Le **TTL** (Time To Live) indique combien de temps (en secondes) une réponse DNS peut être mise en **cache**.
 
-```
+```text
 dig google.com → 142.250.74.206  TTL: 300
-```
+
+```text
 
 Cela signifie : *"cette réponse est valide 300 secondes (5 min). Après ça, redemande."*
 
@@ -71,54 +76,68 @@ Cela signifie : *"cette réponse est valide 300 secondes (5 min). Après ça, re
 
 ## 2. Sécurité DNS
 
-### /etc/hosts — le DNS local qui prime sur tout
+### /etc/hosts : le DNS local qui prime sur tout
 
 Avant de contacter un serveur DNS, ton système lit le fichier `/etc/hosts`. Ce fichier contient des correspondances statiques nom → IP.
 
-```
+```text
 127.0.0.1   localhost
 192.168.1.10  monserveur.local
-```
+
+```text
 
 **Usages légitimes :**
+
 - Développeurs testant un site en local (`monapp.local → 127.0.0.1`)
+
 - Bloquer des domaines publicitaires (`ads.example.com → 0.0.0.0`)
 
 **Usages malveillants :**
+
 - Un malware modifie `/etc/hosts` pour rediriger `mabanque.fr → IP du hacker`
+
 - Tu tapes l'URL correcte, mais tu arrives sur une fausse page
 
 C'est pour ça que ce fichier est une cible privilégiée des malwares.
 
-### SPF — Empêcher l'usurpation d'email
+### SPF : Empêcher l'usurpation d'email
 
 Le **SPF** (Sender Policy Framework) est un record **TXT** dans le DNS qui liste les serveurs autorisés à envoyer des emails pour un domaine.
 
-```
+```text
 dig TXT google.com
 → "v=spf1 include:_spf.google.com ~all"
-```
+
+```text
 
 **Comment ça marche ?**
+
 1. Tu reçois un email de `contact@google.com`
+
 2. Ton serveur mail demande : *"quels serveurs sont autorisés à envoyer pour google.com ?"*
+
 3. Il compare avec l'IP du serveur expéditeur
+
 4. Si ce n'est pas dans la liste SPF → email suspect → spam ou rejet
 
 Sans SPF, n'importe qui peut envoyer un email en se faisant passer pour `google.com`.
 
-### Zone Transfer (AXFR) — La fuite de données DNS
+### Zone Transfer (AXFR) : La fuite de données DNS
 
 Un **Zone Transfer** est le mécanisme par lequel un serveur DNS secondaire copie toute la zone DNS du serveur primaire pour rester synchronisé.
 
 **Le problème :** si le serveur est mal configuré et accepte les transfers de n'importe qui, un attaquant peut récupérer **toute la base de données DNS** du domaine :
+
 - Tous les sous-domaines (y compris internes : `vpn.acme.corp`, `dev.acme.corp`)
+
 - Toutes les IPs associées
+
 - Les serveurs mail, les serveurs de noms...
 
 ```bash
 dig AXFR domaine.com @ns1.domaine.com
-```
+
+```text
 
 Un serveur correctement configuré répondra `; Transfer failed.`
 
@@ -130,7 +149,8 @@ Par défaut, `dig` utilise le resolver configuré dans `/etc/resolv.conf`. Pour 
 dig @8.8.8.8 google.com        # interroge Google DNS
 dig @1.1.1.1 google.com        # interroge Cloudflare DNS
 dig @10.10.10.5 intranet.corp  # interroge un DNS interne
-```
+
+```text
 
 Utile pour : comparer les réponses de différents serveurs, déboguer, ou accéder aux DNS internes d'une organisation.
 
@@ -142,7 +162,7 @@ Utile pour : comparer les réponses de différents serveurs, déboguer, ou accé
 
 Quand tu connectes ta machine à un réseau, elle n'a pas d'IP. Le protocole **DHCP** lui en attribue une automatiquement via 4 étapes appelées **DORA** :
 
-```
+```text
 Machine                          Serveur DHCP
   |                                    |
   |--- DISCOVER (broadcast) ---------> |  "Y a-t-il un serveur DHCP ?"
@@ -153,11 +173,15 @@ Machine                          Serveur DHCP
   |                                    |
   |<-- ACKNOWLEDGE ------------------- |  "C'est confirmé, c'est à toi"
   |                                    |
-```
+
+```text
 
 - **Discover** : broadcast sur tout le réseau (l'hôte ne connaît personne)
+
 - **Offer** : le serveur propose une IP disponible
+
 - **Request** : l'hôte confirme qu'il veut cette IP (broadcast aussi, pour informer d'autres serveurs DHCP)
+
 - **Acknowledge** : le serveur valide et envoie toutes les infos
 
 ### Ce que DHCP fournit
@@ -165,7 +189,7 @@ Machine                          Serveur DHCP
 Un bail DHCP contient bien plus qu'une IP :
 
 | Information | Exemple | Rôle |
-|-------------|---------|------|
+| --- | --- | --- |
 | Adresse IP | `192.168.1.10` | Ton identité sur le réseau |
 | Masque | `255.255.255.0` | Délimite ton réseau local |
 | Gateway | `192.168.1.1` | Porte de sortie vers internet |
@@ -180,17 +204,23 @@ Selon la distribution et le gestionnaire réseau :
 /var/lib/dhcp/dhclient.eth0.leases   # dhclient classique
 nmcli -f DHCP4 con show "nom"        # NetworkManager
 journalctl | grep -i dhcp            # logs systemd
-```
+
+```text
 
 ### Attaque par Rogue DHCP
 
 Un **Rogue DHCP** est un faux serveur DHCP sur le réseau qui répond plus vite que le serveur légitime.
 
 **Scénario d'attaque :**
+
 1. L'attaquant connecte une machine avec un serveur DHCP malveillant
+
 2. Ta machine envoie un DHCP Discover (broadcast)
+
 3. Le serveur malveillant répond en premier avec son OFFER
+
 4. Il te donne une IP valide, mais son **gateway = sa propre machine**
+
 5. Tout ton trafic passe maintenant par l'attaquant → **Man-in-the-Middle**
 
 C'est pour ça qu'il est important de vérifier l'IP du serveur DHCP qui t'a attribué ton bail.
@@ -199,7 +229,7 @@ C'est pour ça qu'il est important de vérifier l'IP du serveur DHCP qui t'a att
 
 ## 4. Compétences pratiques
 
-### dig — Outil de référence pour le DNS
+### dig : Outil de référence pour le DNS
 
 ```bash
 dig google.com                    # requête A (IPv4)
@@ -214,48 +244,58 @@ dig +trace google.com             # trace la résolution étape par étape
 dig -x 8.8.8.8                    # reverse DNS (PTR)
 dig @8.8.8.8 google.com           # interroger un serveur spécifique
 dig AXFR domaine.com @ns1.dom.com # tentative de zone transfer
-```
 
-### nslookup — Débogage interactif
+```text
+
+### nslookup : Débogage interactif
 
 ```bash
 nslookup google.com               # requête simple
 nslookup -type=MX google.com      # type spécifique
 nslookup google.com 8.8.8.8       # via un serveur précis
-```
+
+```text
 
 En mode interactif :
+
 ```bash
 nslookup
 > set type=MX
 > google.com
 > exit
-```
+
+```text
 
 ### Lire /etc/resolv.conf
 
 ```bash
 cat /etc/resolv.conf
-```
 
-```
+```text
+
+```text
 nameserver 10.211.55.2    ← resolver primaire
 nameserver fe80::1%eth0   ← resolver secondaire (IPv6)
 search hbtn.fr            ← domaine de recherche par défaut
-```
+
+```text
 
 Le `nameserver` est l'IP à qui ta machine pose ses questions DNS. Si un attaquant le change, il contrôle ta résolution DNS.
 
 ### Reverse DNS (PTR)
 
-Le reverse DNS permet de trouver le nom associé à une IP — l'inverse d'une requête A.
+Le reverse DNS permet de trouver le nom associé à une IP : l'inverse d'une requête A.
 
 ```bash
 dig +short -x 8.8.8.8    → dns.google.
 dig +short -x 1.1.1.1    → one.one.one.one.
-```
+
+```text
 
 **Utilisations :**
+
 - Analyser des logs : *"qui est derrière cette IP ?"*
+
 - Valider les serveurs mail : les serveurs vérifient que l'IP expéditrice a un PTR valide
+
 - Reconnaissance lors d'un audit de sécurité

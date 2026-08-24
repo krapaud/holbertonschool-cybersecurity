@@ -6,7 +6,7 @@ A modular Linux hardening framework implementing STIG-2024 security policies.
 
 ```text
 hardening/
-├── harden.sh           # Entry point — orchestrates all modules
+├── harden.sh           # Entry point : orchestrates all modules
 ├── config/
 │   └── harden.cfg      # Centralized configuration variables
 ├── lib/
@@ -15,13 +15,15 @@ hardening/
 │   ├── identity.sh     # User and password hardening (I-01 to I-04)
 │   └── system.sh       # System package hardening (H-01 to H-03)
 └── audit_report.txt    # Compliance report generated on each run
-```
+
+```text
 
 ## Usage
 
 ```bash
 sudo ./harden.sh
-```
+
+```text
 
 The script must be run as root. All actions are logged to `/var/log/hardening.log`. A compliance report is written to `audit_report.txt` at the end of each run.
 
@@ -85,7 +87,7 @@ The `audit_report.txt` file uses three severity levels:
 | --- | --- |
 | `[INFO]` | Rule applied or already compliant |
 | `[WARN]` | Non-critical notice (e.g. packages already up to date) |
-| `[ERROR]` | Rule failed — sets overall `COMPLIANCE STATUS` to `FAIL` |
+| `[ERROR]` | Rule failed : sets overall `COMPLIANCE STATUS` to `FAIL` |
 
 ### Sample output
 
@@ -103,6 +105,7 @@ The `audit_report.txt` file uses three severity levels:
 ===============================================
  COMPLIANCE STATUS: PASS
 ===============================================
-```
+
+```text
 
 A `COMPLIANCE STATUS: FAIL` is triggered if any module encounters an error (e.g. missing `sshd_config`, failed package install, or failed root password lock). All timestamped events are also written to `/var/log/hardening.log`.
