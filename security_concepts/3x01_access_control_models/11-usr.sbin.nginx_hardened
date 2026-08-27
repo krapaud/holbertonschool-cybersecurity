@@ -1,0 +1,22 @@
+/usr/sbin/nginx {
+    /usr/sbin/nginx r,
+    /etc/nginx/** r,
+    /usr/share/nginx/html/** r,
+    /var/log/nginx/** w,
+    /opt/securehealth/plugin.conf r,
+    /opt/securehealth/data/** r,
+    network inet stream,
+    network inet dgram,
+
+    # Nginx writes its process ID here so service management can track it.
+    /run/nginx.pid rw,
+
+    # Nginx needs to read certificates and keys when TLS is enabled.
+    /etc/ssl/** r,
+    /etc/letsencrypt/** r,
+
+    # The dynamic linker maps shared libraries needed to start Nginx.
+    /lib/** mr,
+    /lib64/** mr,
+    /usr/lib/** mr,
+}
