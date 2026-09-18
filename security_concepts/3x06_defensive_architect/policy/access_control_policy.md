@@ -140,6 +140,31 @@ must be replaced by the approved network plan before production deployment:
 The firewall script must store these values in one configuration file instead
 of duplicating them in several rules.
 
+### Bali Remote Team Access
+
+The Bali team must not connect directly to the public PostgreSQL service. The
+following design provides secure access without forcing all remote users to
+use a slow distant VPN endpoint:
+
+- Provide a regional VPN endpoint close to Bali, for example in Singapore,
+  after checking latency, packet loss and local legal requirements.
+- Use WireGuard or another approved VPN with MFA and individual user keys.
+- Store the endpoint name, VPN port and assigned client CIDR in the approved
+  deployment configuration. These values must not be guessed in the script.
+- Prefer a split-tunnel configuration for ordinary Internet traffic, while
+  routing all Nexus Financial traffic through the protected VPN.
+- Monitor latency, throughput and packet loss. Add a second regional endpoint
+  or a failover path if the service does not meet its performance target.
+- Give the remote frontend team access to the application API over HTTPS,
+  instead of giving them direct access to the primary database.
+- If database reads are required, create a protected PostgreSQL read replica
+  in a separate network. The Bali VPN CIDR may reach only the replica on TCP
+  `5432` using a read-only database role.
+- The primary PostgreSQL database must accept connections only from the
+  application network and approved database administrators through the VPN.
+- The read replica must not accept write commands, replication administration
+  or access from the public Internet.
+
 ### Required Network Rules
 
 The firewall must use a default deny policy for inbound and forwarded traffic
@@ -151,6 +176,7 @@ approved rules are:
 - Allow TCP `22` from `ADMIN_CIDR` to production servers for management.
 - Allow TCP `5432` from `APP_CIDR` to database servers for applications.
 - Allow TCP `5432` from `VPN_CIDR` to database servers for DBAs.
+- Allow TCP `5432` from the assigned Bali VPN CIDR to the read replica only.
 - Deny and log all other traffic to protected hosts.
 
 Direct Internet access to TCP `22` and TCP `5432` must be denied. The script
