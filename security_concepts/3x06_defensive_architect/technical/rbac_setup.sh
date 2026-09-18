@@ -5,16 +5,25 @@
 
 set -euo pipefail
 
+# -----------------------------------------------------------------------------
+# Configuration
+# -----------------------------------------------------------------------------
 SUDOERS_FILE="/etc/sudoers.d/nexus-rbac"
 BACKUP_DIR="/var/backups/nexus-rbac-$(date +%Y%m%d%H%M%S)"
 LOG_FILE="/var/log/nexus-rbac.log"
 
+# -----------------------------------------------------------------------------
+# Small helper functions
+# -----------------------------------------------------------------------------
 log() {
     local message="$1"
 
     printf '%s %s\n' "$(date -u +%FT%TZ)" "$message" | tee -a "$LOG_FILE"
 }
 
+# -----------------------------------------------------------------------------
+# Create a user only when it does not already exist.
+# -----------------------------------------------------------------------------
 create_user() {
     local username="$1"
 
@@ -25,6 +34,9 @@ create_user() {
     fi
 }
 
+# -----------------------------------------------------------------------------
+# Basic checks
+# -----------------------------------------------------------------------------
 if [ "$(id -u)" -ne 0 ]; then
     echo "Error: rbac_setup.sh must be run as root." >&2
     exit 1
@@ -37,6 +49,9 @@ for command in groupadd useradd usermod passwd visudo install; do
     fi
 done
 
+# -----------------------------------------------------------------------------
+# Prepare the backup and log
+# -----------------------------------------------------------------------------
 mkdir -p "$BACKUP_DIR"
 touch "$LOG_FILE"
 chmod 600 "$LOG_FILE"

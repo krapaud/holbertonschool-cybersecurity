@@ -5,17 +5,26 @@
 
 set -euo pipefail
 
+# -----------------------------------------------------------------------------
+# Configuration
+# -----------------------------------------------------------------------------
 # These are the lab addresses. Replace them with approved production
 # addresses before using the script on a real network.
 BACKUP_DIR="/var/backups/nexus-firewall-$(date +%Y%m%d%H%M%S)"
 LOG_FILE="/var/log/nexus-firewall.log"
 
+# -----------------------------------------------------------------------------
+# Small helper function
+# -----------------------------------------------------------------------------
 log() {
     local message="$1"
 
     printf '%s %s\n' "$(date -u +%FT%TZ)" "$message" | tee -a "$LOG_FILE"
 }
 
+# -----------------------------------------------------------------------------
+# Basic checks
+# -----------------------------------------------------------------------------
 if [ "$(id -u)" -ne 0 ]; then
     echo "Error: network_defense.sh must be run as root." >&2
     exit 1
@@ -26,6 +35,9 @@ if ! command -v ufw >/dev/null 2>&1; then
     exit 1
 fi
 
+# -----------------------------------------------------------------------------
+# Prepare the backup and log
+# -----------------------------------------------------------------------------
 mkdir -p "$BACKUP_DIR"
 touch "$LOG_FILE"
 chmod 600 "$LOG_FILE"
@@ -34,6 +46,9 @@ chmod 600 "$LOG_FILE"
 ufw status numbered > "$BACKUP_DIR/ufw-before.txt" || true
 log "Saved the current UFW rules."
 
+# -----------------------------------------------------------------------------
+# Firewall rules
+# -----------------------------------------------------------------------------
 # Reset the lab firewall so an old public database rule cannot remain active.
 # In production, review the current rules and maintenance window first.
 ufw --force reset

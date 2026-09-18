@@ -5,6 +5,9 @@
 
 set -euo pipefail
 
+# -----------------------------------------------------------------------------
+# Configuration
+# -----------------------------------------------------------------------------
 # Load the values stored in the configuration file next to this script.
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 CONFIG_FILE="${HARDENING_CONFIG:-$SCRIPT_DIR/hardening.conf}"
@@ -19,6 +22,9 @@ fi
 
 BACKUP_DIR="$BACKUP_ROOT/nexus-hardening-$(date +%Y%m%d%H%M%S)"
 
+# -----------------------------------------------------------------------------
+# Small helper functions
+# -----------------------------------------------------------------------------
 log() {
     local message="$1"
 
@@ -33,6 +39,9 @@ backup_file() {
     fi
 }
 
+# -----------------------------------------------------------------------------
+# Basic checks
+# -----------------------------------------------------------------------------
 # The script changes files under /etc, so root privileges are required.
 if [ "$(id -u)" -ne 0 ]; then
     echo "Error: hardening.sh must be run as root." >&2
@@ -44,6 +53,9 @@ if ! command -v sshd >/dev/null 2>&1; then
     exit 1
 fi
 
+# -----------------------------------------------------------------------------
+# Prepare the backup and log
+# -----------------------------------------------------------------------------
 mkdir -p "$BACKUP_DIR"
 touch "$LOG_FILE"
 chmod "$LOG_MODE" "$LOG_FILE"

@@ -5,17 +5,24 @@
 
 set -euo pipefail
 
+# -----------------------------------------------------------------------------
+# Configuration
+# -----------------------------------------------------------------------------
 RSYSLOG_FILE="/etc/rsyslog.d/60-nexus-central.conf"
 AUDIT_RULES_FILE="/etc/audit/rules.d/nexus.rules"
 BACKUP_DIR="/var/backups/nexus-logging-$(date +%Y%m%d%H%M%S)"
 LOG_FILE="/var/log/nexus-logging.log"
 
+# -----------------------------------------------------------------------------
+# Small helper functions
+# -----------------------------------------------------------------------------
 log() {
     local message="$1"
 
     printf '%s %s\n' "$(date -u +%FT%TZ)" "$message" | tee -a "$LOG_FILE"
 }
 
+# Save an existing configuration before replacing it.
 backup_file() {
     local file="$1"
 
@@ -24,6 +31,9 @@ backup_file() {
     fi
 }
 
+# -----------------------------------------------------------------------------
+# Basic checks
+# -----------------------------------------------------------------------------
 if [ "$(id -u)" -ne 0 ]; then
     echo "Error: logging_setup.sh must be run as root." >&2
     exit 1
@@ -36,6 +46,9 @@ for command in rsyslogd auditd augenrules auditctl; do
     fi
 done
 
+# -----------------------------------------------------------------------------
+# Prepare the backup and log
+# -----------------------------------------------------------------------------
 mkdir -p "$BACKUP_DIR"
 touch "$LOG_FILE"
 chmod 600 "$LOG_FILE"
