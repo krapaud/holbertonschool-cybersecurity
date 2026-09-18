@@ -56,12 +56,28 @@ The implementation uses these Linux groups:
 - `nexus-ops`: operations administrators;
 - `nexus-dba`: database administrators;
 - `nexus-auditor`: read-only security auditors;
+- `nexus-web-operator`: approved users who can operate the web service;
+- `nexus-log-reader`: approved users who can read security and service logs;
 - `nexus-service`: approved non-human service accounts.
 
 The RBAC script must create these groups with `groupadd --force` and add users
 only from an approved user list. A developer must not be added to
 `nexus-ops` or `nexus-dba` unless there is a documented role change. The
 script must record every `usermod --append --groups` operation.
+
+### Sarah and Dave Use Cases
+
+Sarah is the lead developer. Her named account must belong to `nexus-dev` and
+to the restricted `nexus-web-operator` group. Sarah may restart or check the
+nginx service through the approved sudo commands, but she must not log in as
+root, open a root shell or edit production configuration files.
+
+Dave is the CTO. His named account may belong to `nexus-log-reader` so he can
+read service and security logs during an incident. Dave must not edit the
+configuration files, change firewall rules or receive unrestricted sudo.
+
+This mapping gives Sarah the operational access she needs and gives Dave
+visibility without giving either person full root access.
 
 The following rules must be implemented:
 
@@ -100,6 +116,22 @@ Database administrators may use the following read and service commands:
 Cmnd_Alias NEXUS_DBA = /usr/bin/systemctl status postgresql, \
     /usr/bin/journalctl -u postgresql
 %nexus-dba ALL=(root) NEXUS_DBA
+```
+
+Sarah's restricted web operations must be defined separately:
+
+```text
+Cmnd_Alias NEXUS_SARAH_WEB = /usr/bin/systemctl status nginx, \
+    /usr/bin/systemctl restart nginx
+%nexus-web-operator ALL=(root) NEXUS_SARAH_WEB
+```
+
+Dave's log access must be read-only:
+
+```text
+Cmnd_Alias NEXUS_LOG_READ = /usr/bin/journalctl -u nginx, \
+    /usr/bin/journalctl -u postgresql
+%nexus-log-reader ALL=(root) NEXUS_LOG_READ
 ```
 
 The script must create the file as `root:root` with mode `0440`, then run
@@ -230,6 +262,8 @@ groupadd --force nexus-dev
 groupadd --force nexus-ops
 groupadd --force nexus-dba
 groupadd --force nexus-auditor
+groupadd --force nexus-web-operator
+groupadd --force nexus-log-reader
 usermod --append --groups nexus-dev <developer>
 install -o root -g root -m 0440 nexus-ops /etc/sudoers.d/nexus-ops
 chown <user>:<user> /home/<user>/.ssh/authorized_keys
