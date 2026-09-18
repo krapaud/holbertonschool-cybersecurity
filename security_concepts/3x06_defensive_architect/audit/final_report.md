@@ -74,13 +74,29 @@ sudo -l -U sarah
 sudo -l -U dave
 ```
 
-Expected result:
+Expected group result:
 
 - `sarah` is a member of `devs`.
 - `dave` is a member of `auditors`.
-- Sarah can run only the approved Nginx commands.
-- Dave can read the selected service logs.
-- Neither user has unrestricted root access.
+
+Expected limited-command output for Sarah:
+
+```text
+User sarah may run the following commands on the host:
+    (root) NOPASSWD: /usr/bin/systemctl status nginx
+    (root) NOPASSWD: /usr/bin/systemctl restart nginx
+```
+
+Expected limited-command output for Dave:
+
+```text
+User dave may run the following commands on the host:
+    (root) NOPASSWD: /usr/bin/journalctl -u nginx
+    (root) NOPASSWD: /usr/bin/journalctl -u postgresql
+```
+
+These outputs show that Sarah can restart Nginx and Dave can read selected
+logs. Neither user has unrestricted root access.
 
 Check the sudoers file:
 
@@ -140,9 +156,14 @@ Expected result:
 
 ```text
 enabled 2
+-w /etc/passwd -p wa -k identity
+-w /etc/sudoers -p wa -k sudo_changes
+-a always,exit -F arch=b64 -S execve -F euid=0 \
+    -k privileged_commands
+-e 2
 ```
 
-The rules should include sensitive files and privileged command execution.
+The rules show monitoring for sensitive files and privileged command execution.
 The value `enabled 2` means that the audit rules are immutable until reboot.
 
 ## 2. Expected control results
