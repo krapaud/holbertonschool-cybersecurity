@@ -50,6 +50,17 @@ for config_variable in \
     require_config "$config_variable"
 done
 
+# These three SSH values are mandatory security controls from the policy.
+# PermitRootLogin no
+# PasswordAuthentication no
+# PubkeyAuthentication yes
+if [ "$SSH_PERMIT_ROOT_LOGIN" != "no" ] || \
+    [ "$SSH_PASSWORD_AUTHENTICATION" != "no" ] || \
+    [ "$SSH_PUBKEY_AUTHENTICATION" != "yes" ]; then
+    echo "Error: mandatory SSH baseline values were changed." >&2
+    exit 1
+fi
+
 BACKUP_DIR="$BACKUP_ROOT/nexus-hardening-$(date +%Y%m%d%H%M%S)"
 
 # ----------------------------------------------------------------------------
