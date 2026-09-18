@@ -61,10 +61,17 @@ The long-term plan should improve both physical security and accountability:
 - Add temperature, smoke and power monitoring for the server room.
 - Replace the open coworking layout around critical equipment with a locked
   and restricted area.
+- Move critical systems and databases to a professional data center or a
+  secure cloud provider with physical security, redundancy and access logs.
+- Deploy a Mobile Device Management (MDM) solution for company laptops. It
+  should enforce encryption, screen locking, inventory and remote lock or
+  wipe.
 - Review physical access rights at least every quarter.
 - Include physical access removal in the employee offboarding process.
 - Test the visitor process and the response to lost badges regularly.
 - Include physical security checks in the internal audit before the IPO.
+- Schedule an independent professional security audit every year and before
+  important business events such as the IPO.
 
 ## Training and the Delivery Guy TikTok Situation
 
