@@ -49,8 +49,18 @@ groupadd --force devs
 groupadd --force ops
 groupadd --force auditors
 
-create_user sarah
-create_user dave
+if ! id sarah >/dev/null 2>&1; then
+    useradd --create-home --user-group --shell /bin/bash sarah
+    passwd --lock sarah >/dev/null
+    log "Created locked user sarah."
+fi
+
+if ! id dave >/dev/null 2>&1; then
+    useradd --create-home --user-group --shell /bin/bash dave
+    passwd --lock dave >/dev/null
+    log "Created locked user dave."
+fi
+
 create_user opsadmin
 
 # Sarah is a developer with a limited Nginx operation.
