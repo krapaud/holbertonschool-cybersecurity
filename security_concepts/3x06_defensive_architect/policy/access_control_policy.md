@@ -50,6 +50,19 @@ The first roles are:
 - **Service account:** access only to the files, ports and processes required
   by its service.
 
+The implementation uses these Linux groups:
+
+- `nexus-dev`: developers with development and approved staging access;
+- `nexus-ops`: operations administrators;
+- `nexus-dba`: database administrators;
+- `nexus-auditor`: read-only security auditors;
+- `nexus-service`: approved non-human service accounts.
+
+The RBAC script must create these groups with `groupadd --force` and add users
+only from an approved user list. A developer must not be added to
+`nexus-ops` or `nexus-dba` unless there is a documented role change. The
+script must record every `usermod --append --groups` operation.
+
 The following rules must be implemented:
 
 - Use role-based groups instead of adding permissions separately to each
@@ -69,10 +82,81 @@ The RBAC implementation script must create groups, add approved users to
 those groups and apply explicit permissions. It must not silently create
 privileged users or replace existing access without a backup and a log.
 
+### Sudo Rules
+
+The file `/etc/sudoers.d/nexus-ops` must contain only approved commands. For
+example, operations administrators may use these commands:
+
+```text
+Cmnd_Alias NEXUS_OPS = /usr/bin/systemctl status nginx, \
+    /usr/bin/systemctl restart nginx, \
+    /usr/bin/journalctl -u nginx
+%nexus-ops ALL=(root) NEXUS_OPS
+```
+
+Database administrators may use the following read and service commands:
+
+```text
+Cmnd_Alias NEXUS_DBA = /usr/bin/systemctl status postgresql, \
+    /usr/bin/journalctl -u postgresql
+%nexus-dba ALL=(root) NEXUS_DBA
+```
+
+The script must create the file as `root:root` with mode `0440`, then run
+`visudo --check --file=/etc/sudoers.d/nexus-ops` before enabling it. No role
+may receive `ALL=(ALL) ALL` and developers must not receive unrestricted
+sudo.
+
+### File and Key Permissions
+
+The script must enforce these ownership and mode values:
+
+- `/home/<user>/.ssh` must be owned by `<user>:<user>` with mode `0700`;
+- `/home/<user>/.ssh/authorized_keys` must be owned by `<user>:<user>` with
+  mode `0600`;
+- private SSH keys must be owned by their user with mode `0600`;
+- `/etc/ssh/sshd_config` must be owned by `root:root` with mode `0644`;
+- `/etc/sudoers.d/nexus-ops` must be owned by `root:root` with mode `0440`;
+- application secrets must be owned by `root:nexus-service` with mode `0640`;
+- directories containing production configuration must be owned by
+  `root:nexus-ops` with mode `0750`.
+
+The script must check ownership and permissions after applying them. It must
+not copy private keys into the server or create a shared key.
+
 ## Network
 
 Network access must follow a default-deny approach. Only documented traffic
 is allowed.
+
+The following RFC1918 ranges are implementation examples for the lab. They
+must be replaced by the approved network plan before production deployment:
+
+- `VPN_CIDR=10.8.0.0/24` for administrator VPN clients;
+- `ADMIN_CIDR=10.0.10.0/24` for the management network;
+- `APP_CIDR=10.0.20.0/24` for application servers;
+- `DB_CIDR=10.0.30.0/24` for database servers.
+
+The firewall script must store these values in one configuration file instead
+of duplicating them in several rules.
+
+### Required Network Rules
+
+The firewall must use a default deny policy for inbound and forwarded traffic
+and must allow established connections and loopback traffic. The minimum
+approved rules are:
+
+- Allow UDP `51820` from any source to the VPN gateway for WireGuard.
+- Allow TCP `22` from `VPN_CIDR` to production servers for SSH.
+- Allow TCP `22` from `ADMIN_CIDR` to production servers for management.
+- Allow TCP `5432` from `APP_CIDR` to database servers for applications.
+- Allow TCP `5432` from `VPN_CIDR` to database servers for DBAs.
+- Deny and log all other traffic to protected hosts.
+
+Direct Internet access to TCP `22` and TCP `5432` must be denied. The script
+must also allow only the documented outbound DNS, HTTPS and time services
+needed by the system, and must log denied connections without filling the
+disk.
 
 - SSH must be reachable only from the approved VPN or administration
   network. The exact network ranges must be defined in the deployment
@@ -93,6 +177,49 @@ The network implementation script must apply rules in a safe order, preserve
 the current administrative connection during testing and provide a rollback
 or recovery procedure. It must not apply a default-deny policy before the
 approved management path has been verified.
+
+## Implementation Order
+
+The technical scripts must follow this order:
+
+1. Back up SSH, sudoers and firewall configuration files.
+2. Create the role groups and verify the approved user mapping.
+3. Install and test each user's public SSH key.
+4. Validate `sshd_config` with `sshd -t`.
+5. Reload SSH only after a second administrative session succeeds.
+6. Create and validate the restricted sudoers files.
+7. Apply file ownership and permission checks.
+8. Apply firewall rules with a rollback timer and test VPN access.
+9. Verify that SSH is available only through the approved management paths.
+
+Every step must stop on an error and write a clear result to an audit log.
+
+### Example Script Actions
+
+The technical scripts can use actions such as these, after checking the
+approved configuration:
+
+```bash
+groupadd --force nexus-dev
+groupadd --force nexus-ops
+groupadd --force nexus-dba
+groupadd --force nexus-auditor
+usermod --append --groups nexus-dev <developer>
+install -o root -g root -m 0440 nexus-ops /etc/sudoers.d/nexus-ops
+chown <user>:<user> /home/<user>/.ssh/authorized_keys
+chmod 0600 /home/<user>/.ssh/authorized_keys
+sshd -t
+systemctl reload ssh
+```
+
+The placeholders must be replaced by values from an approved configuration
+file. The script must validate that the user exists before running `usermod`
+and must never add an unapproved user to a privileged group.
+
+For the firewall, the script must create equivalent rules for the approved
+CIDRs. For example, it must allow TCP `22` from `VPN_CIDR`, allow TCP `5432`
+from `APP_CIDR`, allow TCP `5432` from `VPN_CIDR`, and deny all other traffic
+to those services. It must test the rules before saving them permanently.
 
 ## Review and Removal
 
