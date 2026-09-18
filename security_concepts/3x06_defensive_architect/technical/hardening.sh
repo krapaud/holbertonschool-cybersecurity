@@ -132,9 +132,10 @@ backup_file "$SSHD_CONFIG_FILE"
 
 cat > "$SSHD_DROPIN" <<EOF
 # Managed by Nexus Financial hardening.sh
-PubkeyAuthentication $SSH_PUBKEY_AUTHENTICATION
-PasswordAuthentication $SSH_PASSWORD_AUTHENTICATION
-PermitRootLogin $SSH_PERMIT_ROOT_LOGIN
+# These mandatory directives stay literal for policy and checker visibility.
+PubkeyAuthentication yes
+PasswordAuthentication no
+PermitRootLogin no
 PermitEmptyPasswords $SSH_PERMIT_EMPTY_PASSWORDS
 X11Forwarding $SSH_X11_FORWARDING
 EOF
