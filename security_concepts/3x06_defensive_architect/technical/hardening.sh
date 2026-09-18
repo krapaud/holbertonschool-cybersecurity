@@ -139,6 +139,15 @@ PermitEmptyPasswords $SSH_PERMIT_EMPTY_PASSWORDS
 X11Forwarding $SSH_X11_FORWARDING
 EOF
 
+# Confirm that the generated file contains the mandatory final directives.
+# This protects the baseline even if the configuration file is edited later.
+if ! grep -q '^PermitRootLogin no$' "$SSHD_DROPIN" || \
+    ! grep -q '^PasswordAuthentication no$' "$SSHD_DROPIN" || \
+    ! grep -q '^PubkeyAuthentication yes$' "$SSHD_DROPIN"; then
+    echo "Error: generated SSH configuration is not secure." >&2
+    exit 1
+fi
+
 chown root:root "$SSHD_DROPIN" "$SSHD_CONFIG_FILE"
 chmod "$SYSTEM_CONFIG_MODE" "$SSHD_DROPIN" "$SSHD_CONFIG_FILE"
 
