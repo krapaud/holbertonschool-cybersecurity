@@ -1,112 +1,78 @@
 # Holberton School : Cybersécurité
 
-Bienvenue dans le repo de cours cybersécurité de Holberton School. Ce dépôt regroupe tous les modules pratiques du parcours, organisés en deux grandes familles : la sécurité Linux et la sécurité réseau.
+Ce dépôt regroupe les travaux pratiques du parcours cybersécurité. Les modules couvrent l'administration Linux, les réseaux, les concepts de sécurité, Python appliqué à la cybersécurité et la conception défensive.
 
----
-
-## Structure du repo
+## Structure du dépôt
 
 ```text
 holbertonschool-cybersecurity/
-├── linux_security/
-│   ├── 1x00_linux_fundamentals/     # Bases Linux : shell, fichiers, permissions
-│   ├── 1x01_shell_ops/              # Opérations shell avancées
-│   ├── 1x02_identity_management/    # Gestion des utilisateurs et droits
-│   ├── 1x03_system_visibility/      # Surveillance et logs système
-│   ├── 1x04_security_automation/    # Automatisation des tâches de sécurité
-│   └── 1x05_hardening/              # Durcissement d'un système Linux
-│
-└── network_security/
-    ├── 2x00_network_fundamentals/   # Bases réseau : IP, masques, routage, OSI
-    ├── 2x01_network_services/       # DNS, DHCP, services réseau
-    ├── 2x02_the_wiretap/            # Capture réseau, nmap, Wireshark
-    ├── 2x03_traffic_forensics/      # Analyse forensique avec tshark
-    └── 2x04_perimeter_control/      # Pare-feu nftables, WireGuard VPN
+├── linux_security/       # Fondamentaux et durcissement Linux
+├── network_security/     # Réseaux, capture, périmètre et capstone
+├── security_concepts/    # Concepts, contrôle d'accès, logs et défense
+├── python_for_cyber/     # Python appliqué à la cybersécurité
+└── strategy_layer/       # Analyse et stratégie de sécurité
+```
 
-```text
+## Linux Security
 
----
+- `1x00_linux_fundamentals` : bases Linux, shell, fichiers et permissions.
+- `1x01_shell_ops` : opérations shell et automatisation.
+- `1x02_identity_management` : utilisateurs, groupes et droits.
+- `1x03_system_visibility` : visibilité et journalisation système.
+- `1x04_security_automation` : automatisation des contrôles de sécurité.
+- `1x05_hardening` : durcissement d'un système Linux.
 
-## Modules Network Security
+## Network Security
 
-### [2x00 : Fondamentaux Réseau](network_security/2x00_network_fundamentals/README.md)
+- `2x00_network_fundamentals` : IPv4, sous-réseaux, routage, ARP et TTL.
+- `2x01_network_services` : DNS, DHCP et services réseau.
+- `2x02_the_wiretap` : capture réseau, `tcpdump`, Wireshark et `nmap`.
+- `2x03_traffic_forensics` : analyse forensique avec `tshark`.
+- `2x04_perimeter_control` : `nftables`, NAT et WireGuard.
+- `2x05_interceptor` : interception et contrôles réseau.
+- `2x06_capstone` : audit, conception et implémentation du durcissement d'une passerelle réseau, avec VPN, pare-feu et validation.
 
-Les bases indispensables avant de toucher à la sécurité réseau.
+## Security Concepts
 
-- Binaire et adressage IPv4
+- `3x00_security_core` : fondamentaux de sécurité et analyse de risques.
+- `3x01_access_control_models` : DAC, ACL, RBAC, MAC et AppArmor.
+- `3x03_defensive_controls` : politiques et contrôles défensifs.
+- `3x04_the_watchtower` : collecte, analyse, corrélation et détection dans les logs.
+- `3x05_incident_response` : premières étapes de réponse à incident.
+- `3x06_defensive_architect` : architecture et automatisation des contrôles défensifs.
 
-- Sous-réseaux, CIDR, VLSM
+## Python for Cybersecurity
 
-- Modèle OSI pratique (couches 2 et 3)
+### [`4x00_python_security`](python_for_cyber/4x00_python_security/README.md)
 
-- Routage, ARP, TTL
+Ce module applique Python à des tâches de cybersécurité. Il commence par la préparation d'un environnement virtuel, la gestion des dépendances et les contrôles de style avec `pycodestyle`.
 
----
+Le premier projet contient notamment :
 
-### [2x01 : Services Réseau](network_security/2x01_network_services/README.md)
+- `breach_check.py` : script principal.
+- `requirements.txt` : dépendances Python.
+- `.gitignore` : fichiers exclus du versionnement.
+- `venv/` : environnement virtuel local, non versionné.
 
-Les protocoles que tu rencontres tous les jours sur un réseau.
+## Conventions générales
 
-- DNS : résolution récursive/itérative, types de records, TTL, cache
+- Lire les consignes et les README avant de commencer une task.
+- Utiliser un environnement virtuel pour les projets Python.
+- Ne jamais versionner les environnements virtuels ni les caches générés.
+- Vérifier la syntaxe et le style avant de valider un fichier.
+- Documenter les choix techniques et les limites de test.
+- Ne jamais exécuter une charge utile trouvée dans un fichier de logs.
 
-- Sécurité DNS : /etc/hosts, SPF, Zone Transfer (AXFR)
+## Vérifications utiles
 
-- DHCP : processus DORA, rogue DHCP
+```bash
+git status
+python3 -m py_compile chemin/vers/script.py
+pycodestyle chemin/vers/script.py
+```
 
-- Outils : `dig`, `nslookup`
-
----
-
-### [2x02 : The Wiretap](network_security/2x02_the_wiretap/README.md)
-
-Capturer et analyser du trafic réseau.
-
-- `tcpdump` et filtres BPF pour la capture
-
-- Filtres d'affichage Wireshark
-
-- Handshake TCP, flags, ISN
-
-- `nmap` : scans SYN, Connect, UDP, ARP, ICMP Mask, détection de version
-
-- Protocoles non sécurisés : Telnet, FTP, HTTP
-
----
-
-### [2x03 : Traffic Forensics](network_security/2x03_traffic_forensics/README.md)
-
-Analyser un incident à partir d'une capture réseau.
-
-- `tshark` : options `-r`, `-Y`, `-T fields`, `-e`, `-q`, `-z`
-
-- Hiérarchie des protocoles, identification des bavards, conversations TCP
-
-- Détection : scan SYN, énumération 404, injection SQL, RCE, reverse shell
-
-- Beaconing C2, tunneling DNS, tunneling ICMP
-
-- Carving de fichiers HTTP
-
----
-
-### [2x04 : Perimeter Control](network_security/2x04_perimeter_control/README.md)
-
-Sécuriser le périmètre d'un serveur avec un pare-feu et un VPN.
-
-- Audit des ports avec `ss`
-
-- `nftables` : tables, chains, hooks, politiques, connection tracking, `ip saddr`
-
-- NAT masquerade pour partager une connexion
-
-- WireGuard VPN : keypairs, `wg0.conf`, `client.conf`, `AllowedIPs`
-
-- IP forwarding avec `sysctl`
-
-- Déploiement à distance avec SCP + SSH
-
----
+Chaque module possède son propre README lorsque des consignes ou une méthode spécifique doivent être documentées.
 
 ## Auteur
 
-**Mickael Krapaud** : Étudiant Holberton School
+**Mickael Krapaud**, étudiant Holberton School.
