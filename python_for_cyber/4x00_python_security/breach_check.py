@@ -37,6 +37,20 @@ def validate_line(line: str) -> bool:
     return re.fullmatch(pattern, line) is not None
 
 
+def check_policy(password: str) -> str:
+    """Check if a password follows the basic security policy."""
+    common_passwords = {"password", "123456", "qwerty", "admin"}
+
+    if len(password) < 8:
+        return "WEAK"
+    if password.isalpha():
+        return "WEAK"
+    if password.lower() in common_passwords:
+        return "WEAK"
+
+    return "COMPLIANT"
+
+
 def main():
     """Start BreachCheck."""
     log_format = "%(asctime)s - %(levelname)s - %(message)s"
@@ -80,6 +94,8 @@ def main():
         logging.debug("Starting regex check on line %d...", line_number)
         if validate_line(line):
             valid_lines.append(line)
+            password = line.split(":", 1)[1]
+            logging.debug("Password policy result: %s", check_policy(password))
 
 
 if __name__ == "__main__":
