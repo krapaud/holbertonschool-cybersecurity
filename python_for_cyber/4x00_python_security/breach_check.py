@@ -5,8 +5,6 @@ import logging
 import re
 import sys
 
-logger = logging.getLogger(__name__)
-
 
 def read_file(filename: str) -> list:
     """Read a file and return its lines."""
@@ -14,10 +12,10 @@ def read_file(filename: str) -> list:
         with open(filename, "r", encoding="utf-8") as file:
             return file.readlines()
     except FileNotFoundError:
-        logger.error("File not found: %s", filename)
+        logging.error("File not found: %s", filename)
         sys.exit(1)
     except PermissionError:
-        logger.error("Permission denied: %s", filename)
+        logging.error("Permission denied: %s", filename)
         sys.exit(1)
 
 
@@ -42,6 +40,7 @@ def validate_line(line: str) -> bool:
 def main():
     """Start BreachCheck."""
     log_format = "%(asctime)s - %(levelname)s - %(message)s"
+    logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
 
     console_handler = logging.StreamHandler()
@@ -73,12 +72,12 @@ def main():
 
     args = parser.parse_args()
 
-    logger.info("BreachCheck v1.0 startup...")
-    logger.info("Processing file: %s", args.file)
+    logging.info("BreachCheck v1.0 startup...")
+    logging.info("Processing file: %s", args.file)
     lines = clean_data(read_file(args.file))
     valid_lines = []
     for line_number, line in enumerate(lines, start=1):
-        logger.debug("Starting regex check on line %d...", line_number)
+        logging.debug("Starting regex check on line %d...", line_number)
         if validate_line(line):
             valid_lines.append(line)
 
