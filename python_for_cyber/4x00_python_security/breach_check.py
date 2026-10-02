@@ -16,6 +16,19 @@ def read_file(filename: str) -> list:
         print(f"[ERROR] Permission denied: {filename}", file=sys.stderr)
         sys.exit(1)
 
+
+def clean_data(lines: list) -> list:
+    """Clean the lines before they are processed."""
+    clean_lines = []
+
+    for line in lines:
+        line = line.strip()
+        if line and not line.startswith("#"):
+            clean_lines.append(line)
+
+    return clean_lines
+
+
 def main():
     """Start BreachCheck."""
     parser = argparse.ArgumentParser(
@@ -37,7 +50,7 @@ def main():
     args = parser.parse_args()
 
     print("BreachCheck v1.0 startup...")
-    read_file(args.file)
+    clean_data(read_file(args.file))
 
 
 if __name__ == "__main__":
