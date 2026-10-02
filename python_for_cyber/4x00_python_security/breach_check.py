@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import hashlib
 import logging
 import re
 import sys
@@ -49,6 +50,13 @@ def check_policy(password: str) -> str:
         return "WEAK"
 
     return "COMPLIANT"
+
+
+def hash_password(password: str, salt: str) -> str:
+    """Hash a password with a salt using SHA-256."""
+    password_bytes = password.encode("utf-8")
+    salt_bytes = salt.encode("utf-8")
+    return hashlib.sha256(password_bytes + salt_bytes).hexdigest()
 
 
 def main():
