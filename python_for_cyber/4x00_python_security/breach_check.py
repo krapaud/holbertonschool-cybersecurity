@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 
 import argparse
+import logging
 import re
 import sys
+
+logger = logging.getLogger(__name__)
 
 
 def read_file(filename: str) -> list:
@@ -11,10 +14,10 @@ def read_file(filename: str) -> list:
         with open(filename, "r", encoding="utf-8") as file:
             return file.readlines()
     except FileNotFoundError:
-        print(f"[ERROR] File not found: {filename}", file=sys.stderr)
+        logger.error("File not found: %s", filename)
         sys.exit(1)
     except PermissionError:
-        print(f"[ERROR] Permission denied: {filename}", file=sys.stderr)
+        logger.error("Permission denied: %s", filename)
         sys.exit(1)
 
 
@@ -38,6 +41,20 @@ def validate_line(line: str) -> bool:
 
 def main():
     """Start BreachCheck."""
+    log_format = "%(asctime)s - %(levelname)s - %(message)s"
+    logger.setLevel(logging.DEBUG)
+
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+    console_handler.setFormatter(logging.Formatter(log_format))
+
+    file_handler = logging.FileHandler("breach_check.log")
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(logging.Formatter(log_format))
+
+    logger.addHandler(console_handler)
+    logger.addHandler(file_handler)
+
     parser = argparse.ArgumentParser(
         description="Check an input file for data breaches."
     )
@@ -56,9 +73,14 @@ def main():
 
     args = parser.parse_args()
 
-    print("BreachCheck v1.0 startup...")
+    logger.info("BreachCheck v1.0 startup...")
+    logger.info("Processing file: %s", args.file)
     lines = clean_data(read_file(args.file))
-    valid_lines = [line for line in lines if validate_line(line)]
+    valid_lines = []
+    for line_number, line in enumerate(lines, start=1):
+        logger.debug("Starting regex check on line %d...", line_number)
+        if validate_line(line):
+            valid_lines.append(line)
 
 
 if __name__ == "__main__":
