@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import re
 import sys
 
 
@@ -29,6 +30,12 @@ def clean_data(lines: list) -> list:
     return clean_lines
 
 
+def validate_line(line: str) -> bool:
+    """Check that a line contains an email and a password."""
+    pattern = r"[^@\s:]+@[^@\s:]+\.[^@\s:]+:[^:]+"
+    return re.fullmatch(pattern, line) is not None
+
+
 def main():
     """Start BreachCheck."""
     parser = argparse.ArgumentParser(
@@ -50,7 +57,8 @@ def main():
     args = parser.parse_args()
 
     print("BreachCheck v1.0 startup...")
-    clean_data(read_file(args.file))
+    lines = clean_data(read_file(args.file))
+    valid_lines = [line for line in lines if validate_line(line)]
 
 
 if __name__ == "__main__":
