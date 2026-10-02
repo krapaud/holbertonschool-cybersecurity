@@ -1,6 +1,20 @@
 #!/usr/bin/env python3
 
 import argparse
+import sys
+
+
+def read_file(filename: str) -> list:
+    """Read a file and return its lines."""
+    try:
+        with open(filename, "r", encoding="utf-8") as file:
+            return file.readlines()
+    except FileNotFoundError:
+        print(f"[ERROR] File not found: {filename}", file=sys.stderr)
+        sys.exit(1)
+    except PermissionError:
+        print(f"[ERROR] Permission denied: {filename}", file=sys.stderr)
+        sys.exit(1)
 
 def main():
     """Start BreachCheck."""
@@ -23,6 +37,7 @@ def main():
     args = parser.parse_args()
 
     print("BreachCheck v1.0 startup...")
+    read_file(args.file)
 
 
 if __name__ == "__main__":
