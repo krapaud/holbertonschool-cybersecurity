@@ -1,17 +1,25 @@
 #!/usr/bin/env python3
 
 import argparse
-import hashlib
+import configparser
 import logging
-import re
 import sys
+from pathlib import Path
+
+from utils import clean_data, hash_password, validate_line
 
 
-def read_file(filename: str) -> list:
-    """Read a file and return its lines."""
+MIN_LENGTH = 8
+COMMON_PASSWORDS = set()
+SALT = ""
+
+
+def read_file(filename: str):
+    """Read a file one line at a time."""
     try:
         with open(filename, "r", encoding="utf-8") as file:
-            return file.readlines()
+            for line in file:
+                yield line
     except FileNotFoundError:
         logging.error("File not found: %s", filename)
         sys.exit(1)
@@ -20,43 +28,37 @@ def read_file(filename: str) -> list:
         sys.exit(1)
 
 
-def clean_data(lines: list) -> list:
-    """Clean the lines before they are processed."""
-    clean_lines = []
-
-    for line in lines:
-        line = line.strip()
-        if line and not line.startswith("#"):
-            clean_lines.append(line)
-
-    return clean_lines
-
-
-def validate_line(line: str) -> bool:
-    """Check that a line contains an email and a password."""
-    pattern = r"[^@\s:]+@[^@\s:]+\.[^@\s:]+:[^:]+"
-    return re.fullmatch(pattern, line) is not None
-
-
 def check_policy(password: str) -> str:
     """Check if a password follows the basic security policy."""
-    common_passwords = {"password", "123456", "qwerty", "admin"}
-
-    if len(password) < 8:
+    if len(password) < MIN_LENGTH:
         return "WEAK"
     if password.isalpha():
         return "WEAK"
-    if password.lower() in common_passwords:
+    if password.lower() in COMMON_PASSWORDS:
         return "WEAK"
 
     return "COMPLIANT"
 
 
-def hash_password(password: str, salt: str) -> str:
-    """Hash a password with a salt using SHA-256."""
-    password_bytes = password.encode("utf-8")
-    salt_bytes = salt.encode("utf-8")
-    return hashlib.sha256(password_bytes + salt_bytes).hexdigest()
+def load_config() -> None:
+    """Load the security settings from config.ini."""
+    config_path = Path(__file__).with_name("config.ini")
+    if not config_path.is_file():
+        logging.error("[ERROR] Config file missing")
+        sys.exit(1)
+
+    config = configparser.ConfigParser()
+    config.read(config_path)
+
+    global MIN_LENGTH, COMMON_PASSWORDS, SALT
+    security = config["SECURITY"]
+    MIN_LENGTH = security.getint("MinLength")
+    SALT = security.get("Salt")
+    COMMON_PASSWORDS = {
+        password.strip().lower()
+        for password in security.get("CommonPasswords", "").split(",")
+        if password.strip()
+    }
 
 
 def main():
@@ -75,6 +77,7 @@ def main():
 
     logger.addHandler(console_handler)
     logger.addHandler(file_handler)
+    load_config()
 
     parser = argparse.ArgumentParser(
         description="Check an input file for data breaches."
