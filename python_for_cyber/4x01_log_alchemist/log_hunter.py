@@ -32,6 +32,7 @@ XSS_PATTERNS = [
     re.compile(r"<script", re.IGNORECASE),
     re.compile(r"javascript:", re.IGNORECASE),
     re.compile(r"onload\s*=", re.IGNORECASE),
+    re.compile(r"onerror\s*=", re.IGNORECASE),
 ]
 
 
@@ -40,8 +41,8 @@ class LogEntry:
 
     def __init__(
         self,
-        ip: str,
-        timestamp: str,
+        ip: str = "",
+        timestamp: str = "",
         service: str = "",
         message: str = "",
         raw_line: str = "",
