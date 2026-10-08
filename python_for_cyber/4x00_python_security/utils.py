@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Small helper functions used by BreachCheck."""
 
 import hashlib

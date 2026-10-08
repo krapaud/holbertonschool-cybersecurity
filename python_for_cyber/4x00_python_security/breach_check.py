@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import argparse
 import configparser
 import logging
@@ -52,8 +51,8 @@ def load_config() -> None:
 
     global MIN_LENGTH, COMMON_PASSWORDS, SALT
     security = config["SECURITY"]
-    MIN_LENGTH = security.getint("MinLength")
-    SALT = security.get("Salt")
+    MIN_LENGTH = security.getint("MinLength", fallback=MIN_LENGTH)
+    SALT = security.get("Salt", fallback="")
     COMMON_PASSWORDS = {
         password.strip().lower()
         for password in security.get("CommonPasswords", "").split(",")
@@ -99,7 +98,7 @@ def main():
 
     logging.info("BreachCheck v1.0 startup...")
     logging.info("Processing file: %s", args.file)
-    lines = clean_data(read_file(args.file))
+    lines = clean_data(list(read_file(args.file)))
     for line_number, line in enumerate(lines, start=1):
         logging.debug("Starting regex check on line %d...", line_number)
         if validate_line(line):
