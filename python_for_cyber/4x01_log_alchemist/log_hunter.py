@@ -196,7 +196,7 @@ def detect_bruteforce(entries):
     failures = Counter()
     for entry in entries:
         message = getattr(entry, "message", "")
-        is_http_failure = getattr(entry, "status", None) == 401
+        is_http_failure = str(getattr(entry, "status", "")) == "401"
         is_ssh_failure = "Failed password" in message
         if is_http_failure or is_ssh_failure:
             failures[entry.ip] += 1
