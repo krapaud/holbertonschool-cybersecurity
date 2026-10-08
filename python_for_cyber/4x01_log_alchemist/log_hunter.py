@@ -71,6 +71,25 @@ class LogEntry:
         self.attack_type = ""
 
 
+def correlate_events(entries):
+    """Find IPs that scanned the site and then tried SQL injection."""
+    states = defaultdict(set)
+
+    for entry in entries:
+        if getattr(entry, "status", None) in (404, "404"):
+            states[entry.ip].add("scanner")
+        if getattr(entry, "attack_type", "") == "SQLi":
+            states[entry.ip].add("sqli")
+
+        if {"scanner", "sqli"}.issubset(states[entry.ip]):
+            yield {
+                "ip": entry.ip,
+                "stages": ["scanner", "sqli"],
+                "alert_type": "CRITICAL INCIDENT",
+            }
+            states[entry.ip].clear()
+
+
 def read_stream(file_path: str):
     """Yield one line from the log file at a time."""
     try:
@@ -256,25 +275,6 @@ def detect_burst(entries, window_seconds=60, threshold=10):
                 "window": window_seconds,
                 "alert_type": "BURST",
             }
-
-
-def correlate_events(entries):
-    """Find IPs that scanned the site and then tried SQL injection."""
-    states = defaultdict(set)
-
-    for entry in entries:
-        if getattr(entry, "status", None) in (404, "404"):
-            states[entry.ip].add("scanner")
-        if getattr(entry, "attack_type", "") == "SQLi":
-            states[entry.ip].add("sqli")
-
-        if {"scanner", "sqli"}.issubset(states[entry.ip]):
-            yield {
-                "ip": entry.ip,
-                "stages": ["scanner", "sqli"],
-                "alert_type": "CRITICAL INCIDENT",
-            }
-            states[entry.ip].clear()
 
 
 def main():
