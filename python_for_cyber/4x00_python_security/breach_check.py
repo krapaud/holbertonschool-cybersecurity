@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""Command-line tool used to check leaked account data."""
 import argparse
 import configparser
 import logging
@@ -15,6 +16,7 @@ SALT = ""
 
 def check_policy(password: str) -> str:
     """Check if a password follows the basic security policy."""
+    # Short passwords and simple words are easier to guess.
     if len(password) < MIN_LENGTH:
         return "WEAK"
     if password.isalpha():
@@ -35,6 +37,7 @@ def load_config() -> None:
     config = configparser.ConfigParser()
     config.read(config_path)
 
+    # The rules can be changed in config.ini without changing this code.
     global MIN_LENGTH, COMMON_PASSWORDS, SALT
     security = config["SECURITY"]
     MIN_LENGTH = security.getint("MinLength", fallback=MIN_LENGTH)
@@ -84,6 +87,7 @@ def main():
 
     logging.info("BreachCheck v1.0 startup...")
     logging.info("Processing file: %s", args.file)
+    # The file is read before the lines are cleaned and checked.
     lines = clean_data(list(read_file(args.file)))
     for line_number, line in enumerate(lines, start=1):
         logging.debug("Starting regex check on line %d...", line_number)

@@ -9,6 +9,7 @@ import sys
 
 def read_file(filename: str):
     """Read a file one line at a time."""
+    # yield keeps only the current line in memory.
     try:
         with open(filename, "r", encoding="utf-8") as file:
             for line in file:
@@ -27,6 +28,7 @@ def clean_data(lines: list) -> list:
 
     for line in lines:
         line = line.strip()
+        # Empty lines and comments do not contain account data.
         if line and not line.startswith("#"):
             clean_lines.append(line)
 
@@ -35,12 +37,14 @@ def clean_data(lines: list) -> list:
 
 def validate_line(line: str) -> bool:
     """Check that a line contains an email and a password."""
+    # A valid line has an email, a colon, and a non-empty password.
     pattern = r"[^@\s:]+@[^@\s:]+\.[^@\s:]+:[^:]+"
     return re.fullmatch(pattern, line) is not None
 
 
 def hash_password(password: str, salt: str) -> str:
     """Hash a password with a salt using SHA-256."""
+    # Both values must be bytes before hashlib can use them.
     password_bytes = password.encode("utf-8")
     salt_bytes = salt.encode("utf-8")
     return hashlib.sha256(password_bytes + salt_bytes).hexdigest()
