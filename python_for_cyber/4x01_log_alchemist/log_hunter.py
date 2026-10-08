@@ -2,6 +2,7 @@
 """Read log files one line at a time."""
 
 import argparse
+import json
 import re
 from collections import Counter, defaultdict, deque
 from datetime import datetime, timezone
@@ -88,6 +89,23 @@ def correlate_events(entries):
                 "alert_type": "CRITICAL INCIDENT",
             }
             states[entry.ip].clear()
+
+
+def export_report(alerts, filename, format="json"):
+    """Save alert dictionaries or LogEntry objects in a report file."""
+    if format != "json":
+        raise ValueError("Only JSON reports are supported")
+
+    report_data = []
+    for alert in alerts:
+        if isinstance(alert, dict):
+            report_data.append(alert)
+        elif isinstance(alert, LogEntry):
+            report_data.append(alert.__dict__)
+
+    with open(filename, "w", encoding="utf-8") as report_file:
+        json.dump(report_data, report_file, indent=2)
+        report_file.write("\n")
 
 
 def read_stream(file_path: str):
@@ -281,6 +299,9 @@ def main():
     """Start the LogHunter tool."""
     parser = argparse.ArgumentParser()
     parser.add_argument("file", help="path to the log file")
+    parser.add_argument(
+        "--report", help="file where the JSON report will be saved"
+    )
     args = parser.parse_args()
 
     print("[*] LogHunter - Log Analysis Engine")
@@ -393,6 +414,17 @@ def main():
     for incident in incidents:
         stages = " -> ".join(incident["stages"])
         print(f"    {incident['ip']}: {stages}")
+
+    all_alerts = brute_force_alerts + burst_alerts + incidents
+    if args.report:
+        export_report(all_alerts, args.report)
+        print(
+            f"[*] Report exported: {args.report} "
+            f"({len(all_alerts)} alerts)"
+        )
+    else:
+        print(f"[*] Total alerts: {len(all_alerts)}")
+        print("[*] Use --report <file> to export.")
 
 
 if __name__ == "__main__":
