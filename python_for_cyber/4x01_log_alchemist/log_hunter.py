@@ -3,7 +3,8 @@
 
 import argparse
 import re
-from collections import Counter
+from collections import Counter, defaultdict, deque
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Optional  # noqa: UP035
 
@@ -210,6 +211,53 @@ def detect_bruteforce(entries):
             }
 
 
+def parse_log_time(timestamp: str):
+    """Convert an Apache or Syslog timestamp into a datetime object."""
+    try:
+        if "/" in timestamp:
+            parsed_time = datetime.strptime(
+                timestamp, "%d/%b/%Y:%H:%M:%S %z"
+            )
+            return parsed_time.replace(tzinfo=None)
+
+        parsed_time = datetime.strptime(
+            f"{timestamp} +0000", "%b %d %H:%M:%S %z"
+        )
+        current_year = datetime.now(timezone.utc).year
+        return parsed_time.replace(year=current_year, tzinfo=None)
+    except ValueError:
+        return None
+
+
+def detect_burst(entries, window_seconds=60, threshold=10):
+    """Yield alerts when an IP sends too many requests in a short time."""
+    timestamps_by_ip = defaultdict(deque)
+    alerted_ips = set()
+
+    for entry in entries:
+        current_time = parse_log_time(getattr(entry, "timestamp", ""))
+        if current_time is None:
+            continue
+
+        timestamps = timestamps_by_ip[entry.ip]
+        timestamps.append(current_time)
+        while (
+            timestamps
+            and (current_time - timestamps[0]).total_seconds()
+            > window_seconds
+        ):
+            timestamps.popleft()
+
+        if len(timestamps) >= threshold and entry.ip not in alerted_ips:
+            alerted_ips.add(entry.ip)
+            yield {
+                "ip": entry.ip,
+                "count": len(timestamps),
+                "window": window_seconds,
+                "alert_type": "BURST",
+            }
+
+
 def main():
     """Start the LogHunter tool."""
     parser = argparse.ArgumentParser()
@@ -312,6 +360,14 @@ def main():
     print(f"[*] BRUTE_FORCE alerts: {len(brute_force_alerts)}")
     for alert in brute_force_alerts:
         print(f"    {alert['ip']}: {alert['count']} failures")
+    burst_alerts = list(detect_burst(parsed_entries))
+    print("--- Burst Detection ---")
+    print(f"[*] BURST alerts: {len(burst_alerts)}")
+    for alert in burst_alerts:
+        print(
+            f"    {alert['ip']}: {alert['count']} requests "
+            f"in {alert['window']}s window"
+        )
 
 
 if __name__ == "__main__":
