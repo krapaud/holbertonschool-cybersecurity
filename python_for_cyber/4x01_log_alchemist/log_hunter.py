@@ -45,6 +45,7 @@ class LogEntry:
         service: str,
         message: str,
         raw_line: str,
+        source: str = "",
         method: str = "",
         path: str = "",
         status: Optional[int] = None,  # noqa: UP045
@@ -56,6 +57,7 @@ class LogEntry:
         self.service = service
         self.message = message
         self.raw_line = raw_line
+        self.source = source
         self.method = method
         self.path = path
         self.status = status
