@@ -44,7 +44,7 @@ def load_config() -> None:
     """Load the security settings from config.ini."""
     config_path = Path(__file__).with_name("config.ini")
     if not config_path.is_file():
-        logging.error("[ERROR] Config file missing")
+        logging.error("[ERROR] Config file missing: config.ini")
         sys.exit(1)
 
     config = configparser.ConfigParser()
@@ -100,12 +100,11 @@ def main():
     logging.info("BreachCheck v1.0 startup...")
     logging.info("Processing file: %s", args.file)
     lines = clean_data(read_file(args.file))
-    valid_lines = []
     for line_number, line in enumerate(lines, start=1):
         logging.debug("Starting regex check on line %d...", line_number)
         if validate_line(line):
-            valid_lines.append(line)
             password = line.split(":", 1)[1]
+            hash_password(password, SALT)
             logging.debug("Password policy result: %s", check_policy(password))
 
 
