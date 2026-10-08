@@ -2,29 +2,15 @@
 import argparse
 import configparser
 import logging
-import sys
 from pathlib import Path
+import sys
 
-from utils import clean_data, hash_password, validate_line
+from utils import clean_data, hash_password, read_file, validate_line
 
 
 MIN_LENGTH = 8
 COMMON_PASSWORDS = set()
 SALT = ""
-
-
-def read_file(filename: str):
-    """Read a file one line at a time."""
-    try:
-        with open(filename, "r", encoding="utf-8") as file:
-            for line in file:
-                yield line
-    except FileNotFoundError:
-        logging.error("File not found: %s", filename)
-        sys.exit(1)
-    except PermissionError:
-        logging.error("Permission denied: %s", filename)
-        sys.exit(1)
 
 
 def check_policy(password: str) -> str:
