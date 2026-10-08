@@ -48,6 +48,7 @@ class LogEntry:
         method: str = "",
         path: str = "",
         status: Optional[int] = None,  # noqa: UP045
+        size: str = "",
         user_agent: str = "",
     ):
         self.ip = ip
@@ -58,6 +59,7 @@ class LogEntry:
         self.method = method
         self.path = path
         self.status = status
+        self.size = size
         self.user_agent = user_agent
         self.country = "UNKNOWN"
         self.is_bot = False
@@ -110,6 +112,7 @@ def normalize_entry(
             method=parsed_dict["method"],
             path=parsed_dict["path"],
             status=int(parsed_dict["status"]),
+            size=parsed_dict["size"],
             user_agent=parsed_dict.get("user_agent", ""),
         )
 
