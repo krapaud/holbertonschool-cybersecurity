@@ -14,7 +14,7 @@ from typing import Dict, Optional  # noqa: UP035
 APACHE_PATTERN = re.compile(
     r'(?P<ip>\S+)\s+\S+\s+\S+\s+'
     r'\[(?P<date>[^]]+)\]\s+'
-    r'"(?P<method>\S+)\s+(?P<path>\S+)\s+\S+"\s+'
+    r'"(?P<method>\S+)\s+(?P<path>.*?)\s+\S+"\s+'
     r'(?P<status>\d{3})\s+(?P<size>\d+|-)'
     r'(?:\s+"[^"]*"\s+)?(?:"(?P<user_agent>[^"]*)")?$'
 )
