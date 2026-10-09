@@ -3,6 +3,7 @@
 
 import argparse
 import json
+import multiprocessing
 import re
 from collections import Counter, defaultdict, deque
 from datetime import datetime, timezone
@@ -108,6 +109,47 @@ def export_report(alerts, filename, format="json"):
         report_file.write("\n")
 
 
+def process_chunk(lines):
+    """Parse and analyze a group of raw log lines."""
+    entries = []
+    for line in lines:
+        apache_entry = parse_apache_line(line)
+        if apache_entry:
+            entry = normalize_entry(apache_entry, "apache", line)
+        else:
+            syslog_entry = parse_syslog_line(line)
+            if not syslog_entry:
+                continue
+            entry = normalize_entry(syslog_entry, "syslog", line)
+
+        entry = analyze_user_agent(enrich_ip(entry))
+        entry = check_threat_intel(entry)
+        entry = detect_sqli(entry)
+        entries.append(detect_xss(entry))
+    return entries
+
+
+def parallel_analyze(file_path, num_workers, chunk_size=1000):
+    """Process a log file by sending chunks to several workers."""
+    chunks = []
+    current_chunk = []
+    for line in read_stream(file_path):
+        current_chunk.append(line)
+        if len(current_chunk) == chunk_size:
+            chunks.append(current_chunk)
+            current_chunk = []
+    if current_chunk:
+        chunks.append(current_chunk)
+
+    with multiprocessing.Pool(processes=num_workers) as pool:
+        results = pool.map(process_chunk, chunks)
+
+    entries = []
+    for result in results:
+        entries.extend(result)
+    return entries
+
+
 def read_stream(file_path: str):
     """Yield one line from the log file at a time."""
     try:
@@ -154,7 +196,7 @@ def normalize_entry(
             path=parsed_dict["path"],
             status=int(parsed_dict["status"]),
             size=parsed_dict["size"],
-            user_agent=parsed_dict.get("user_agent", ""),
+            user_agent=parsed_dict.get("user_agent") or "",
         )
 
     if log_type == "syslog":
@@ -194,7 +236,7 @@ def analyze_user_agent(log_entry: LogEntry) -> LogEntry:
         getattr(log_entry, "message", ""),
         getattr(log_entry, "raw_line", ""),
     )
-    text = " ".join(fields).lower()
+    text = " ".join(field or "" for field in fields).lower()
     log_entry.is_bot = any(signature in text for signature in BOT_SIGNATURES)
     return log_entry
 
@@ -302,10 +344,22 @@ def main():
     parser.add_argument(
         "--report", help="file where the JSON report will be saved"
     )
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=0,
+        help="number of workers to use (0 keeps sequential mode)",
+    )
     args = parser.parse_args()
 
     print("[*] LogHunter - Log Analysis Engine")
-    print(f"[*] Reading: {args.file}")
+    if args.workers > 0:
+        print(
+            f"[*] Reading: {args.file} "
+            f"(parallel: {args.workers} workers)"
+        )
+    else:
+        print(f"[*] Reading: {args.file}")
 
     if not Path(args.file).is_file():
         # read_stream also handles this case when it is used directly.
@@ -313,32 +367,21 @@ def main():
         print("[!] No data to process. Exiting.")
         return
 
-    lines = read_stream(args.file)
+    if args.workers > 0:
+        parsed_entries = parallel_analyze(args.file, args.workers)
+    else:
+        parsed_entries = process_chunk(read_stream(args.file))
+
     apache_count = 0
     syslog_count = 0
     sample_entry = None
-    parsed_entries = []
-    for line in lines:
-        apache_entry = parse_apache_line(line)
-        if apache_entry:
+    for entry in parsed_entries:
+        if entry.service == "http":
             apache_count += 1
-            entry = normalize_entry(apache_entry, "apache", line)
-            entry = analyze_user_agent(enrich_ip(entry))
-            entry = check_threat_intel(entry)
-            entry = detect_sqli(entry)
-            parsed_entries.append(detect_xss(entry))
             if sample_entry is None:
                 sample_entry = entry
         else:
-            syslog_entry = parse_syslog_line(line)
-            if not syslog_entry:
-                continue
             syslog_count += 1
-            entry = normalize_entry(syslog_entry, "syslog", line)
-            entry = analyze_user_agent(enrich_ip(entry))
-            entry = check_threat_intel(entry)
-            entry = detect_sqli(entry)
-            parsed_entries.append(detect_xss(entry))
             if sample_entry is None:
                 sample_entry = entry
 
