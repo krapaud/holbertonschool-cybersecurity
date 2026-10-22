@@ -76,3 +76,10 @@ version actuelle passe ses tests.
 Pour l'étape `--random`, j'ai ajouté l'option `-r` et le mélange de la liste
 des ports avant de lancer les tâches. J'ai vérifié localement l'ordre mélangé
 et le passage de l'option depuis la ligne de commande.
+
+## Choix de l'interface réseau
+
+Pour l'étape `--interface`, j'ai ajouté l'option `-i` et la liaison des
+sockets de scan à l'adresse IP locale choisie, avant la connexion ou l'envoi
+UDP. Le programme affiche l'adresse source utilisée et vérifie que l'entrée
+est une adresse IPv4 valide.

@@ -25,6 +25,17 @@ KNOWN_BAD_SIGNATURES = (
 )
 
 CLI_DELAY = 0.0
+SOURCE_IP: Optional[str] = None
+
+
+def bind_source_interface(connection: socket.socket) -> None:
+    """Bind a socket to the configured local interface when selected.
+
+    Args:
+        connection: Socket to bind before sending or connecting.
+    """
+    if SOURCE_IP is not None:
+        connection.bind((SOURCE_IP, 0))
 
 
 def check_port(ip: str, port: int) -> bool:
@@ -41,6 +52,7 @@ def check_port(ip: str, port: int) -> bool:
     connection.settimeout(1.0)
 
     try:
+        bind_source_interface(connection)
         connection.connect((ip, port))
         return True
     except OSError:
@@ -65,6 +77,7 @@ def scan_udp(ip: str, port: int) -> bool:
     connection.settimeout(1.0)
 
     try:
+        bind_source_interface(connection)
         connection.sendto(b"", (ip, port))
         try:
             connection.recvfrom(1024)
@@ -127,6 +140,7 @@ def get_banner(ip: str, port: int) -> str:
     connection.settimeout(1.0)
 
     try:
+        bind_source_interface(connection)
         connection.connect((ip, port))
         connection.sendall(b"HEAD / HTTP/1.0\r\n\r\n")
         response = connection.recv(1024)
@@ -317,6 +331,11 @@ def build_argument_parser() -> argparse.ArgumentParser:
         dest="randomize",
         help="scan ports in random order",
     )
+    parser.add_argument(
+        "-i",
+        "--interface",
+        help="local source IPv4 address to bind before scanning",
+    )
     return parser
 
 
@@ -339,8 +358,15 @@ def main() -> int:
     if arguments.delay < 0:
         parser.error("--delay must be zero or greater")
 
-    global CLI_DELAY
+    global CLI_DELAY, SOURCE_IP
     CLI_DELAY = arguments.delay
+    SOURCE_IP = arguments.interface
+    if SOURCE_IP is not None:
+        try:
+            socket.inet_aton(SOURCE_IP)
+        except OSError:
+            parser.error("--interface must be a valid local IPv4 address")
+        print(f"[INFO] Scanning from source IP: {SOURCE_IP}")
     hostname = resolve_hostname(arguments.target)
     print(f"Target: {arguments.target} ({hostname})")
     if arguments.delay:
