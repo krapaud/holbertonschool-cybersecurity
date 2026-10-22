@@ -3,6 +3,7 @@
 
 import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import inspect
 import json
 import socket
 import sys
@@ -288,7 +289,20 @@ def main() -> int:
     if arguments.delay:
         print(f"[DEBUG] Sleeping {arguments.delay}s before scan...")
         time.sleep(arguments.delay)
-    results = scan_ports(arguments.target, start_port, end_port)
+    scan_parameters = inspect.signature(scan_ports).parameters.values()
+    accepts_delay = len(scan_parameters) >= 4 or any(
+        parameter.kind == inspect.Parameter.VAR_POSITIONAL
+        for parameter in scan_parameters
+    )
+    if accepts_delay:
+        results = scan_ports(
+            arguments.target,
+            start_port,
+            end_port,
+            arguments.delay,
+        )
+    else:
+        results = scan_ports(arguments.target, start_port, end_port)
     if arguments.output:
         try:
             with open(arguments.output, "w", encoding="utf-8") as report_file:
