@@ -43,6 +43,8 @@ Install the project dependencies inside the active virtual environment:
 python -m pip install -r requirements.txt
 ```
 
+The API client uses `aiohttp` for asynchronous HTTP requests.
+
 With the mock API running, query it from the client:
 
 ```bash

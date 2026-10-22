@@ -2,12 +2,13 @@
 """Query the local mock threat-intelligence APIs."""
 
 import argparse
+import asyncio
 import subprocess
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-import requests
+import aiohttp
 
 
 API_URLS = {
@@ -26,26 +27,20 @@ class TargetDossier:
     nmap_ports: List[int] = field(default_factory=list)
 
 
-def _query_api(source: str, ip: str) -> Dict[str, Any]:
-    """Return an API JSON object, or an empty dict if the request fails."""
+async def fetch_api(
+    session: aiohttp.ClientSession,
+    url: str,
+) -> Dict[str, Any]:
+    """Fetch and decode a JSON object, returning an empty dict on failure."""
     try:
-        response = requests.get(API_URLS[source].format(ip), timeout=5)
-    except requests.exceptions.ConnectionError:
-        print("[ERROR] Cannot connect to the mock API server.")
-        return {}
-    except requests.exceptions.Timeout:
-        print("[ERROR] The mock API server did not respond in time.")
-        return {}
-    except requests.exceptions.RequestException as error:
+        async with session.get(url) as response:
+            if response.status != 200:
+                print(f"[ERROR] API returned HTTP {response.status}.")
+                return {}
+            payload = await response.json()
+    except (aiohttp.ClientError, asyncio.TimeoutError) as error:
         print(f"[ERROR] API request failed: {error}")
         return {}
-
-    if response.status_code != 200:
-        print(f"[ERROR] API returned HTTP {response.status_code}.")
-        return {}
-
-    try:
-        payload = response.json()
     except ValueError:
         print("[ERROR] API response is not valid JSON.")
         return {}
@@ -54,6 +49,27 @@ def _query_api(source: str, ip: str) -> Dict[str, Any]:
         print("[ERROR] API response must be a JSON object.")
         return {}
     return payload
+
+
+async def _query_api_async(source: str, ip: str) -> Dict[str, Any]:
+    """Query one mock API using a short-lived asynchronous HTTP session."""
+    timeout = aiohttp.ClientTimeout(total=5)
+    try:
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            url = API_URLS[source].format(ip)
+            return await fetch_api(session, url)
+    except aiohttp.ClientError as error:
+        print(f"[ERROR] Cannot connect to the mock API server: {error}")
+        return {}
+
+
+def _query_api(source: str, ip: str) -> Dict[str, Any]:
+    """Run one asynchronous API query through the existing sync interface."""
+    try:
+        return asyncio.run(_query_api_async(source, ip))
+    except RuntimeError as error:
+        print(f"[ERROR] Could not run asynchronous API query: {error}")
+        return {}
 
 
 def query_virustotal(ip: str) -> Dict[str, Any]:
