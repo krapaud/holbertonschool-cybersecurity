@@ -9,3 +9,7 @@ invalide, le programme affiche un message d’erreur et termine le résumé sans
 traceback.
 
 J’ai testé le flux avec des réponses simulées et vérifié le lint Python.
+
+Le checker échouait parce qu’il créait `TargetDossier` sans argument. J’ai
+ajouté une valeur vide par défaut pour `ip`; les dictionnaires et la liste
+restent initialisés séparément pour chaque dossier.

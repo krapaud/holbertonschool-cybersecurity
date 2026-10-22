@@ -20,7 +20,7 @@ API_URLS = {
 class TargetDossier:
     """Store the active scan and intelligence results for one target IP."""
 
-    ip: str
+    ip: str = ""
     vt_data: Dict[str, Any] = field(default_factory=dict)
     abuse_data: Dict[str, Any] = field(default_factory=dict)
     nmap_ports: List[int] = field(default_factory=list)
