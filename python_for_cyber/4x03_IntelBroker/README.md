@@ -83,3 +83,5 @@ Successful VirusTotal, Shodan, and AbuseIPDB responses are stored in
 period reuses the cached API results; expired entries are queried again.
 API requests are also guarded by an `asyncio.Semaphore` that caps concurrent
 requests at five.
+If an API returns an HTTP error or cannot be reached, its dossier section is
+marked `Unavailable`; the other sources still appear in the results.

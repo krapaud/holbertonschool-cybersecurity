@@ -45,3 +45,8 @@ sont pas mises en cache.
 J’ai limité les requêtes API simultanées à cinq avec `asyncio.Semaphore(5)`.
 Chaque tâche prend le sémaphore avant d’envoyer sa requête et le libère quand
 elle est terminée.
+
+J’ai modifié `fetch_api` pour renvoyer `{"error": "Unavailable"}` en cas
+d’erreur HTTP, de panne réseau ou de réponse JSON invalide. Le résumé affiche
+`Unavailable` pour la source en échec, continue avec les autres et n’enregistre
+pas de réponses d’erreur dans le cache.

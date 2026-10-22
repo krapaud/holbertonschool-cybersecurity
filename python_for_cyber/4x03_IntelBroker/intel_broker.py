@@ -37,23 +37,23 @@ async def fetch_api(
     session: aiohttp.ClientSession,
     url: str,
 ) -> Dict[str, Any]:
-    """Fetch and decode a JSON object, returning an empty dict on failure."""
+    """Fetch JSON or return an Unavailable error without raising API errors."""
     try:
         async with session.get(url) as response:
             if response.status != 200:
                 print(f"[ERROR] API returned HTTP {response.status}.")
-                return {}
+                return {"error": "Unavailable"}
             payload = await response.json()
     except (aiohttp.ClientError, asyncio.TimeoutError) as error:
         print(f"[ERROR] API request failed: {error}")
-        return {}
+        return {"error": "Unavailable"}
     except ValueError:
         print("[ERROR] API response is not valid JSON.")
-        return {}
+        return {"error": "Unavailable"}
 
     if not isinstance(payload, dict):
         print("[ERROR] API response must be a JSON object.")
-        return {}
+        return {"error": "Unavailable"}
     return payload
 
 
@@ -111,7 +111,7 @@ async def gather_intel(ip: str) -> List[Dict[str, Any]]:
         results = await asyncio.gather(
             *(fetch_with_limit(url) for url in urls)
         )
-    if all(results):
+    if all(result and "error" not in result for result in results):
         save_cached_intel(ip, results)
     return results
 
@@ -255,25 +255,36 @@ async def _main_async(ip: str, output_path: Optional[str] = None) -> None:
             print(f"[ERROR] Nmap scan failed: {error}")
 
     print(f"Target: {dossier.ip}")
-    print(
-        "VirusTotal: score={score}, malicious={malicious}".format(
-            score=dossier.vt_data.get("reputation_score", "unknown"),
-            malicious=dossier.vt_data.get("malicious", "unknown"),
+    if dossier.vt_data.get("error"):
+        print("VirusTotal: Unavailable")
+    else:
+        print(
+            "VirusTotal: score={score}, malicious={malicious}".format(
+                score=dossier.vt_data.get("reputation_score", "unknown"),
+                malicious=dossier.vt_data.get("malicious", "unknown"),
+            )
         )
-    )
-    print(
-        "Shodan: OS={os}, ISP={isp}, ports={ports}".format(
-            os=dossier.shodan_data.get("os", "unknown"),
-            isp=dossier.shodan_data.get("isp", "unknown"),
-            ports=dossier.shodan_data.get("ports", []),
+    if dossier.shodan_data.get("error"):
+        print("Shodan: Unavailable")
+    else:
+        print(
+            "Shodan: OS={os}, ISP={isp}, ports={ports}".format(
+                os=dossier.shodan_data.get("os", "unknown"),
+                isp=dossier.shodan_data.get("isp", "unknown"),
+                ports=dossier.shodan_data.get("ports", []),
+            )
         )
-    )
-    print(
-        "AbuseIPDB: confidence={score}, reports={reports}".format(
-            score=dossier.abuse_data.get("abuse_confidence_score", "unknown"),
-            reports=dossier.abuse_data.get("reports", "unknown"),
+    if dossier.abuse_data.get("error"):
+        print("AbuseIPDB: Unavailable")
+    else:
+        print(
+            "AbuseIPDB: confidence={score}, reports={reports}".format(
+                score=dossier.abuse_data.get(
+                    "abuse_confidence_score", "unknown"
+                ),
+                reports=dossier.abuse_data.get("reports", "unknown"),
+            )
         )
-    )
     print(f"Nmap open ports: {dossier.nmap_ports}")
     if output_path:
         try:
