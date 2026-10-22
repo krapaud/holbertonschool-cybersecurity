@@ -72,6 +72,31 @@ def get_banner(ip: str, port: int) -> str:
         connection.close()
 
 
+def scan_ports(ip: str, start_port: int, end_port: int) -> list:
+    """Scan an inclusive TCP port range and return open-port details.
+
+    Args:
+        ip: IPv4 address or resolvable hostname to scan.
+        start_port: First TCP port in the range.
+        end_port: Last TCP port in the range.
+
+    Returns:
+        A list of dictionaries containing each open port and its service
+        banner.
+    """
+    results = []
+    print(f"Scanning {ip} from {start_port} to {end_port}...")
+
+    for port in range(start_port, end_port + 1):
+        if check_port(ip, port):
+            service = get_banner(ip, port)
+            result = {"port": port, "service": service}
+            results.append(result)
+            print(f"[+] Port {port} Open: {service}")
+
+    return results
+
+
 def main() -> None:
     """Display the NetProbe initialization message."""
     print("NetProbe v1.0 initialized...")
