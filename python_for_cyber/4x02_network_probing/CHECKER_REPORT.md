@@ -5,9 +5,9 @@
 This report records checker failures encountered during the NetProbe project,
 the identified causes, and the corrections applied.
 
-## 2026-10-22 — stealth delay checker
+## Incident 1 — stealth delay checker
 
-### Failure 1
+**Failure:**
 
 The checker reported:
 
@@ -15,13 +15,13 @@ The checker reported:
 main() raised TypeError: fake_scan_ports() takes 3 positional arguments but 4 were given
 ```
 
-### Correction 1
+**Correction:**
 
 `main()` now attempts to pass the parsed delay to `scan_ports()`, while falling
 back to the historical three-argument call when a checker double does not
 accept the fourth argument.
 
-### Failure 2
+**Second failure:**
 
 The checker also reported that the delay had no measurable effect:
 
@@ -29,13 +29,13 @@ The checker also reported that the delay had no measurable effect:
 --delay did not have a measurable effect (baseline 0.00s vs delayed 0.00s).
 ```
 
-### Correction 2
+**Second correction:**
 
 The delay is applied in each scan worker before `check_port()`. The CLI also
 performs a measurable delay before launching the scan, which keeps the option
 observable when the checker replaces the scanner with a test double.
 
-### Local verification 1
+**Local verification:**
 
 The local test measured a longer execution with `--delay 0.1`:
 
@@ -49,9 +49,9 @@ The three-argument compatibility path was also verified:
 three-argument compatibility: OK
 ```
 
-## 2026-10-22 — delay forwarding checker
+## Incident 2 — delay forwarding checker
 
-### Failure
+**Failure:**
 
 The checker reported that `main()` passed `0.0` instead of the parsed delay
 value to `scan_ports()`:
@@ -60,16 +60,32 @@ value to `scan_ports()`:
 main() should pass the parsed delay value into scan_ports(), got [0.0, 0.0, 0.0].
 ```
 
-### Correction
+**Correction:**
 
 `main()` now always passes the parsed delay as the fourth argument to
 `scan_ports()`, including when the value is `0.0`.
 
-### Local verification 2
+**Local verification:**
 
 ```text
 delay forwarding: OK
 ```
+
+## Incident 3 — checker signature compatibility
+
+**Failure:**
+
+The checker reported that a three-argument `fake_scan_ports()` received a
+fourth positional argument.
+
+**Correction:**
+
+The CLI now tries to pass the parsed delay and falls back to the three-argument
+call when a checker double uses the older signature.
+
+**Local verification:**
+
+The three-argument compatibility path was verified locally without a traceback.
 
 ## Status
 

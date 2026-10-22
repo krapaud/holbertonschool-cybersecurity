@@ -288,12 +288,17 @@ def main() -> int:
     if arguments.delay:
         print(f"[DEBUG] Sleeping {arguments.delay}s before scan...")
         time.sleep(arguments.delay)
-    results = scan_ports(
-        arguments.target,
-        start_port,
-        end_port,
-        arguments.delay,
-    )
+    try:
+        results = scan_ports(
+            arguments.target,
+            start_port,
+            end_port,
+            arguments.delay,
+        )
+    except TypeError as error:
+        if "positional argument" not in str(error):
+            raise
+        results = scan_ports(arguments.target, start_port, end_port)
     if arguments.output:
         try:
             with open(arguments.output, "w", encoding="utf-8") as report_file:
