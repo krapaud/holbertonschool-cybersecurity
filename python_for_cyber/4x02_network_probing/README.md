@@ -15,6 +15,13 @@ source venv/bin/activate
 No third-party dependency is currently required. The project will use Python's
 standard `socket` library for authorized local network probing.
 
+## Code structure
+
+- `net_probe.py`: command-line entry point and argument validation.
+- `scanner.py`: TCP and UDP sockets, service detection, and port scanning.
+- `utils.py`: scan delays and port ordering.
+- `reporter.py`: JSON report writing.
+
 ## Usage
 
 ```bash

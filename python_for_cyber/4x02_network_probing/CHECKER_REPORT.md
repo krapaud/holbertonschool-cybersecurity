@@ -93,3 +93,10 @@ et je l'affiche dans le résultat sous la forme `HTTP (version du serveur)`.
 Le checker a précisé que `get_banner()` doit renvoyer directement cette
 valeur, ou `Unknown` si la réponse ne contient pas d'en-tête `Server`. J'ai
 ajusté la fonction et vérifié ces deux cas.
+
+## Organisation du code en modules
+
+Pour l'étape de refactorisation, j'ai déplacé les opérations réseau dans
+`scanner.py`, les délais et l'ordre des ports dans `utils.py`, puis l'écriture
+JSON dans `reporter.py`. `net_probe.py` contient maintenant la CLI et reste le
+point d'entrée du programme.
