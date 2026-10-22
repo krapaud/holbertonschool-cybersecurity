@@ -31,3 +31,8 @@ du processus sans bloquer la boucle asynchrone.
 J’ai ajouté l’option `-o/--output` pour enregistrer le dossier complet dans
 un fichier JSON. Le rapport contient l’IP cible, la date et l’heure UTC,
 ainsi que les résultats VirusTotal, Shodan, AbuseIPDB et les ports Nmap.
+
+Le checker signalait que `report.json` n’était pas présent dans le dépôt.
+J’ai ajouté un exemple JSON non vide avec toutes les sections attendues; les
+valeurs sont des données d’exemple et peuvent être remplacées par un vrai
+rapport en lançant le programme avec `-o report.json`.

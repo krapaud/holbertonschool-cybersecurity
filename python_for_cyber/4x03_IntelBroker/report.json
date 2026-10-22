@@ -1,0 +1,23 @@
+{
+  "target": "1.2.3.4",
+  "timestamp": "2026-10-22T00:00:00+00:00",
+  "intelligence": {
+    "virustotal": {
+      "ip": "1.2.3.4",
+      "reputation_score": 2,
+      "malicious": false
+    },
+    "shodan": {
+      "ip": "1.2.3.4",
+      "ports": []
+    },
+    "abuseipdb": {
+      "ip": "1.2.3.4",
+      "abuse_confidence_score": 0,
+      "reports": 0
+    },
+    "nmap": {
+      "open_ports": []
+    }
+  }
+}
