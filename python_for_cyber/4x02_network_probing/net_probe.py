@@ -26,6 +26,25 @@ def check_port(ip: str, port: int) -> bool:
         connection.close()
 
 
+def ping_sweep(subnet: str) -> list:
+    """Return hosts in a /24 subnet accepting TCP connections on port 80.
+
+    Args:
+        subnet: First three IPv4 octets, for example ``"192.168.1"``.
+
+    Returns:
+        A list of responsive host IP addresses from ``.1`` through ``.254``.
+    """
+    live_hosts = []
+
+    for host_number in range(1, 255):
+        ip_address = f"{subnet}.{host_number}"
+        if check_port(ip_address, 80):
+            live_hosts.append(ip_address)
+
+    return live_hosts
+
+
 def main() -> None:
     """Display the NetProbe initialization message."""
     print("NetProbe v1.0 initialized...")
