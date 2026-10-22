@@ -54,3 +54,9 @@ pas de réponses d’erreur dans le cache.
 J’ai ajouté l’option `-v/--verbose`. Elle affiche le démarrage des vérifications
 VirusTotal, Shodan et AbuseIPDB, la fin de Nmap et la confirmation quand le
 rapport JSON est bien enregistré.
+
+J’ai séparé le projet en modules : `intel_broker.py` garde le CLI,
+`api_client.py` les appels API et le cache, `scanner.py` Nmap, `models.py` le
+dossier cible et `utils.py` les fichiers cache/rapport. J’ai conservé les
+fonctions importées dans le point d’entrée pour rester compatible avec les
+tests et l’usage actuel.

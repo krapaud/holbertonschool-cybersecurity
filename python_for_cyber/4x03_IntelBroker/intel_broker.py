@@ -1,232 +1,48 @@
 #!/usr/bin/env python3
-"""Query the local mock threat-intelligence APIs."""
+"""Command-line entry point for the IntelBroker investigation tool."""
 
 import argparse
 import asyncio
-import json
-import xml.etree.ElementTree as ET
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
-import aiohttp
-
-
-API_URLS = {
-    "virustotal": "http://localhost:5000/virustotal/{}",
-    "shodan": "http://localhost:5000/shodan/{}",
-    "abuseipdb": "http://localhost:5000/abuseipdb/{}",
-}
-CACHE_FILE = Path(__file__).with_name("cache.json")
-CACHE_TTL = timedelta(hours=1)
-
-
-@dataclass
-class TargetDossier:
-    """Store the active scan and intelligence results for one target IP."""
-
-    ip: str = ""
-    vt_data: Dict[str, Any] = field(default_factory=dict)
-    shodan_data: Dict[str, Any] = field(default_factory=dict)
-    abuse_data: Dict[str, Any] = field(default_factory=dict)
-    nmap_ports: List[int] = field(default_factory=list)
-
-
-async def fetch_api(
-    session: aiohttp.ClientSession,
-    url: str,
-) -> Dict[str, Any]:
-    """Fetch JSON or return an Unavailable error without raising API errors."""
-    try:
-        async with session.get(url) as response:
-            if response.status != 200:
-                print(f"[ERROR] API returned HTTP {response.status}.")
-                return {"error": "Unavailable"}
-            payload = await response.json()
-    except (aiohttp.ClientError, asyncio.TimeoutError) as error:
-        print(f"[ERROR] API request failed: {error}")
-        return {"error": "Unavailable"}
-    except ValueError:
-        print("[ERROR] API response is not valid JSON.")
-        return {"error": "Unavailable"}
-
-    if not isinstance(payload, dict):
-        print("[ERROR] API response must be a JSON object.")
-        return {"error": "Unavailable"}
-    return payload
-
-
-async def _query_api_async(source: str, ip: str) -> Dict[str, Any]:
-    """Query one mock API using a short-lived asynchronous HTTP session."""
-    timeout = aiohttp.ClientTimeout(total=5)
-    try:
-        async with aiohttp.ClientSession(timeout=timeout) as session:
-            url = API_URLS[source].format(ip)
-            return await fetch_api(session, url)
-    except aiohttp.ClientError as error:
-        print(f"[ERROR] Cannot connect to the mock API server: {error}")
-        return {}
-
-
-def _query_api(source: str, ip: str) -> Dict[str, Any]:
-    """Run one asynchronous API query through the existing sync interface."""
-    try:
-        return asyncio.run(_query_api_async(source, ip))
-    except RuntimeError as error:
-        print(f"[ERROR] Could not run asynchronous API query: {error}")
-        return {}
-
-
-def query_virustotal(ip: str) -> Dict[str, Any]:
-    """Return VirusTotal mock data for an IP as a dictionary."""
-    return _query_api("virustotal", ip)
-
-
-def query_abuseipdb(ip: str) -> Dict[str, Any]:
-    """Return AbuseIPDB mock data, including its confidence score."""
-    return _query_api("abuseipdb", ip)
-
-
-async def gather_intel(ip: str) -> List[Dict[str, Any]]:
-    """Return cached or concurrently fetched intelligence for an IP."""
-    cached_data = load_cached_intel(ip)
-    if cached_data is not None:
-        print(f"[INFO] Using cached intelligence for {ip}.")
-        return cached_data
-
-    timeout = aiohttp.ClientTimeout(total=5)
-    semaphore = asyncio.Semaphore(5)
-    async with aiohttp.ClientSession(timeout=timeout) as session:
-        urls = [
-            API_URLS[source].format(ip)
-            for source in API_URLS
-        ]
-
-        async def fetch_with_limit(url: str) -> Dict[str, Any]:
-            """Fetch one source while respecting the shared concurrency cap."""
-            async with semaphore:
-                return await fetch_api(session, url)
-
-        results = await asyncio.gather(
-            *(fetch_with_limit(url) for url in urls)
-        )
-    if all(result and "error" not in result for result in results):
-        save_cached_intel(ip, results)
-    return results
-
-
-def load_cached_intel(ip: str) -> Optional[List[Dict[str, Any]]]:
-    """Return an IP's cached API results if they are less than one hour old."""
-    try:
-        cache = json.loads(CACHE_FILE.read_text(encoding="utf-8"))
-        entry = cache.get(ip)
-        if not isinstance(entry, dict):
-            return None
-        timestamp = datetime.fromisoformat(entry["timestamp"])
-        if timestamp.tzinfo is None:
-            timestamp = timestamp.replace(tzinfo=timezone.utc)
-        cached_data = entry["data"]
-    except FileNotFoundError:
-        return None
-    except (OSError, ValueError, KeyError, TypeError, json.JSONDecodeError):
-        print("[WARNING] Cache file is unreadable; querying the APIs.")
-        return None
-
-    age = datetime.now(timezone.utc) - timestamp
-    if age < timedelta(0) or age >= CACHE_TTL:
-        return None
-    if (not isinstance(cached_data, list) or len(cached_data) != 3 or
-            not all(isinstance(item, dict) for item in cached_data)):
-        return None
-    return cached_data
-
-
-def save_cached_intel(ip: str, data: List[Dict[str, Any]]) -> None:
-    """Store successful API results with their UTC timestamp in the cache."""
-    cache: Dict[str, Any] = {}
-    try:
-        if CACHE_FILE.exists():
-            loaded_cache = json.loads(CACHE_FILE.read_text(encoding="utf-8"))
-            if isinstance(loaded_cache, dict):
-                cache = loaded_cache
-        cache[ip] = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "data": data,
-        }
-        CACHE_FILE.write_text(
-            json.dumps(cache, indent=2, ensure_ascii=False) + "\n",
-            encoding="utf-8",
-        )
-    except (OSError, TypeError, ValueError) as error:
-        print(f"[WARNING] Could not save API cache: {error}")
-
-
-async def run_nmap(ip: str) -> str:
-    """Run Nmap asynchronously and return its raw XML output."""
-    command = ["nmap", "-p", "22,80", ip, "-oX", "-"]
-    try:
-        process = await asyncio.create_subprocess_exec(
-            *command,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-    except FileNotFoundError as error:
-        message = "Nmap is not installed or not found in PATH."
-        raise RuntimeError(message) from error
-    except OSError as error:
-        raise RuntimeError(f"Could not run Nmap: {error}") from error
-
-    stdout, stderr = await process.communicate()
-    if process.returncode != 0:
-        error_message = stderr.decode(errors="replace").strip()
-        message = error_message or "Nmap returned a non-zero status."
-        raise RuntimeError(f"Nmap failed: {message}")
-    return stdout.decode(errors="replace")
-
-
-def save_report(dossier: TargetDossier, output_path: str) -> None:
-    """Write a timestamped JSON report for a target dossier to disk."""
-    report = {
-        "target": dossier.ip,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "intelligence": {
-            "virustotal": dossier.vt_data,
-            "shodan": dossier.shodan_data,
-            "abuseipdb": dossier.abuse_data,
-            "nmap": {"open_ports": dossier.nmap_ports},
-        },
-    }
-    try:
-        Path(output_path).write_text(
-            json.dumps(report, indent=2, ensure_ascii=False) + "\n",
-            encoding="utf-8",
-        )
-    except OSError as error:
-        raise RuntimeError(
-            f"Could not write JSON report to {output_path}: {error}"
-        ) from error
-
-
-def parse_nmap_xml(xml_data: str) -> list:
-    """Return port numbers whose state is open from Nmap XML output."""
-    try:
-        root = ET.fromstring(xml_data)
-    except ET.ParseError as error:
-        raise ValueError("Nmap output is not valid XML.") from error
-
-    open_ports = []
-    for port_element in root.findall(".//host/ports/port"):
-        state_element = port_element.find("state")
-        if (state_element is not None and
-                state_element.get("state") == "open"):
-            port_id = port_element.get("portid")
-            if port_id is not None:
-                try:
-                    open_ports.append(int(port_id))
-                except ValueError:
-                    continue
-    return open_ports
+if __package__:
+    from .api_client import (
+        API_URLS,
+        _query_api,
+        _query_api_async,
+        fetch_api,
+        gather_intel,
+        query_abuseipdb,
+        query_virustotal,
+    )
+    from .models import TargetDossier
+    from .scanner import parse_nmap_xml, run_nmap
+    from .utils import (
+        CACHE_FILE,
+        CACHE_TTL,
+        load_cached_intel,
+        save_cached_intel,
+        save_report,
+    )
+else:
+    from api_client import (
+        API_URLS,
+        _query_api,
+        _query_api_async,
+        fetch_api,
+        gather_intel,
+        query_abuseipdb,
+        query_virustotal,
+    )
+    from models import TargetDossier
+    from scanner import parse_nmap_xml, run_nmap
+    from utils import (
+        CACHE_FILE,
+        CACHE_TTL,
+        load_cached_intel,
+        save_cached_intel,
+        save_report,
+    )
 
 
 async def _main_async(
@@ -309,7 +125,7 @@ async def _main_async(
 
 
 def main(argv: Optional[List[str]] = None) -> None:
-    """Parse arguments and start the asynchronous investigation."""
+    """Parse command-line options and run the asynchronous investigation."""
     parser = argparse.ArgumentParser(
         description="Collect local Nmap and simulated threat intelligence."
     )

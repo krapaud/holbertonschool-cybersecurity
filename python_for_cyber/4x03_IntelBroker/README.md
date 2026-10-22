@@ -53,8 +53,9 @@ With the mock API running, query it from the client:
 
 The mock reputation score is random, so the returned values can change with
 each request. `query_virustotal(ip)` and `query_abuseipdb(ip)` return their
-JSON objects as Python dictionaries, or an empty dictionary if a request
-fails. AbuseIPDB data includes the `abuse_confidence_score` and report count.
+JSON objects as Python dictionaries, or `{"error": "Unavailable"}` if a
+request fails. AbuseIPDB data includes the `abuse_confidence_score` and report
+count.
 
 ## Exercise 5: create a target dossier
 
@@ -92,3 +93,11 @@ run, and to confirm when the JSON report has been generated:
 ```bash
 ./intel_broker.py 8.8.8.8 --output report.json --verbose
 ```
+
+## Exercise 14: project structure
+
+- `intel_broker.py` parses the CLI and coordinates the investigation.
+- `api_client.py` handles asynchronous API requests, concurrency, and cache use.
+- `scanner.py` runs Nmap asynchronously and parses its XML output.
+- `models.py` defines the `TargetDossier` data model.
+- `utils.py` reads and writes the API cache and JSON reports.
