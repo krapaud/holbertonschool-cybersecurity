@@ -6,13 +6,16 @@ from typing import Any, Dict
 import requests
 
 
-VIRUSTOTAL_URL = "http://localhost:5000/virustotal/{}"
+API_URLS = {
+    "virustotal": "http://localhost:5000/virustotal/{}",
+    "abuseipdb": "http://localhost:5000/abuseipdb/{}",
+}
 
 
-def query_virustotal(ip: str) -> Dict[str, Any]:
-    """Return VirusTotal mock data for an IP, or an empty dict on failure."""
+def _query_api(source: str, ip: str) -> Dict[str, Any]:
+    """Return an API JSON object, or an empty dict if the request fails."""
     try:
-        response = requests.get(VIRUSTOTAL_URL.format(ip), timeout=5)
+        response = requests.get(API_URLS[source].format(ip), timeout=5)
     except requests.exceptions.ConnectionError:
         print("[ERROR] Cannot connect to the mock API server.")
         return {}
@@ -39,9 +42,21 @@ def query_virustotal(ip: str) -> Dict[str, Any]:
     return payload
 
 
+def query_virustotal(ip: str) -> Dict[str, Any]:
+    """Return VirusTotal mock data for an IP as a dictionary."""
+    return _query_api("virustotal", ip)
+
+
+def query_abuseipdb(ip: str) -> Dict[str, Any]:
+    """Return AbuseIPDB mock data, including its confidence score."""
+    return _query_api("abuseipdb", ip)
+
+
 def main() -> None:
-    """Query the mock API with a demonstration IP and print its result."""
-    print(query_virustotal("1.2.3.4"))
+    """Query both mock APIs with a demonstration IP and print their results."""
+    target_ip = "1.2.3.4"
+    print(query_virustotal(target_ip))
+    print(query_abuseipdb(target_ip))
 
 
 if __name__ == "__main__":

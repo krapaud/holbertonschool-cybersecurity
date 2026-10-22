@@ -50,5 +50,6 @@ With the mock API running, query it from the client:
 ```
 
 The mock reputation score is random, so the returned values can change with
-each request. `query_virustotal(ip)` returns the JSON object as a Python
-dictionary, or an empty dictionary if the request fails.
+each request. `query_virustotal(ip)` and `query_abuseipdb(ip)` return their
+JSON objects as Python dictionaries, or an empty dictionary if a request
+fails. AbuseIPDB data includes the `abuse_confidence_score` and report count.
