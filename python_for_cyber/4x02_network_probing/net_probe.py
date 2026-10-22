@@ -4,6 +4,14 @@
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import socket
 
+COMMON_SERVICES = {
+    21: "FTP",
+    22: "SSH",
+    80: "HTTP",
+    443: "HTTPS",
+    3306: "MySQL",
+}
+
 
 def check_port(ip: str, port: int) -> bool:
     """Return whether a TCP connection can be established to ``ip:port``.
@@ -73,6 +81,39 @@ def get_banner(ip: str, port: int) -> str:
         connection.close()
 
 
+def guess_service(port: int) -> str:
+    """Return the conventional service name associated with a TCP port.
+
+    Args:
+        port: TCP port number to look up.
+
+    Returns:
+        A common service name, or ``"Unknown"`` when the port is not mapped.
+    """
+    return COMMON_SERVICES.get(port, "Unknown")
+
+
+def get_service_info(ip: str, port: int) -> str:
+    """Return a banner or a port-based service guess for ``ip:port``.
+
+    Args:
+        ip: IPv4 address or resolvable hostname to contact.
+        port: TCP port where the service is listening.
+
+    Returns:
+        The received banner, or a conventional service name marked as
+        ``"(Guessed)"`` when no banner is available.
+    """
+    banner = get_banner(ip, port)
+    if banner != "Unknown" and banner:
+        return banner
+
+    guessed_service = guess_service(port)
+    if guessed_service == "Unknown":
+        return "Unknown"
+    return f"{guessed_service} (Guessed)"
+
+
 def scan_ports(ip: str, start_port: int, end_port: int) -> list:
     """Scan an inclusive TCP port range and return open-port details.
 
@@ -107,7 +148,7 @@ def scan_ports(ip: str, start_port: int, end_port: int) -> list:
                 port_is_open = False
 
             if port_is_open:
-                service = get_banner(ip, port)
+                service = get_service_info(ip, port)
                 result = {"port": port, "service": service}
                 results.append(result)
                 print(f"[+] Port {port} Open: {service}")
