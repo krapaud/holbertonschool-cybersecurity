@@ -3,8 +3,11 @@
 
 import argparse
 import asyncio
+import json
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import aiohttp
@@ -119,6 +122,29 @@ async def run_nmap(ip: str) -> str:
     return stdout.decode(errors="replace")
 
 
+def save_report(dossier: TargetDossier, output_path: str) -> None:
+    """Write a timestamped JSON report for a target dossier to disk."""
+    report = {
+        "target": dossier.ip,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "intelligence": {
+            "virustotal": dossier.vt_data,
+            "shodan": dossier.shodan_data,
+            "abuseipdb": dossier.abuse_data,
+            "nmap": {"open_ports": dossier.nmap_ports},
+        },
+    }
+    try:
+        Path(output_path).write_text(
+            json.dumps(report, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+    except OSError as error:
+        raise RuntimeError(
+            f"Could not write JSON report to {output_path}: {error}"
+        ) from error
+
+
 def parse_nmap_xml(xml_data: str) -> list:
     """Return port numbers whose state is open from Nmap XML output."""
     try:
@@ -140,7 +166,7 @@ def parse_nmap_xml(xml_data: str) -> list:
     return open_ports
 
 
-async def _main_async(ip: str) -> None:
+async def _main_async(ip: str, output_path: Optional[str] = None) -> None:
     """Gather API intelligence and Nmap results concurrently for an IP."""
     api_task = asyncio.create_task(gather_intel(ip))
     nmap_task = asyncio.create_task(run_nmap(ip))
@@ -186,6 +212,12 @@ async def _main_async(ip: str) -> None:
         )
     )
     print(f"Nmap open ports: {dossier.nmap_ports}")
+    if output_path:
+        try:
+            save_report(dossier, output_path)
+            print(f"JSON report saved to {output_path}")
+        except RuntimeError as error:
+            print(f"[ERROR] {error}")
 
 
 def main(argv: Optional[List[str]] = None) -> None:
@@ -194,10 +226,15 @@ def main(argv: Optional[List[str]] = None) -> None:
         description="Collect local Nmap and simulated threat intelligence."
     )
     parser.add_argument("ip", help="IP address to investigate")
+    parser.add_argument(
+        "-o",
+        "--output",
+        help="write the complete intelligence dossier to a JSON file",
+    )
     arguments = parser.parse_args(argv)
 
     try:
-        asyncio.run(_main_async(arguments.ip))
+        asyncio.run(_main_async(arguments.ip, arguments.output))
     except (RuntimeError, asyncio.TimeoutError) as error:
         print(f"[ERROR] Investigation failed: {error}")
 

@@ -66,3 +66,12 @@ Run all three intelligence APIs for an IP address:
 
 The VirusTotal, Shodan, and AbuseIPDB requests run concurrently. The summary
 also includes open TCP ports found by Nmap, which must be installed locally.
+
+To save the complete dossier as JSON, use `-o` or `--output`:
+
+```bash
+./intel_broker.py 8.8.8.8 --output report.json
+```
+
+The report contains the target IP, a UTC timestamp, and the VirusTotal,
+Shodan, AbuseIPDB, and Nmap results.

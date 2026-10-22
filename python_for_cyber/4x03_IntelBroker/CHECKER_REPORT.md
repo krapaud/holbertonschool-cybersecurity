@@ -27,3 +27,7 @@ Pour cette étape, j’ai remplacé l’appel bloquant à Nmap par
 `asyncio.create_subprocess_exec`. Le programme lance maintenant Nmap et les
 trois requêtes API en même temps, puis récupère la sortie XML et les erreurs
 du processus sans bloquer la boucle asynchrone.
+
+J’ai ajouté l’option `-o/--output` pour enregistrer le dossier complet dans
+un fichier JSON. Le rapport contient l’IP cible, la date et l’heure UTC,
+ainsi que les résultats VirusTotal, Shodan, AbuseIPDB et les ports Nmap.
