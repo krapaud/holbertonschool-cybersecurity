@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import json
 import socket
 import sys
+import time
 
 COMMON_SERVICES = {
     21: "FTP",
@@ -139,18 +140,44 @@ def check_vulnerability(banner: str) -> str:
     return ""
 
 
-def scan_ports(ip: str, start_port: int, end_port: int) -> list:
+def scan_port_with_delay(ip: str, port: int, delay: float) -> bool:
+    """Check one port after waiting for the requested stealth delay.
+
+    Args:
+        ip: IPv4 address or resolvable hostname to scan.
+        port: TCP port to probe.
+        delay: Number of seconds to wait before the connection attempt.
+
+    Returns:
+        The result returned by :func:`check_port`.
+    """
+    if delay:
+        print(f"[DEBUG] Sleeping {delay}s before next packet...")
+        time.sleep(delay)
+    return check_port(ip, port)
+
+
+def scan_ports(
+    ip: str,
+    start_port: int,
+    end_port: int,
+    delay: float = 0.0,
+) -> list:
     """Scan an inclusive TCP port range and return open-port details.
 
     Args:
         ip: IPv4 address or resolvable hostname to scan.
         start_port: First TCP port in the range.
         end_port: Last TCP port in the range.
+        delay: Seconds to wait before each connection attempt.
 
     Returns:
         A list of dictionaries containing each open port and its service
         banner.
     """
+    if delay < 0:
+        raise ValueError("delay must be zero or greater")
+
     results = []
     print(f"Scanning {ip} from {start_port} to {end_port}...")
 
@@ -162,7 +189,8 @@ def scan_ports(ip: str, start_port: int, end_port: int) -> list:
     worker_count = min(50, port_count)
     with ThreadPoolExecutor(max_workers=worker_count) as executor:
         futures = {
-            executor.submit(check_port, ip, port): port for port in ports
+            executor.submit(scan_port_with_delay, ip, port, delay): port
+            for port in ports
         }
 
         for future in as_completed(futures):
@@ -220,6 +248,13 @@ def build_argument_parser() -> argparse.ArgumentParser:
     parser.add_argument("-t", "--target", help="target IP address or hostname")
     parser.add_argument("-p", "--ports", help="port range, for example 1-1000")
     parser.add_argument("-o", "--output", help="JSON report output file")
+    parser.add_argument(
+        "-d",
+        "--delay",
+        type=float,
+        default=0.0,
+        help="seconds to wait before each scan attempt",
+    )
     return parser
 
 
@@ -239,7 +274,15 @@ def main() -> int:
     except ValueError as error:
         parser.error(str(error))
 
-    results = scan_ports(arguments.target, start_port, end_port)
+    if arguments.delay < 0:
+        parser.error("--delay must be zero or greater")
+
+    results = scan_ports(
+        arguments.target,
+        start_port,
+        end_port,
+        arguments.delay,
+    )
     if arguments.output:
         try:
             with open(arguments.output, "w", encoding="utf-8") as report_file:
