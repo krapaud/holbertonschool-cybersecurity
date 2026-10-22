@@ -224,7 +224,7 @@ def build_argument_parser() -> argparse.ArgumentParser:
 
 
 def main() -> int:
-    """Run NetProbe from the command line and optionally write a JSON report."""
+    """Run NetProbe and optionally write a JSON report."""
     parser = build_argument_parser()
     arguments = parser.parse_args()
 
