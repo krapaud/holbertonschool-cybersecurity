@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Query the local mock threat-intelligence APIs."""
 
+import argparse
 import subprocess
 import xml.etree.ElementTree as ET
-from typing import Any, Dict
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional
 
 import requests
 
@@ -12,6 +14,16 @@ API_URLS = {
     "virustotal": "http://localhost:5000/virustotal/{}",
     "abuseipdb": "http://localhost:5000/abuseipdb/{}",
 }
+
+
+@dataclass
+class TargetDossier:
+    """Store the active scan and intelligence results for one target IP."""
+
+    ip: str
+    vt_data: Dict[str, Any] = field(default_factory=dict)
+    abuse_data: Dict[str, Any] = field(default_factory=dict)
+    nmap_ports: List[int] = field(default_factory=list)
 
 
 def _query_api(source: str, ip: str) -> Dict[str, Any]:
@@ -97,11 +109,38 @@ def parse_nmap_xml(xml_data: str) -> list:
     return open_ports
 
 
-def main() -> None:
-    """Query both mock APIs with a demonstration IP and print their results."""
-    target_ip = "1.2.3.4"
-    print(query_virustotal(target_ip))
-    print(query_abuseipdb(target_ip))
+def main(argv: Optional[List[str]] = None) -> None:
+    """Enrich a target IP from both APIs and Nmap, then print a summary."""
+    parser = argparse.ArgumentParser(
+        description="Collect local Nmap and simulated threat intelligence."
+    )
+    parser.add_argument("ip", help="IP address to investigate")
+    arguments = parser.parse_args(argv)
+
+    dossier = TargetDossier(ip=arguments.ip)
+    dossier.vt_data = query_virustotal(dossier.ip)
+    dossier.abuse_data = query_abuseipdb(dossier.ip)
+
+    try:
+        nmap_xml = run_nmap(dossier.ip)
+        dossier.nmap_ports = parse_nmap_xml(nmap_xml)
+    except (RuntimeError, ValueError) as error:
+        print(f"[ERROR] Nmap scan failed: {error}")
+
+    print(f"Target: {dossier.ip}")
+    print(
+        "VirusTotal: score={score}, malicious={malicious}".format(
+            score=dossier.vt_data.get("reputation_score", "unknown"),
+            malicious=dossier.vt_data.get("malicious", "unknown"),
+        )
+    )
+    print(
+        "AbuseIPDB: confidence={score}, reports={reports}".format(
+            score=dossier.abuse_data.get("abuse_confidence_score", "unknown"),
+            reports=dossier.abuse_data.get("reports", "unknown"),
+        )
+    )
+    print(f"Nmap open ports: {dossier.nmap_ports}")
 
 
 if __name__ == "__main__":

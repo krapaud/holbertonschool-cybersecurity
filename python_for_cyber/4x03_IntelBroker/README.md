@@ -53,3 +53,14 @@ The mock reputation score is random, so the returned values can change with
 each request. `query_virustotal(ip)` and `query_abuseipdb(ip)` return their
 JSON objects as Python dictionaries, or an empty dictionary if a request
 fails. AbuseIPDB data includes the `abuse_confidence_score` and report count.
+
+## Exercise 5: create a target dossier
+
+Run all three sources sequentially for an IP address:
+
+```bash
+./intel_broker.py 8.8.8.8
+```
+
+The summary shows the VirusTotal reputation, AbuseIPDB confidence and report
+count, and open TCP ports found by Nmap. Nmap must be installed locally.
