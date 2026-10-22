@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Query the local mock threat-intelligence APIs."""
 
+import subprocess
 from typing import Any, Dict
 
 import requests
@@ -50,6 +51,28 @@ def query_virustotal(ip: str) -> Dict[str, Any]:
 def query_abuseipdb(ip: str) -> Dict[str, Any]:
     """Return AbuseIPDB mock data, including its confidence score."""
     return _query_api("abuseipdb", ip)
+
+
+def run_nmap(ip: str) -> str:
+    """Run Nmap on TCP ports 22 and 80 and return its raw XML output."""
+    command = ["nmap", "-p", "22,80", ip, "-oX", "-"]
+    try:
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except FileNotFoundError as error:
+        message = "Nmap is not installed or not found in PATH."
+        raise RuntimeError(message) from error
+    except OSError as error:
+        raise RuntimeError(f"Could not run Nmap: {error}") from error
+
+    if result.returncode != 0:
+        message = result.stderr.strip() or "Nmap returned a non-zero status."
+        raise RuntimeError(f"Nmap failed: {message}")
+    return result.stdout
 
 
 def main() -> None:
