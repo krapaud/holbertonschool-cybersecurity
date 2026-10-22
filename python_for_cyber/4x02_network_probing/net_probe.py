@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 """Provide basic TCP port probing for the NetProbe tool."""
 
+import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import json
 import socket
+import sys
 
 COMMON_SERVICES = {
     21: "FTP",
@@ -172,7 +175,12 @@ def scan_ports(ip: str, start_port: int, end_port: int) -> list:
             if port_is_open:
                 service = get_service_info(ip, port)
                 vulnerability_status = check_vulnerability(service)
-                result = {"port": port, "service": service}
+                result = {
+                    "port": port,
+                    "state": "open",
+                    "service": service,
+                    "vulnerability": "YES" if vulnerability_status else "NO",
+                }
                 results.append(result)
                 print(
                     f"[+] Port {port} Open: {service}"
@@ -182,10 +190,66 @@ def scan_ports(ip: str, start_port: int, end_port: int) -> list:
     return results
 
 
-def main() -> None:
-    """Display the NetProbe initialization message."""
-    print("NetProbe v1.0 initialized...")
+def parse_port_range(port_range: str) -> tuple:
+    """Parse a CLI port range such as ``"1-1000"``.
+
+    Args:
+        port_range: Range containing two integer ports separated by ``-``.
+
+    Returns:
+        A tuple containing the start and end ports.
+
+    Raises:
+        ValueError: If the range is malformed or outside TCP port limits.
+    """
+    try:
+        start_text, end_text = port_range.split("-", maxsplit=1)
+        start_port = int(start_text)
+        end_port = int(end_text)
+    except (ValueError, AttributeError) as error:
+        raise ValueError("port range must use the format START-END") from error
+
+    if not 1 <= start_port <= end_port <= 65535:
+        raise ValueError("ports must be between 1 and 65535")
+    return start_port, end_port
+
+
+def build_argument_parser() -> argparse.ArgumentParser:
+    """Build the command-line argument parser for NetProbe."""
+    parser = argparse.ArgumentParser(description="TCP network port scanner")
+    parser.add_argument("-t", "--target", help="target IP address or hostname")
+    parser.add_argument("-p", "--ports", help="port range, for example 1-1000")
+    parser.add_argument("-o", "--output", help="JSON report output file")
+    return parser
+
+
+def main() -> int:
+    """Run NetProbe from the command line and optionally write a JSON report."""
+    parser = build_argument_parser()
+    arguments = parser.parse_args()
+
+    if arguments.target is None and arguments.ports is None:
+        print("NetProbe v1.0 initialized...")
+        return 0
+    if arguments.target is None or arguments.ports is None:
+        parser.error("--target and --ports must be provided together")
+
+    try:
+        start_port, end_port = parse_port_range(arguments.ports)
+    except ValueError as error:
+        parser.error(str(error))
+
+    results = scan_ports(arguments.target, start_port, end_port)
+    if arguments.output:
+        try:
+            with open(arguments.output, "w", encoding="utf-8") as report_file:
+                json.dump(results, report_file, indent=2)
+                report_file.write("\n")
+        except OSError as error:
+            print(f"[ERROR] Could not write report: {error}", file=sys.stderr)
+            return 1
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
