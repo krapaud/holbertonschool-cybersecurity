@@ -153,7 +153,16 @@ def get_banner(ip: str, port: int) -> str:
         response = connection.recv(1024)
         if not response:
             return "Unknown"
-        return response.decode("utf-8", errors="replace").strip()
+        decoded_response = response.decode("utf-8", errors="replace")
+        if port == 80:
+            for header_line in decoded_response.splitlines():
+                header_name, separator, header_value = (
+                    header_line.partition(":")
+                )
+                if separator and header_name.strip().lower() == "server":
+                    return header_value.strip() or "Unknown"
+            return "Unknown"
+        return decoded_response.strip()
     except OSError:
         return "Unknown"
     finally:
@@ -186,12 +195,7 @@ def get_service_info(ip: str, port: int) -> str:
     banner = get_banner(ip, port)
     if banner != "Unknown" and banner:
         if port == 80:
-            for header_line in banner.splitlines():
-                header_name, separator, header_value = (
-                    header_line.partition(":")
-                )
-                if separator and header_name.strip().lower() == "server":
-                    return f"HTTP ({header_value.strip()})"
+            return f"HTTP ({banner})"
         return banner
 
     guessed_service = guess_service(port)

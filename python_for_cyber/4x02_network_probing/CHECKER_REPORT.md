@@ -89,3 +89,7 @@ est une adresse IPv4 valide.
 Pour le port 80, j'ai remplacé la requête générique par un `GET` HTTP qui
 contient l'en-tête `Host`. Je récupère ensuite la valeur de l'en-tête `Server`
 et je l'affiche dans le résultat sous la forme `HTTP (version du serveur)`.
+
+Le checker a précisé que `get_banner()` doit renvoyer directement cette
+valeur, ou `Unknown` si la réponse ne contient pas d'en-tête `Server`. J'ai
+ajusté la fonction et vérifié ces deux cas.
