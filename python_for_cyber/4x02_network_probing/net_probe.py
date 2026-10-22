@@ -142,7 +142,14 @@ def get_banner(ip: str, port: int) -> str:
     try:
         bind_source_interface(connection)
         connection.connect((ip, port))
-        connection.sendall(b"HEAD / HTTP/1.0\r\n\r\n")
+        if port == 80:
+            request = (
+                f"GET / HTTP/1.1\r\nHost: {ip}\r\n"
+                "Connection: close\r\n\r\n"
+            )
+            connection.sendall(request.encode("ascii"))
+        else:
+            connection.sendall(b"HEAD / HTTP/1.0\r\n\r\n")
         response = connection.recv(1024)
         if not response:
             return "Unknown"
@@ -178,6 +185,11 @@ def get_service_info(ip: str, port: int) -> str:
     """
     banner = get_banner(ip, port)
     if banner != "Unknown" and banner:
+        if port == 80:
+            for header_line in banner.splitlines():
+                header_name, separator, header_value = header_line.partition(":")
+                if separator and header_name.strip().lower() == "server":
+                    return f"HTTP ({header_value.strip()})"
         return banner
 
     guessed_service = guess_service(port)

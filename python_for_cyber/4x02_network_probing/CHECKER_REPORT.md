@@ -83,3 +83,9 @@ Pour l'étape `--interface`, j'ai ajouté l'option `-i` et la liaison des
 sockets de scan à l'adresse IP locale choisie, avant la connexion ou l'envoi
 UDP. Le programme affiche l'adresse source utilisée et vérifie que l'entrée
 est une adresse IPv4 valide.
+
+## Lecture de l'en-tête HTTP
+
+Pour le port 80, j'ai remplacé la requête générique par un `GET` HTTP qui
+contient l'en-tête `Host`. Je récupère ensuite la valeur de l'en-tête `Server`
+et je l'affiche dans le résultat sous la forme `HTTP (version du serveur)`.
