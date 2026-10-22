@@ -85,3 +85,10 @@ API requests are also guarded by an `asyncio.Semaphore` that caps concurrent
 requests at five.
 If an API returns an HTTP error or cannot be reached, its dossier section is
 marked `Unavailable`; the other sources still appear in the results.
+
+Add `-v` or `--verbose` to display progress messages while the APIs and Nmap
+run, and to confirm when the JSON report has been generated:
+
+```bash
+./intel_broker.py 8.8.8.8 --output report.json --verbose
+```

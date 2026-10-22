@@ -229,8 +229,17 @@ def parse_nmap_xml(xml_data: str) -> list:
     return open_ports
 
 
-async def _main_async(ip: str, output_path: Optional[str] = None) -> None:
+async def _main_async(
+    ip: str,
+    output_path: Optional[str] = None,
+    verbose: bool = False,
+) -> None:
     """Gather API intelligence and Nmap results concurrently for an IP."""
+    if verbose:
+        print("[+] Querying VirusTotal...")
+        print("[+] Querying Shodan...")
+        print("[+] Querying AbuseIPDB...")
+
     api_task = asyncio.create_task(gather_intel(ip))
     nmap_task = asyncio.create_task(run_nmap(ip))
     api_result, nmap_result = await asyncio.gather(
@@ -249,6 +258,8 @@ async def _main_async(ip: str, output_path: Optional[str] = None) -> None:
     if isinstance(nmap_result, BaseException):
         print(f"[ERROR] Nmap scan failed: {nmap_result}")
     else:
+        if verbose:
+            print("[+] Nmap finished.")
         try:
             dossier.nmap_ports = parse_nmap_xml(nmap_result)
         except ValueError as error:
@@ -289,7 +300,10 @@ async def _main_async(ip: str, output_path: Optional[str] = None) -> None:
     if output_path:
         try:
             save_report(dossier, output_path)
-            print(f"JSON report saved to {output_path}")
+            if verbose:
+                print("[SUCCESS] Report generated.")
+            else:
+                print(f"JSON report saved to {output_path}")
         except RuntimeError as error:
             print(f"[ERROR] {error}")
 
@@ -305,10 +319,25 @@ def main(argv: Optional[List[str]] = None) -> None:
         "--output",
         help="write the complete intelligence dossier to a JSON file",
     )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="print progress messages during the investigation",
+    )
     arguments = parser.parse_args(argv)
 
     try:
-        asyncio.run(_main_async(arguments.ip, arguments.output))
+        if arguments.verbose:
+            asyncio.run(
+                _main_async(
+                    arguments.ip,
+                    arguments.output,
+                    verbose=True,
+                )
+            )
+        else:
+            asyncio.run(_main_async(arguments.ip, arguments.output))
     except (RuntimeError, asyncio.TimeoutError) as error:
         print(f"[ERROR] Investigation failed: {error}")
 

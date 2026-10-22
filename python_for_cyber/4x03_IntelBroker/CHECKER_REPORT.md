@@ -50,3 +50,7 @@ J’ai modifié `fetch_api` pour renvoyer `{"error": "Unavailable"}` en cas
 d’erreur HTTP, de panne réseau ou de réponse JSON invalide. Le résumé affiche
 `Unavailable` pour la source en échec, continue avec les autres et n’enregistre
 pas de réponses d’erreur dans le cache.
+
+J’ai ajouté l’option `-v/--verbose`. Elle affiche le démarrage des vérifications
+VirusTotal, Shodan et AbuseIPDB, la fin de Nmap et la confirmation quand le
+rapport JSON est bien enregistré.
