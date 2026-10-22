@@ -12,6 +12,11 @@ COMMON_SERVICES = {
     3306: "MySQL",
 }
 
+KNOWN_BAD_SIGNATURES = (
+    "vsftpd 2.3.4",
+    "Apache 2.2.8",
+)
+
 
 def check_port(ip: str, port: int) -> bool:
     """Return whether a TCP connection can be established to ``ip:port``.
@@ -114,6 +119,23 @@ def get_service_info(ip: str, port: int) -> str:
     return f"{guessed_service} (Guessed)"
 
 
+def check_vulnerability(banner: str) -> str:
+    """Return a vulnerability marker when a banner matches a bad signature.
+
+    Args:
+        banner: Service banner to compare with known vulnerable signatures.
+
+    Returns:
+        ``"[VULNERABLE]"`` when a known signature is found, otherwise an
+        empty string.
+    """
+    normalized_banner = banner.lower()
+    for signature in KNOWN_BAD_SIGNATURES:
+        if signature.lower() in normalized_banner:
+            return "[VULNERABLE]"
+    return ""
+
+
 def scan_ports(ip: str, start_port: int, end_port: int) -> list:
     """Scan an inclusive TCP port range and return open-port details.
 
@@ -149,9 +171,13 @@ def scan_ports(ip: str, start_port: int, end_port: int) -> list:
 
             if port_is_open:
                 service = get_service_info(ip, port)
+                vulnerability_status = check_vulnerability(service)
                 result = {"port": port, "service": service}
                 results.append(result)
-                print(f"[+] Port {port} Open: {service}")
+                print(
+                    f"[+] Port {port} Open: {service}"
+                    f" {vulnerability_status}".rstrip()
+                )
 
     return results
 
