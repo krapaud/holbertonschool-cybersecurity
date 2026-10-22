@@ -187,7 +187,9 @@ def get_service_info(ip: str, port: int) -> str:
     if banner != "Unknown" and banner:
         if port == 80:
             for header_line in banner.splitlines():
-                header_name, separator, header_value = header_line.partition(":")
+                header_name, separator, header_value = (
+                    header_line.partition(":")
+                )
                 if separator and header_name.strip().lower() == "server":
                     return f"HTTP ({header_value.strip()})"
         return banner
