@@ -96,13 +96,20 @@ async def gather_intel(ip: str) -> List[Dict[str, Any]]:
         return cached_data
 
     timeout = aiohttp.ClientTimeout(total=5)
+    semaphore = asyncio.Semaphore(5)
     async with aiohttp.ClientSession(timeout=timeout) as session:
         urls = [
             API_URLS[source].format(ip)
-            for source in ("virustotal", "shodan", "abuseipdb")
+            for source in API_URLS
         ]
+
+        async def fetch_with_limit(url: str) -> Dict[str, Any]:
+            """Fetch one source while respecting the shared concurrency cap."""
+            async with semaphore:
+                return await fetch_api(session, url)
+
         results = await asyncio.gather(
-            *(fetch_api(session, url) for url in urls)
+            *(fetch_with_limit(url) for url in urls)
         )
     if all(results):
         save_cached_intel(ip, results)

@@ -41,3 +41,7 @@ J’ai ajouté un cache `cache.json` pour les réponses des trois API. Chaque
 entrée est liée à une IP et horodatée en UTC; elle est réutilisée pendant une
 heure, puis les API sont interrogées à nouveau. Les réponses incomplètes ne
 sont pas mises en cache.
+
+J’ai limité les requêtes API simultanées à cinq avec `asyncio.Semaphore(5)`.
+Chaque tâche prend le sémaphore avant d’envoyer sa requête et le libère quand
+elle est terminée.

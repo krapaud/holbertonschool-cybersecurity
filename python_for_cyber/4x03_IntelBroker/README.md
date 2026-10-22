@@ -81,3 +81,5 @@ Shodan, AbuseIPDB, and Nmap results.
 Successful VirusTotal, Shodan, and AbuseIPDB responses are stored in
 `cache.json` for one hour. Re-running the client for the same IP within that
 period reuses the cached API results; expired entries are queried again.
+API requests are also guarded by an `asyncio.Semaphore` that caps concurrent
+requests at five.
