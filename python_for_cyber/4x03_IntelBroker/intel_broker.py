@@ -3,7 +3,6 @@
 
 import argparse
 import asyncio
-import subprocess
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
@@ -97,15 +96,14 @@ async def gather_intel(ip: str) -> List[Dict[str, Any]]:
         )
 
 
-def run_nmap(ip: str) -> str:
-    """Run Nmap on TCP ports 22 and 80 and return its raw XML output."""
+async def run_nmap(ip: str) -> str:
+    """Run Nmap asynchronously and return its raw XML output."""
     command = ["nmap", "-p", "22,80", ip, "-oX", "-"]
     try:
-        result = subprocess.run(
-            command,
-            capture_output=True,
-            text=True,
-            check=False,
+        process = await asyncio.create_subprocess_exec(
+            *command,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
         )
     except FileNotFoundError as error:
         message = "Nmap is not installed or not found in PATH."
@@ -113,10 +111,12 @@ def run_nmap(ip: str) -> str:
     except OSError as error:
         raise RuntimeError(f"Could not run Nmap: {error}") from error
 
-    if result.returncode != 0:
-        message = result.stderr.strip() or "Nmap returned a non-zero status."
+    stdout, stderr = await process.communicate()
+    if process.returncode != 0:
+        error_message = stderr.decode(errors="replace").strip()
+        message = error_message or "Nmap returned a non-zero status."
         raise RuntimeError(f"Nmap failed: {message}")
-    return result.stdout
+    return stdout.decode(errors="replace")
 
 
 def parse_nmap_xml(xml_data: str) -> list:
@@ -140,26 +140,30 @@ def parse_nmap_xml(xml_data: str) -> list:
     return open_ports
 
 
-def main(argv: Optional[List[str]] = None) -> None:
-    """Enrich a target IP from both APIs and Nmap, then print a summary."""
-    parser = argparse.ArgumentParser(
-        description="Collect local Nmap and simulated threat intelligence."
+async def _main_async(ip: str) -> None:
+    """Gather API intelligence and Nmap results concurrently for an IP."""
+    api_task = asyncio.create_task(gather_intel(ip))
+    nmap_task = asyncio.create_task(run_nmap(ip))
+    api_result, nmap_result = await asyncio.gather(
+        api_task,
+        nmap_task,
+        return_exceptions=True,
     )
-    parser.add_argument("ip", help="IP address to investigate")
-    arguments = parser.parse_args(argv)
 
-    dossier = TargetDossier(ip=arguments.ip)
-    try:
+    dossier = TargetDossier(ip=ip)
+    if isinstance(api_result, BaseException):
+        print(f"[ERROR] Could not gather threat intelligence: {api_result}")
+    else:
         (dossier.vt_data, dossier.shodan_data,
-         dossier.abuse_data) = asyncio.run(gather_intel(dossier.ip))
-    except (aiohttp.ClientError, asyncio.TimeoutError, RuntimeError) as error:
-        print(f"[ERROR] Could not gather threat intelligence: {error}")
+         dossier.abuse_data) = api_result
 
-    try:
-        nmap_xml = run_nmap(dossier.ip)
-        dossier.nmap_ports = parse_nmap_xml(nmap_xml)
-    except (RuntimeError, ValueError) as error:
-        print(f"[ERROR] Nmap scan failed: {error}")
+    if isinstance(nmap_result, BaseException):
+        print(f"[ERROR] Nmap scan failed: {nmap_result}")
+    else:
+        try:
+            dossier.nmap_ports = parse_nmap_xml(nmap_result)
+        except ValueError as error:
+            print(f"[ERROR] Nmap scan failed: {error}")
 
     print(f"Target: {dossier.ip}")
     print(
@@ -182,6 +186,20 @@ def main(argv: Optional[List[str]] = None) -> None:
         )
     )
     print(f"Nmap open ports: {dossier.nmap_ports}")
+
+
+def main(argv: Optional[List[str]] = None) -> None:
+    """Parse arguments and start the asynchronous investigation."""
+    parser = argparse.ArgumentParser(
+        description="Collect local Nmap and simulated threat intelligence."
+    )
+    parser.add_argument("ip", help="IP address to investigate")
+    arguments = parser.parse_args(argv)
+
+    try:
+        asyncio.run(_main_async(arguments.ip))
+    except (RuntimeError, asyncio.TimeoutError) as error:
+        print(f"[ERROR] Investigation failed: {error}")
 
 
 if __name__ == "__main__":

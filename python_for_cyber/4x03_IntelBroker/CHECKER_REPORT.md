@@ -22,3 +22,8 @@ fonctionner pendant cette transition.
 J’ai ajouté `gather_intel(ip)` pour lancer en même temps les requêtes
 VirusTotal, Shodan et AbuseIPDB avec `asyncio.gather`. Le résumé affiche
 maintenant aussi les informations Shodan.
+
+Pour cette étape, j’ai remplacé l’appel bloquant à Nmap par
+`asyncio.create_subprocess_exec`. Le programme lance maintenant Nmap et les
+trois requêtes API en même temps, puis récupère la sortie XML et les erreurs
+du processus sans bloquer la boucle asynchrone.
