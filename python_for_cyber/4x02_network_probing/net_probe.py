@@ -77,6 +77,22 @@ def scan_udp(ip: str, port: int) -> bool:
         connection.close()
 
 
+def resolve_hostname(ip: str) -> str:
+    """Return the reverse-DNS hostname for an IP address when available.
+
+    Args:
+        ip: IPv4 address to resolve.
+
+    Returns:
+        The primary hostname, or ``"Unknown"`` when no PTR record is found.
+    """
+    try:
+        hostname, _, _ = socket.gethostbyaddr(ip)
+        return hostname
+    except (socket.herror, socket.gaierror, OSError):
+        return "Unknown"
+
+
 def ping_sweep(subnet: str) -> list:
     """Return hosts in a /24 subnet accepting TCP connections on port 80.
 
@@ -325,6 +341,8 @@ def main() -> int:
 
     global CLI_DELAY
     CLI_DELAY = arguments.delay
+    hostname = resolve_hostname(arguments.target)
+    print(f"Target: {arguments.target} ({hostname})")
     if arguments.delay:
         print(f"[DEBUG] Sleeping {arguments.delay}s before scan...")
         time.sleep(arguments.delay)
