@@ -13,6 +13,7 @@ import aiohttp
 
 API_URLS = {
     "virustotal": "http://localhost:5000/virustotal/{}",
+    "shodan": "http://localhost:5000/shodan/{}",
     "abuseipdb": "http://localhost:5000/abuseipdb/{}",
 }
 
@@ -23,6 +24,7 @@ class TargetDossier:
 
     ip: str = ""
     vt_data: Dict[str, Any] = field(default_factory=dict)
+    shodan_data: Dict[str, Any] = field(default_factory=dict)
     abuse_data: Dict[str, Any] = field(default_factory=dict)
     nmap_ports: List[int] = field(default_factory=list)
 
@@ -82,6 +84,19 @@ def query_abuseipdb(ip: str) -> Dict[str, Any]:
     return _query_api("abuseipdb", ip)
 
 
+async def gather_intel(ip: str) -> List[Dict[str, Any]]:
+    """Fetch VirusTotal, Shodan, and AbuseIPDB data concurrently for an IP."""
+    timeout = aiohttp.ClientTimeout(total=5)
+    async with aiohttp.ClientSession(timeout=timeout) as session:
+        urls = [
+            API_URLS[source].format(ip)
+            for source in ("virustotal", "shodan", "abuseipdb")
+        ]
+        return await asyncio.gather(
+            *(fetch_api(session, url) for url in urls)
+        )
+
+
 def run_nmap(ip: str) -> str:
     """Run Nmap on TCP ports 22 and 80 and return its raw XML output."""
     command = ["nmap", "-p", "22,80", ip, "-oX", "-"]
@@ -134,8 +149,11 @@ def main(argv: Optional[List[str]] = None) -> None:
     arguments = parser.parse_args(argv)
 
     dossier = TargetDossier(ip=arguments.ip)
-    dossier.vt_data = query_virustotal(dossier.ip)
-    dossier.abuse_data = query_abuseipdb(dossier.ip)
+    try:
+        (dossier.vt_data, dossier.shodan_data,
+         dossier.abuse_data) = asyncio.run(gather_intel(dossier.ip))
+    except (aiohttp.ClientError, asyncio.TimeoutError, RuntimeError) as error:
+        print(f"[ERROR] Could not gather threat intelligence: {error}")
 
     try:
         nmap_xml = run_nmap(dossier.ip)
@@ -148,6 +166,13 @@ def main(argv: Optional[List[str]] = None) -> None:
         "VirusTotal: score={score}, malicious={malicious}".format(
             score=dossier.vt_data.get("reputation_score", "unknown"),
             malicious=dossier.vt_data.get("malicious", "unknown"),
+        )
+    )
+    print(
+        "Shodan: OS={os}, ISP={isp}, ports={ports}".format(
+            os=dossier.shodan_data.get("os", "unknown"),
+            isp=dossier.shodan_data.get("isp", "unknown"),
+            ports=dossier.shodan_data.get("ports", []),
         )
     )
     print(

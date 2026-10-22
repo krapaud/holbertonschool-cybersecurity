@@ -18,3 +18,7 @@ Pour cette étape, j’ai remplacé `requests` par `aiohttp` et ajouté `fetch_a
 pour lire les réponses JSON de façon asynchrone. Les fonctions de requête
 gardent leur interface actuelle pour que le reste du programme continue de
 fonctionner pendant cette transition.
+
+J’ai ajouté `gather_intel(ip)` pour lancer en même temps les requêtes
+VirusTotal, Shodan et AbuseIPDB avec `asyncio.gather`. Le résumé affiche
+maintenant aussi les informations Shodan.

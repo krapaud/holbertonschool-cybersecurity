@@ -48,7 +48,7 @@ The API client uses `aiohttp` for asynchronous HTTP requests.
 With the mock API running, query it from the client:
 
 ```bash
-./intel_broker.py
+./intel_broker.py 8.8.8.8
 ```
 
 The mock reputation score is random, so the returned values can change with
@@ -58,11 +58,11 @@ fails. AbuseIPDB data includes the `abuse_confidence_score` and report count.
 
 ## Exercise 5: create a target dossier
 
-Run all three sources sequentially for an IP address:
+Run all three intelligence APIs for an IP address:
 
 ```bash
 ./intel_broker.py 8.8.8.8
 ```
 
-The summary shows the VirusTotal reputation, AbuseIPDB confidence and report
-count, and open TCP ports found by Nmap. Nmap must be installed locally.
+The VirusTotal, Shodan, and AbuseIPDB requests run concurrently. The summary
+also includes open TCP ports found by Nmap, which must be installed locally.
