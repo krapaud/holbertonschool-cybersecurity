@@ -2,6 +2,7 @@
 """Query the local mock threat-intelligence APIs."""
 
 import subprocess
+import xml.etree.ElementTree as ET
 from typing import Any, Dict
 
 import requests
@@ -73,6 +74,27 @@ def run_nmap(ip: str) -> str:
         message = result.stderr.strip() or "Nmap returned a non-zero status."
         raise RuntimeError(f"Nmap failed: {message}")
     return result.stdout
+
+
+def parse_nmap_xml(xml_data: str) -> list:
+    """Return port numbers whose state is open from Nmap XML output."""
+    try:
+        root = ET.fromstring(xml_data)
+    except ET.ParseError as error:
+        raise ValueError("Nmap output is not valid XML.") from error
+
+    open_ports = []
+    for port_element in root.findall(".//host/ports/port"):
+        state_element = port_element.find("state")
+        if (state_element is not None and
+                state_element.get("state") == "open"):
+            port_id = port_element.get("portid")
+            if port_id is not None:
+                try:
+                    open_ports.append(int(port_id))
+                except ValueError:
+                    continue
+    return open_ports
 
 
 def main() -> None:
