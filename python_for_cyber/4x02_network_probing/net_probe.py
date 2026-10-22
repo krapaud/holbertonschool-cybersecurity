@@ -49,6 +49,34 @@ def check_port(ip: str, port: int) -> bool:
         connection.close()
 
 
+def scan_udp(ip: str, port: int) -> bool:
+    """Probe a UDP port and report whether it is open or filtered.
+
+    Args:
+        ip: IPv4 address or resolvable hostname to probe.
+        port: UDP port number to probe.
+
+    Returns:
+        ``True`` when a response arrives or the port remains open/filtered
+        after a timeout. A socket error such as ICMP port unreachable returns
+        ``False``.
+    """
+    connection = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    connection.settimeout(1.0)
+
+    try:
+        connection.sendto(b"", (ip, port))
+        try:
+            connection.recvfrom(1024)
+            return True
+        except socket.timeout:
+            return True
+    except OSError:
+        return False
+    finally:
+        connection.close()
+
+
 def ping_sweep(subnet: str) -> list:
     """Return hosts in a /24 subnet accepting TCP connections on port 80.
 
