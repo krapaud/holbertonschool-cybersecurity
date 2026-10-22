@@ -285,6 +285,9 @@ def main() -> int:
 
     global CLI_DELAY
     CLI_DELAY = arguments.delay
+    if arguments.delay:
+        print(f"[DEBUG] Sleeping {arguments.delay}s before scan...")
+        time.sleep(arguments.delay)
     results = scan_ports(arguments.target, start_port, end_port)
     if arguments.output:
         try:
