@@ -45,6 +45,33 @@ def ping_sweep(subnet: str) -> list:
     return live_hosts
 
 
+def get_banner(ip: str, port: int) -> str:
+    """Return the service banner received from ``ip:port``.
+
+    Args:
+        ip: IPv4 address or resolvable hostname to contact.
+        port: TCP port where the service is listening.
+
+    Returns:
+        The decoded banner without surrounding whitespace, or ``"Unknown"``
+        when the service does not provide a readable response.
+    """
+    connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    connection.settimeout(1.0)
+
+    try:
+        connection.connect((ip, port))
+        connection.sendall(b"HEAD / HTTP/1.0\r\n\r\n")
+        response = connection.recv(1024)
+        if not response:
+            return "Unknown"
+        return response.decode("utf-8", errors="replace").strip()
+    except OSError:
+        return "Unknown"
+    finally:
+        connection.close()
+
+
 def main() -> None:
     """Display the NetProbe initialization message."""
     print("NetProbe v1.0 initialized...")
