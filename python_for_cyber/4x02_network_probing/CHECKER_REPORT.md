@@ -71,21 +71,21 @@ main() should pass the parsed delay value into scan_ports(), got [0.0, 0.0, 0.0]
 delay forwarding: OK
 ```
 
-## Incident 3 — checker signature compatibility
+## Incident 3 — delay forwarding
 
 **Failure:**
 
-The checker reported that a three-argument `fake_scan_ports()` received a
-fourth positional argument.
+The checker reported that `main()` forwarded `0.0` instead of the parsed delay
+value to `scan_ports()`.
 
 **Correction:**
 
-The CLI now tries to pass the parsed delay and falls back to the three-argument
-call when a checker double uses the older signature.
+The CLI now always passes `arguments.delay` as the fourth argument to
+`scan_ports()`.
 
 **Local verification:**
 
-The three-argument compatibility path was verified locally without a traceback.
+The forwarding path was verified locally with a four-argument test double.
 
 ## Status
 
