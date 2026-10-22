@@ -5,9 +5,11 @@ import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import inspect
 import json
+import random
 import socket
 import sys
 import time
+from typing import Optional
 
 COMMON_SERVICES = {
     21: "FTP",
@@ -164,7 +166,8 @@ def scan_ports(
     ip: str,
     start_port: int,
     end_port: int,
-    delay: float = None,
+    delay: Optional[float] = None,
+    randomize: bool = False,
 ) -> list:
     """Scan an inclusive TCP port range and return open-port details.
 
@@ -173,20 +176,23 @@ def scan_ports(
         start_port: First TCP port in the range.
         end_port: Last TCP port in the range.
         delay: Seconds before each attempt, or the configured CLI delay.
+        randomize: Whether to shuffle the ports before submitting scan tasks.
 
     Returns:
         A list of dictionaries containing each open port and its service
         banner.
     """
-    if delay is None:
-        delay = CLI_DELAY
-    if delay < 0:
+    scan_delay = CLI_DELAY if delay is None else delay
+    if scan_delay < 0:
         raise ValueError("delay must be zero or greater")
 
     results = []
     print(f"Scanning {ip} from {start_port} to {end_port}...")
 
-    ports = range(start_port, end_port + 1)
+    ports = list(range(start_port, end_port + 1))
+    if randomize:
+        random.shuffle(ports)
+        print("Scanning ports randomly...")
     port_count = len(ports)
     if port_count == 0:
         return results
@@ -194,7 +200,7 @@ def scan_ports(
     worker_count = min(50, port_count)
     with ThreadPoolExecutor(max_workers=worker_count) as executor:
         futures = {
-            executor.submit(scan_port_with_delay, ip, port, delay): port
+            executor.submit(scan_port_with_delay, ip, port, scan_delay): port
             for port in ports
         }
 
@@ -260,6 +266,13 @@ def build_argument_parser() -> argparse.ArgumentParser:
         default=0.0,
         help="seconds to wait before each scan attempt",
     )
+    parser.add_argument(
+        "-r",
+        "--random",
+        action="store_true",
+        dest="randomize",
+        help="scan ports in random order",
+    )
     return parser
 
 
@@ -293,17 +306,25 @@ def main() -> int:
     except TypeError:
         results = scan_ports(*scan_arguments)
     else:
+        keyword_arguments = {"delay": arguments.delay}
+        if "randomize" in scan_signature.parameters:
+            keyword_arguments["randomize"] = arguments.randomize
+        elif "random" in scan_signature.parameters:
+            keyword_arguments["random"] = arguments.randomize
         try:
-            scan_signature.bind(*scan_arguments, delay=arguments.delay)
+            scan_signature.bind(*scan_arguments, **keyword_arguments)
         except TypeError:
             try:
-                scan_signature.bind(*scan_arguments, arguments.delay)
+                positional_values = [arguments.delay]
+                if "randomize" in scan_signature.parameters:
+                    positional_values.append(arguments.randomize)
+                scan_signature.bind(*scan_arguments, *positional_values)
             except TypeError:
                 results = scan_ports(*scan_arguments)
             else:
-                results = scan_ports(*scan_arguments, arguments.delay)
+                results = scan_ports(*scan_arguments, *positional_values)
         else:
-            results = scan_ports(*scan_arguments, delay=arguments.delay)
+            results = scan_ports(*scan_arguments, **keyword_arguments)
     if arguments.output:
         try:
             with open(arguments.output, "w", encoding="utf-8") as report_file:

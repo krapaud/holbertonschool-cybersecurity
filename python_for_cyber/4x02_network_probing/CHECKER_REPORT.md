@@ -70,3 +70,9 @@ valeur.
 La syntaxe Python et les trois formes d'appel ont été vérifiées localement. Le
 checker officiel Holberton doit encore être relancé pour confirmer que la
 version actuelle passe ses tests.
+
+## Mélange aléatoire des ports
+
+Pour l'étape `--random`, j'ai ajouté l'option `-r` et le mélange de la liste
+des ports avant de lancer les tâches. J'ai vérifié localement l'ordre mélangé
+et le passage de l'option depuis la ligne de commande.
