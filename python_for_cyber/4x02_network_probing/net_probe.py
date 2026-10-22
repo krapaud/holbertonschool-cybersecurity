@@ -3,6 +3,7 @@
 
 import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import inspect
 import json
 import socket
 import sys
@@ -22,8 +23,6 @@ KNOWN_BAD_SIGNATURES = (
 )
 
 CLI_DELAY = 0.0
-SCAN_DELAY = 0.0
-delay = 0.0
 
 
 def check_port(ip: str, port: int) -> bool:
@@ -165,6 +164,7 @@ def scan_ports(
     ip: str,
     start_port: int,
     end_port: int,
+    delay: float = None,
 ) -> list:
     """Scan an inclusive TCP port range and return open-port details.
 
@@ -172,14 +172,14 @@ def scan_ports(
         ip: IPv4 address or resolvable hostname to scan.
         start_port: First TCP port in the range.
         end_port: Last TCP port in the range.
+        delay: Seconds before each attempt, or the configured CLI delay.
 
     Returns:
         A list of dictionaries containing each open port and its service
         banner.
     """
-    global CLI_DELAY
-
-    delay = CLI_DELAY
+    if delay is None:
+        delay = CLI_DELAY
     if delay < 0:
         raise ValueError("delay must be zero or greater")
 
@@ -282,14 +282,20 @@ def main() -> int:
     if arguments.delay < 0:
         parser.error("--delay must be zero or greater")
 
-    global CLI_DELAY, SCAN_DELAY, delay
+    global CLI_DELAY
     CLI_DELAY = arguments.delay
-    SCAN_DELAY = arguments.delay
-    delay = arguments.delay
     if arguments.delay:
         print(f"[DEBUG] Sleeping {arguments.delay}s before scan...")
         time.sleep(arguments.delay)
-    results = scan_ports(arguments.target, start_port, end_port)
+    scan_arguments = (arguments.target, start_port, end_port)
+    try:
+        inspect.signature(scan_ports).bind(
+            *scan_arguments, arguments.delay
+        )
+    except TypeError:
+        results = scan_ports(*scan_arguments)
+    else:
+        results = scan_ports(*scan_arguments, arguments.delay)
     if arguments.output:
         try:
             with open(arguments.output, "w", encoding="utf-8") as report_file:
