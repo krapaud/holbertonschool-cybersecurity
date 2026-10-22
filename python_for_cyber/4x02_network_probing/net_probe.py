@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Provide basic TCP port probing for the NetProbe tool."""
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import socket
 
 
@@ -87,12 +88,29 @@ def scan_ports(ip: str, start_port: int, end_port: int) -> list:
     results = []
     print(f"Scanning {ip} from {start_port} to {end_port}...")
 
-    for port in range(start_port, end_port + 1):
-        if check_port(ip, port):
-            service = get_banner(ip, port)
-            result = {"port": port, "service": service}
-            results.append(result)
-            print(f"[+] Port {port} Open: {service}")
+    ports = range(start_port, end_port + 1)
+    port_count = len(ports)
+    if port_count == 0:
+        return results
+
+    worker_count = min(50, port_count)
+    with ThreadPoolExecutor(max_workers=worker_count) as executor:
+        futures = {
+            executor.submit(check_port, ip, port): port for port in ports
+        }
+
+        for future in as_completed(futures):
+            port = futures[future]
+            try:
+                port_is_open = future.result()
+            except Exception:
+                port_is_open = False
+
+            if port_is_open:
+                service = get_banner(ip, port)
+                result = {"port": port, "service": service}
+                results.append(result)
+                print(f"[+] Port {port} Open: {service}")
 
     return results
 
