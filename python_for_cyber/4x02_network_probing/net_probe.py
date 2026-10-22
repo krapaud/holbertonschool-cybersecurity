@@ -21,6 +21,8 @@ KNOWN_BAD_SIGNATURES = (
     "Apache 2.2.8",
 )
 
+CLI_DELAY = 0.0
+
 
 def check_port(ip: str, port: int) -> bool:
     """Return whether a TCP connection can be established to ``ip:port``.
@@ -175,6 +177,10 @@ def scan_ports(
         A list of dictionaries containing each open port and its service
         banner.
     """
+    global CLI_DELAY
+
+    if delay == 0.0:
+        delay = CLI_DELAY
     if delay < 0:
         raise ValueError("delay must be zero or greater")
 
@@ -277,12 +283,9 @@ def main() -> int:
     if arguments.delay < 0:
         parser.error("--delay must be zero or greater")
 
-    results = scan_ports(
-        arguments.target,
-        start_port,
-        end_port,
-        arguments.delay,
-    )
+    global CLI_DELAY
+    CLI_DELAY = arguments.delay
+    results = scan_ports(arguments.target, start_port, end_port)
     if arguments.output:
         try:
             with open(arguments.output, "w", encoding="utf-8") as report_file:
