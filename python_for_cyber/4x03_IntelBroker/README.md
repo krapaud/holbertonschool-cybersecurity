@@ -34,3 +34,21 @@ results are randomly generated for practice and are not real threat
 intelligence. It listens only on `localhost:5000`.
 
 Stop it with `Ctrl+C`.
+
+## Exercise 1: query VirusTotal
+
+Install the project dependencies inside the active virtual environment:
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+With the mock API running, query it from the client:
+
+```bash
+./intel_broker.py
+```
+
+The mock reputation score is random, so the returned values can change with
+each request. `query_virustotal(ip)` returns the JSON object as a Python
+dictionary, or an empty dictionary if the request fails.
