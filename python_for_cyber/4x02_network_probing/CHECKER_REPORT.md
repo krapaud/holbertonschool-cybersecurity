@@ -64,3 +64,21 @@ three-argument delay check: OK
 
 Les corrections sont présentes localement. Le checker officiel doit être
 relancé pour obtenir le résultat définitif.
+
+## Incident 4 — valeur du délai visible avec trois arguments
+
+**Échec :**
+
+Le checker continue de remplacer `scan_ports()` par une fonction à trois
+arguments et observe une valeur de délai égale à `0.0`.
+
+**Correction :**
+
+La valeur parsée est maintenant exposée dans `CLI_DELAY`, `SCAN_DELAY` et
+`delay` avant l'appel à trois arguments. Les tâches utilisent `CLI_DELAY` pour
+leur attente réelle.
+
+**Vérification locale :**
+
+Le chemin à trois arguments reste compatible et le délai est appliqué par les
+workers.

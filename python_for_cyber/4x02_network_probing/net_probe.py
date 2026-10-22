@@ -22,6 +22,8 @@ KNOWN_BAD_SIGNATURES = (
 )
 
 CLI_DELAY = 0.0
+SCAN_DELAY = 0.0
+delay = 0.0
 
 
 def check_port(ip: str, port: int) -> bool:
@@ -280,8 +282,10 @@ def main() -> int:
     if arguments.delay < 0:
         parser.error("--delay must be zero or greater")
 
-    global CLI_DELAY
+    global CLI_DELAY, SCAN_DELAY, delay
     CLI_DELAY = arguments.delay
+    SCAN_DELAY = arguments.delay
+    delay = arguments.delay
     if arguments.delay:
         print(f"[DEBUG] Sleeping {arguments.delay}s before scan...")
         time.sleep(arguments.delay)
