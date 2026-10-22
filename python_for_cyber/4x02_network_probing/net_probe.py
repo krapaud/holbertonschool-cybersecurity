@@ -163,7 +163,6 @@ def scan_ports(
     ip: str,
     start_port: int,
     end_port: int,
-    delay: float = 0.0,
 ) -> list:
     """Scan an inclusive TCP port range and return open-port details.
 
@@ -171,7 +170,6 @@ def scan_ports(
         ip: IPv4 address or resolvable hostname to scan.
         start_port: First TCP port in the range.
         end_port: Last TCP port in the range.
-        delay: Seconds to wait before each connection attempt.
 
     Returns:
         A list of dictionaries containing each open port and its service
@@ -179,8 +177,7 @@ def scan_ports(
     """
     global CLI_DELAY
 
-    if delay == 0.0:
-        delay = CLI_DELAY
+    delay = CLI_DELAY
     if delay < 0:
         raise ValueError("delay must be zero or greater")
 
@@ -288,12 +285,7 @@ def main() -> int:
     if arguments.delay:
         print(f"[DEBUG] Sleeping {arguments.delay}s before scan...")
         time.sleep(arguments.delay)
-    results = scan_ports(
-        arguments.target,
-        start_port,
-        end_port,
-        arguments.delay,
-    )
+    results = scan_ports(arguments.target, start_port, end_port)
     if arguments.output:
         try:
             with open(arguments.output, "w", encoding="utf-8") as report_file:

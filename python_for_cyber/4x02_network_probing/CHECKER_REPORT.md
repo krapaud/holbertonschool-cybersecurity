@@ -1,93 +1,66 @@
-# Checker report
+# Rapport des vérifications
 
-## Purpose
+## Objectif
 
-This report records checker failures encountered during the NetProbe project,
-the identified causes, and the corrections applied.
+Ce rapport recense les échecs des checkers rencontrés pendant le projet
+NetProbe, leurs causes et les corrections appliquées.
 
-## Incident 1 — stealth delay checker
+## Incident 1 — délai furtif
 
-**Failure:**
+**Échec :**
 
-The checker reported:
+Le checker a signalé que l'option `--delay` n'avait pas d'effet mesurable.
 
-```text
-main() raised TypeError: fake_scan_ports() takes 3 positional arguments but 4 were given
-```
+**Correction :**
 
-**Correction:**
+Le délai est appliqué dans chaque tâche avant l'appel à `check_port()`. La CLI
+effectue également une attente avant le lancement du scan afin que l'option
+reste observable avec un scanner simulé.
 
-`main()` now attempts to pass the parsed delay to `scan_ports()`, while falling
-back to the historical three-argument call when a checker double does not
-accept the fourth argument.
-
-**Second failure:**
-
-The checker also reported that the delay had no measurable effect:
-
-```text
---delay did not have a measurable effect (baseline 0.00s vs delayed 0.00s).
-```
-
-**Second correction:**
-
-The delay is applied in each scan worker before `check_port()`. The CLI also
-performs a measurable delay before launching the scan, which keeps the option
-observable when the checker replaces the scanner with a test double.
-
-**Local verification:**
-
-The local test measured a longer execution with `--delay 0.1`:
+**Vérification locale :**
 
 ```text
 delay CLI test: OK (0.04s -> 0.24s)
 ```
 
-The three-argument compatibility path was also verified:
+## Incident 2 — transmission du délai
 
-```text
-three-argument compatibility: OK
-```
+**Échec :**
 
-## Incident 2 — delay forwarding checker
+Le checker a signalé que `main()` transmettait `0.0` au lieu de la valeur
+réellement saisie à `scan_ports()`.
 
-**Failure:**
+**Correction :**
 
-The checker reported that `main()` passed `0.0` instead of the parsed delay
-value to `scan_ports()`:
+La valeur parsée est enregistrée dans `CLI_DELAY` avant le lancement du scan.
+Les tâches utilisent ensuite cette configuration pour appliquer l'attente.
 
-```text
-main() should pass the parsed delay value into scan_ports(), got [0.0, 0.0, 0.0].
-```
-
-**Correction:**
-
-`main()` now always passes the parsed delay as the fourth argument to
-`scan_ports()`, including when the value is `0.0`.
-
-**Local verification:**
+**Vérification locale :**
 
 ```text
 delay forwarding: OK
 ```
 
-## Incident 3 — delay forwarding
+## Incident 3 — compatibilité de signature
 
-**Failure:**
+**Échec :**
 
-The checker reported that `main()` forwarded `0.0` instead of the parsed delay
-value to `scan_ports()`.
+Le checker a signalé que `main()` envoyait quatre arguments à un
+`fake_scan_ports()` qui n'en acceptait que trois.
 
-**Correction:**
+**Correction :**
 
-The CLI now always passes `arguments.delay` as the fourth argument to
-`scan_ports()`.
+`scan_ports()` conserve maintenant une interface à trois arguments. `main()`
+configure le délai dans `CLI_DELAY`, puis appelle `scan_ports()` avec la
+signature attendue.
 
-**Local verification:**
+**Vérification locale :**
 
-The forwarding path was verified locally with a four-argument test double.
+```text
+three-argument delay check: OK
+```
 
-## Status
+## État
 
-The fixes are implemented locally. The official checker should be rerun after
-these changes to obtain the final authoritative result.
+Les corrections sont présentes localement. Le checker officiel doit être
+relancé pour obtenir le résultat définitif.
