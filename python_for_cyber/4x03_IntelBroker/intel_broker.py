@@ -6,7 +6,7 @@ import asyncio
 import json
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -18,6 +18,8 @@ API_URLS = {
     "shodan": "http://localhost:5000/shodan/{}",
     "abuseipdb": "http://localhost:5000/abuseipdb/{}",
 }
+CACHE_FILE = Path(__file__).with_name("cache.json")
+CACHE_TTL = timedelta(hours=1)
 
 
 @dataclass
@@ -87,16 +89,70 @@ def query_abuseipdb(ip: str) -> Dict[str, Any]:
 
 
 async def gather_intel(ip: str) -> List[Dict[str, Any]]:
-    """Fetch VirusTotal, Shodan, and AbuseIPDB data concurrently for an IP."""
+    """Return cached or concurrently fetched intelligence for an IP."""
+    cached_data = load_cached_intel(ip)
+    if cached_data is not None:
+        print(f"[INFO] Using cached intelligence for {ip}.")
+        return cached_data
+
     timeout = aiohttp.ClientTimeout(total=5)
     async with aiohttp.ClientSession(timeout=timeout) as session:
         urls = [
             API_URLS[source].format(ip)
             for source in ("virustotal", "shodan", "abuseipdb")
         ]
-        return await asyncio.gather(
+        results = await asyncio.gather(
             *(fetch_api(session, url) for url in urls)
         )
+    if all(results):
+        save_cached_intel(ip, results)
+    return results
+
+
+def load_cached_intel(ip: str) -> Optional[List[Dict[str, Any]]]:
+    """Return an IP's cached API results if they are less than one hour old."""
+    try:
+        cache = json.loads(CACHE_FILE.read_text(encoding="utf-8"))
+        entry = cache.get(ip)
+        if not isinstance(entry, dict):
+            return None
+        timestamp = datetime.fromisoformat(entry["timestamp"])
+        if timestamp.tzinfo is None:
+            timestamp = timestamp.replace(tzinfo=timezone.utc)
+        cached_data = entry["data"]
+    except FileNotFoundError:
+        return None
+    except (OSError, ValueError, KeyError, TypeError, json.JSONDecodeError):
+        print("[WARNING] Cache file is unreadable; querying the APIs.")
+        return None
+
+    age = datetime.now(timezone.utc) - timestamp
+    if age < timedelta(0) or age >= CACHE_TTL:
+        return None
+    if (not isinstance(cached_data, list) or len(cached_data) != 3 or
+            not all(isinstance(item, dict) for item in cached_data)):
+        return None
+    return cached_data
+
+
+def save_cached_intel(ip: str, data: List[Dict[str, Any]]) -> None:
+    """Store successful API results with their UTC timestamp in the cache."""
+    cache: Dict[str, Any] = {}
+    try:
+        if CACHE_FILE.exists():
+            loaded_cache = json.loads(CACHE_FILE.read_text(encoding="utf-8"))
+            if isinstance(loaded_cache, dict):
+                cache = loaded_cache
+        cache[ip] = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "data": data,
+        }
+        CACHE_FILE.write_text(
+            json.dumps(cache, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+    except (OSError, TypeError, ValueError) as error:
+        print(f"[WARNING] Could not save API cache: {error}")
 
 
 async def run_nmap(ip: str) -> str:

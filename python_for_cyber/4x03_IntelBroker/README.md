@@ -75,3 +75,9 @@ To save the complete dossier as JSON, use `-o` or `--output`:
 
 The report contains the target IP, a UTC timestamp, and the VirusTotal,
 Shodan, AbuseIPDB, and Nmap results.
+
+## Exercise 10: cache API results
+
+Successful VirusTotal, Shodan, and AbuseIPDB responses are stored in
+`cache.json` for one hour. Re-running the client for the same IP within that
+period reuses the cached API results; expired entries are queried again.

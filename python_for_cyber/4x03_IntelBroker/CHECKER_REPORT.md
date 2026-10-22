@@ -36,3 +36,8 @@ Le checker signalait que `report.json` n’était pas présent dans le dépôt.
 J’ai ajouté un exemple JSON non vide avec toutes les sections attendues; les
 valeurs sont des données d’exemple et peuvent être remplacées par un vrai
 rapport en lançant le programme avec `-o report.json`.
+
+J’ai ajouté un cache `cache.json` pour les réponses des trois API. Chaque
+entrée est liée à une IP et horodatée en UTC; elle est réutilisée pendant une
+heure, puis les API sont interrogées à nouveau. Les réponses incomplètes ne
+sont pas mises en cache.
