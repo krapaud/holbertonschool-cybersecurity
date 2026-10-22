@@ -289,13 +289,21 @@ def main() -> int:
         time.sleep(arguments.delay)
     scan_arguments = (arguments.target, start_port, end_port)
     try:
-        inspect.signature(scan_ports).bind(
-            *scan_arguments, arguments.delay
-        )
+        scan_signature = inspect.signature(scan_ports)
     except TypeError:
         results = scan_ports(*scan_arguments)
     else:
-        results = scan_ports(*scan_arguments, arguments.delay)
+        try:
+            scan_signature.bind(*scan_arguments, delay=arguments.delay)
+        except TypeError:
+            try:
+                scan_signature.bind(*scan_arguments, arguments.delay)
+            except TypeError:
+                results = scan_ports(*scan_arguments)
+            else:
+                results = scan_ports(*scan_arguments, arguments.delay)
+        else:
+            results = scan_ports(*scan_arguments, delay=arguments.delay)
     if arguments.output:
         try:
             with open(arguments.output, "w", encoding="utf-8") as report_file:

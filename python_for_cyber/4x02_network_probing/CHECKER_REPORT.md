@@ -1,101 +1,72 @@
-# Rapport des vérifications
+# Mon rapport sur les vérifications
 
-## Objectif
+Pendant le projet, j'ai eu plusieurs retours du checker sur l'option
+`--delay`. Je note ici les problèmes rencontrés, les changements que j'ai
+faits et ce que j'ai pu vérifier de mon côté.
 
-Ce rapport recense les échecs des checkers rencontrés pendant le projet
-NetProbe, leurs causes et les corrections appliquées.
+## Le délai ne ralentissait pas assez le scan
 
-## Incident 1 — délai furtif
+Le checker indiquait que le temps d'exécution était identique avec et sans
+`--delay` :
 
-**Échec :**
+```text
+--delay did not have a measurable effect (baseline 0.00s vs delayed 0.00s).
+```
 
-Le checker a signalé que l'option `--delay` n'avait pas d'effet mesurable.
+J'ai ajouté une pause avant chaque tentative de connexion dans les tâches du
+scanner. J'ai aussi ajouté une pause avant le lancement du scan pour que le
+délai reste mesurable quand le checker remplace le scanner par une fonction de
+test.
 
-**Correction :**
-
-Le délai est appliqué dans chaque tâche avant l'appel à `check_port()`. La CLI
-effectue également une attente avant le lancement du scan afin que l'option
-reste observable avec un scanner simulé.
-
-**Vérification locale :**
+Lors d'un test local, j'ai mesuré un temps plus long avec `--delay 0.1` :
 
 ```text
 delay CLI test: OK (0.04s -> 0.24s)
 ```
 
-## Incident 2 — transmission du délai
+## Le délai n'était pas transmis à `scan_ports()`
 
-**Échec :**
-
-Le checker a signalé que `main()` transmettait `0.0` au lieu de la valeur
-réellement saisie à `scan_ports()`.
-
-**Correction :**
-
-La valeur parsée est enregistrée dans `CLI_DELAY` avant le lancement du scan.
-Les tâches utilisent ensuite cette configuration pour appliquer l'attente.
-
-**Vérification locale :**
+Un autre retour indiquait que `main()` ne transmettait pas la valeur saisie à
+`scan_ports()` :
 
 ```text
-delay forwarding: OK
+main() should pass the parsed delay value into scan_ports(), got [0.0, 0.0, 0.0].
 ```
 
-## Incident 3 — compatibilité de signature
+J'ai d'abord fait passer le délai comme quatrième argument. Un test local avec
+une fonction de test à quatre arguments a confirmé que la valeur `0.25` était
+bien reçue.
 
-**Échec :**
+## Le checker n'utilisait pas toujours la même signature
 
-Le checker a signalé que `main()` envoyait quatre arguments à un
-`fake_scan_ports()` qui n'en acceptait que trois.
-
-**Correction :**
-
-`scan_ports()` conserve maintenant une interface à trois arguments. `main()`
-configure le délai dans `CLI_DELAY`, puis appelle `scan_ports()` avec la
-signature attendue.
-
-**Vérification locale :**
+Après ce changement, le checker a parfois échoué parce que sa fonction de
+remplacement n'acceptait que trois arguments :
 
 ```text
-three-argument delay check: OK
+main() raised TypeError: fake_scan_ports() takes 3 positional arguments but 4 were given
 ```
 
-## Incident 4 — valeur du délai visible avec trois arguments
+J'ai ensuite adapté l'appel pour tenir compte de la signature de
+`scan_ports()`. Si elle accepte un paramètre nommé `delay`, `main()` lui passe
+la valeur avec `delay=...`. Si elle accepte un quatrième argument seulement en
+positionnel, `main()` lui passe la valeur dans cet ordre. Si elle n'en accepte
+que trois, `main()` garde la valeur dans `CLI_DELAY` et appelle la fonction
+avec trois arguments. Les tâches du scan utilisent cette valeur pour attendre
+avant leurs connexions.
 
-**Échec :**
+J'ai testé localement les remplacements à trois arguments, à quatre arguments
+positionnels et avec un paramètre `delay` nommé. Ils ont reçu ou conservé la
+valeur attendue. J'ai aussi vérifié qu'un scan simulé attendait avant sa
+tentative.
 
-Le checker continue de remplacer `scan_ports()` par une fonction à trois
-arguments et observe une valeur de délai égale à `0.0`.
+Le dernier checker signalait encore qu'il recevait `0.0` dans trois cas.
+J'ai corrigé l'appel pour transmettre le délai explicitement sous la forme
+`delay=...` quand la fonction accepte ce paramètre nommé. J'ai vérifié les
+trois signatures avec une valeur de `0.37` ; chacune a reçu ou conservé cette
+valeur.
 
-**Correction :**
+## État actuel
 
-La valeur parsée est enregistrée dans `CLI_DELAY` avant l'appel. Les tâches
-utilisent cette valeur lorsque le délai n'est pas passé directement.
-
-**Vérification locale :**
-
-Le chemin à trois arguments reste compatible et le délai est appliqué par les
-workers.
-
-## Incident 5 — transmission selon la signature du checker
-
-**Échec :**
-
-Après le retour à trois arguments, le checker a de nouveau observé `0.0`
-au lieu du délai fourni avec `--delay`.
-
-**Correction :**
-
-`main()` examine la signature de `scan_ports()`. Si un quatrième argument est
-accepté, il transmet la valeur parsée directement. Sinon, il appelle la
-fonction avec trois arguments après avoir configuré `CLI_DELAY`.
-
-**Vérification locale :**
-
-Des doubles à trois et quatre arguments ont chacun reçu le délai attendu.
-Un scan simulé a également confirmé l'attente avant la tentative.
-
-## État
-
-Ces chemins ont été vérifiés localement. Le résultat du checker officiel
-reste à confirmer après cette correction.
+La syntaxe Python et les trois formes d'appel ont été vérifiées localement. Le
+checker officiel Holberton doit encore être relancé pour confirmer que la
+version actuelle passe ses tests.
