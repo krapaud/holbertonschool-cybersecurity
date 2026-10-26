@@ -1,5 +1,5 @@
 orchestrator = "claude"
-kit_version = "1.16.51"
+kit_version = "1.17.0"
 source = "https://github.com/Krapaud-Labs/AGENTIC-Starter-Kits"
 kit_mode = "shared"
 kit_home = "/Users/krapaud/.local/share/agentic-starter-kits/kits"
