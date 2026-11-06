@@ -24,6 +24,12 @@ Start a continuous capture with root privileges. Press Ctrl+C to stop it:
 sudo ./sniffer.py
 ```
 
+Choose a network interface with `-i` and apply a BPF filter with `-f`:
+
+```bash
+sudo ./sniffer.py --interface eth0 --filter "icmp"
+```
+
 For IPv4 packets, the handler identifies TCP, UDP, or ICMP and prints the
 source and destination addresses:
 
@@ -66,3 +72,8 @@ output. UDP and ICMP packets keep the address-only format.
 ## Exercise 4: continuous capture
 
 The sniffer runs until interrupted with Ctrl+C, then prints a stopping message.
+
+## Exercise 5: select interface and BPF filter
+
+The `-i` or `--interface` option selects the capture interface. The `-f` or
+`--filter` option passes a BPF expression to Scapy, such as `icmp`.

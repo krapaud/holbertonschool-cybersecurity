@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Entry point for the PySniffer network capture project."""
 
+import argparse
 import os
 from typing import Any
 
@@ -42,13 +43,26 @@ def packet_handler(packet: Any) -> None:
 
 
 def main() -> None:
-    """Capture packets continuously when run with root access."""
+    """Capture packets continuously using the selected interface and filter."""
+    parser = argparse.ArgumentParser(description="Capture network packets.")
+    parser.add_argument(
+        "-i", "--interface", help="Network interface to capture on."
+    )
+    parser.add_argument(
+        "-f", "--filter", help="BPF filter expression for captured packets."
+    )
+    arguments = parser.parse_args()
+
     if os.geteuid() != 0:
         print("[ERROR] Run this script with sudo to capture packets.")
         return
 
     try:
-        sniff(prn=packet_handler)
+        sniff(
+            iface=arguments.interface,
+            filter=arguments.filter,
+            prn=packet_handler,
+        )
     except KeyboardInterrupt:
         print("[INFO] Stopping capture...")
     except Exception as error:
