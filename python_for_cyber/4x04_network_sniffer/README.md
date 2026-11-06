@@ -30,6 +30,12 @@ Choose a network interface with `-i` and apply a BPF filter with `-f`:
 sudo ./sniffer.py --interface eth0 --filter "icmp"
 ```
 
+Save captured packets to a PCAP file with `--write`:
+
+```bash
+sudo ./sniffer.py --filter "icmp" --write output.pcap
+```
+
 For IPv4 packets, the handler identifies TCP, UDP, or ICMP and prints the
 source and destination addresses:
 
@@ -77,3 +83,8 @@ The sniffer runs until interrupted with Ctrl+C, then prints a stopping message.
 
 The `-i` or `--interface` option selects the capture interface. The `-f` or
 `--filter` option passes a BPF expression to Scapy, such as `icmp`.
+
+## Exercise 6: write packets to PCAP
+
+The optional `--write` argument saves captured packets to the given PCAP file.
+One writer stays open for the capture and appends packets as they arrive.

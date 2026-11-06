@@ -9,8 +9,14 @@ import scapy.all as scapy_all
 from scapy.all import sniff
 
 
+_pcap_writer: Any = None
+
+
 def packet_handler(packet: Any) -> None:
-    """Print IP endpoints and the recognized transport protocol."""
+    """Write captured packets and print recognized IP protocol details."""
+    if _pcap_writer is not None:
+        _pcap_writer.write(packet)
+
     ip_layer = getattr(scapy_all, "IP", "IP")
     tcp_layer = getattr(scapy_all, "TCP", "TCP")
     udp_layer = getattr(scapy_all, "UDP", "UDP")
@@ -51,13 +57,22 @@ def main() -> None:
     parser.add_argument(
         "-f", "--filter", help="BPF filter expression for captured packets."
     )
+    parser.add_argument(
+        "--write", help="Append captured packets to a PCAP file."
+    )
     arguments = parser.parse_args()
 
     if os.geteuid() != 0:
         print("[ERROR] Run this script with sudo to capture packets.")
         return
 
+    global _pcap_writer
     try:
+        if arguments.write:
+            writer_class = getattr(scapy_all, "PcapWriter", None)
+            if writer_class is None:
+                raise RuntimeError("Scapy PcapWriter is unavailable.")
+            _pcap_writer = writer_class(arguments.write, append=True)
         sniff(
             iface=arguments.interface,
             filter=arguments.filter,
@@ -67,6 +82,14 @@ def main() -> None:
         print("[INFO] Stopping capture...")
     except Exception as error:
         print(f"[ERROR] Packet capture failed: {error}")
+    finally:
+        if _pcap_writer is not None:
+            try:
+                _pcap_writer.close()
+            except Exception as error:
+                print(f"[ERROR] PCAP file could not be closed: {error}")
+            finally:
+                _pcap_writer = None
 
 
 if __name__ == "__main__":
