@@ -5,3 +5,4 @@ __pycache__/
 .pytest_cache/
 *.pcap
 *.pcapng
+CHECKER_REPORT.md

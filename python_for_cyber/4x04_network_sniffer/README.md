@@ -21,20 +21,20 @@ python -m pip install -r requirements.txt
 Run the starter script:
 
 ```bash
-./py_sniffer.py
+./sniffer.py
 ```
 
 Expected output:
 
 ```text
-PySniffer v1.0 initialized...
+[INFO] PySniffer initialized.
 ```
 
 ## Exercise 0: project environment
 
 Prepare the workspace by creating the virtual environment, installing Scapy,
-and making sure `py_sniffer.py` is executable. The script should start with
-the required Python 3 shebang and provide the initialization message above.
+and making sure `sniffer.py` is executable. The script should start with the
+required Python 3 shebang and provide the initialization message above.
 
 ## Project roadmap
 

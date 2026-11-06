@@ -3,8 +3,8 @@
 
 
 def main() -> None:
-    """Display the initial status while the sniffer is being built."""
-    print("PySniffer v1.0 initialized...")
+    """Display the required initialization status."""
+    print("[INFO] PySniffer initialized.")
 
 
 if __name__ == "__main__":
