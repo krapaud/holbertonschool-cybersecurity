@@ -28,7 +28,7 @@ For IPv4 packets, the handler identifies TCP, UDP, or ICMP and prints the
 source and destination addresses:
 
 ```text
-[TCP] 192.168.1.5 -> 142.250.1.1
+[TCP] 192.168.1.5:49812 -> 1.1.1.1:80 | Flags: S
 ```
 
 ## Exercise 0: project environment
@@ -57,3 +57,8 @@ capture requires root privileges.
 The packet handler checks for an IPv4 layer, then identifies TCP, UDP, or
 ICMP. It prints the protocol name and the source and destination IP addresses.
 Packets without IPv4 or without one of these protocols are ignored.
+
+## Exercise 3: show TCP details
+
+TCP packets include the source and destination ports and their flags in the
+output. UDP and ICMP packets keep the address-only format.

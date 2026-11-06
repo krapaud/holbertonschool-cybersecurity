@@ -26,7 +26,18 @@ def packet_handler(packet: Any) -> None:
         ("ICMP", icmp_layer),
     ):
         if packet.haslayer(protocol_layer):
-            print(f"[{protocol_name}] {source_ip} -> {destination_ip}")
+            if protocol_name == "TCP":
+                tcp_packet = packet[protocol_layer]
+                print(
+                    f"[TCP] {source_ip}:{tcp_packet.sport} -> "
+                    f"{destination_ip}:{tcp_packet.dport} | "
+                    f"Flags: {tcp_packet.flags}"
+                )
+            else:
+                print(
+                    f"[{protocol_name}] {source_ip} -> "
+                    f"{destination_ip}"
+                )
             return
 
 
