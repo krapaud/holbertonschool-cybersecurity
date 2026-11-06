@@ -1,5 +1,6 @@
 {
     "python.analysis.extraPaths": [
-        "${workspaceFolder}/python_for_cyber/4x03_IntelBroker/venv/lib/python3.9/site-packages"
+        "${workspaceFolder}/python_for_cyber/4x03_IntelBroker/venv/lib/python3.9/site-packages",
+        "${workspaceFolder}/python_for_cyber/4x04_network_sniffer/venv/lib/python3.9/site-packages"
     ]
 }
