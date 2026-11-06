@@ -18,7 +18,7 @@ source venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
-Start a five-packet capture with root privileges:
+Start a continuous capture with root privileges. Press Ctrl+C to stop it:
 
 ```bash
 sudo ./sniffer.py
@@ -39,9 +39,9 @@ required Python 3 shebang and install Scapy in the active virtual environment.
 
 ## Exercise 1: capture packet summaries
 
-The entry point calls Scapy's `sniff()` with `count=5` and
-`packet_handler` as the `prn` callback. Run it with `sudo` because packet
-capture requires root privileges.
+The entry point calls Scapy's `sniff()` with `packet_handler` as the
+`prn` callback and keeps capturing until Ctrl+C. Run it with `sudo` because
+packet capture requires root privileges.
 
 ## Project roadmap
 
@@ -62,3 +62,7 @@ Packets without IPv4 or without one of these protocols are ignored.
 
 TCP packets include the source and destination ports and their flags in the
 output. UDP and ICMP packets keep the address-only format.
+
+## Exercise 4: continuous capture
+
+The sniffer runs until interrupted with Ctrl+C, then prints a stopping message.

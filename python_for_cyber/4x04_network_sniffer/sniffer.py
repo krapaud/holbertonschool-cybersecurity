@@ -42,13 +42,15 @@ def packet_handler(packet: Any) -> None:
 
 
 def main() -> None:
-    """Capture five packets and print summaries when run with root access."""
+    """Capture packets continuously when run with root access."""
     if os.geteuid() != 0:
         print("[ERROR] Run this script with sudo to capture packets.")
         return
 
     try:
-        sniff(count=5, prn=packet_handler)
+        sniff(prn=packet_handler)
+    except KeyboardInterrupt:
+        print("[INFO] Stopping capture...")
     except Exception as error:
         print(f"[ERROR] Packet capture failed: {error}")
 
