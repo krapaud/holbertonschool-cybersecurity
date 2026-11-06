@@ -24,10 +24,11 @@ Start a five-packet capture with root privileges:
 sudo ./sniffer.py
 ```
 
-Each captured packet is printed as a one-line Scapy summary, for example:
+For IPv4 packets, the handler identifies TCP, UDP, or ICMP and prints the
+source and destination addresses:
 
 ```text
-Ether / IP / TCP 192.168.1.5:54321 > 1.1.1.1:80 S
+[TCP] 192.168.1.5 -> 142.250.1.1
 ```
 
 ## Exercise 0: project environment
@@ -38,9 +39,9 @@ required Python 3 shebang and install Scapy in the active virtual environment.
 
 ## Exercise 1: capture packet summaries
 
-`packet_handler(packet)` prints `packet.summary()` for each captured packet.
-The entry point calls Scapy's `sniff()` with `count=5` and the callback as
-`prn`. Run it with `sudo` because packet capture requires root privileges.
+The entry point calls Scapy's `sniff()` with `count=5` and
+`packet_handler` as the `prn` callback. Run it with `sudo` because packet
+capture requires root privileges.
 
 ## Project roadmap
 
@@ -50,3 +51,9 @@ The entry point calls Scapy's `sniff()` with `count=5` and the callback as
 - Save selected packets to a `.pcap` file.
 - Organize capture and packet processing with `PacketHandler` and
   `SnifferEngine` classes, then test the code without requiring live traffic.
+
+## Exercise 2: identify protocols
+
+The packet handler checks for an IPv4 layer, then identifies TCP, UDP, or
+ICMP. It prints the protocol name and the source and destination IP addresses.
+Packets without IPv4 or without one of these protocols are ignored.
