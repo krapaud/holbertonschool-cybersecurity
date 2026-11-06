@@ -18,23 +18,29 @@ source venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
-Run the starter script:
+Start a five-packet capture with root privileges:
 
 ```bash
-./sniffer.py
+sudo ./sniffer.py
 ```
 
-Expected output:
+Each captured packet is printed as a one-line Scapy summary, for example:
 
 ```text
-[INFO] PySniffer initialized.
+Ether / IP / TCP 192.168.1.5:54321 > 1.1.1.1:80 S
 ```
 
 ## Exercise 0: project environment
 
 Prepare the workspace by creating the virtual environment, installing Scapy,
 and making sure `sniffer.py` is executable. The script should start with the
-required Python 3 shebang and provide the initialization message above.
+required Python 3 shebang and install Scapy in the active virtual environment.
+
+## Exercise 1: capture packet summaries
+
+`packet_handler(packet)` prints `packet.summary()` for each captured packet.
+The entry point calls Scapy's `sniff()` with `count=5` and the callback as
+`prn`. Run it with `sudo` because packet capture requires root privileges.
 
 ## Project roadmap
 
