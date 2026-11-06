@@ -2,13 +2,12 @@
 """Entry point for the PySniffer network capture project."""
 
 import os
+from typing import Any
 
 from scapy.all import sniff
-from scapy.error import Scapy_Exception
-from scapy.packet import Packet
 
 
-def packet_handler(packet: Packet) -> None:
+def packet_handler(packet: Any) -> None:
     """Print a one-line summary for each captured Scapy packet."""
     print(packet.summary())
 
@@ -21,7 +20,7 @@ def main() -> None:
 
     try:
         sniff(count=5, prn=packet_handler)
-    except (OSError, Scapy_Exception) as error:
+    except Exception as error:
         print(f"[ERROR] Packet capture failed: {error}")
 
 
