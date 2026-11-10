@@ -190,6 +190,8 @@ class ICMPProcessor(PacketProcessor):
 class Sniffer:
     """Configure la capture, traite les paquets et gère le fichier PCAP."""
 
+    stats = {"TCP": 0, "UDP": 0, "ICMP": 0, "OTHER": 0}
+
     def __init__(
         self,
         interface: Optional[str],
@@ -212,7 +214,7 @@ class Sniffer:
         self.output_file = output_file
         self.verbose = False
         self.search_string: Optional[str] = None
-        self.stats = {"TCP": 0, "UDP": 0, "ICMP": 0, "OTHER": 0}
+        self.stats = self.stats.copy()
         self._processors = (
             TCPProcessor(),
             UDPProcessor(),
