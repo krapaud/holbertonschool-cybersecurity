@@ -128,3 +128,8 @@ When Ctrl+C stops the capture, it prints a count for each category.
 Scapy's capture callback adds packets to a queue. A separate worker thread
 handles packet parsing, output, payload searches, PCAP writing, and statistics.
 The queue is drained before the capture shuts down.
+
+## Exercise 13: test packet processing
+
+Run `python3 -m unittest -v tests.py` from this directory to test the TCP
+processor with a Scapy packet created locally, without capturing live traffic.
