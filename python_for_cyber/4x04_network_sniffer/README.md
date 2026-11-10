@@ -1,16 +1,30 @@
-# Python - Network Sniffer
+# PySniffer
 
-PySniffer is a Python project for learning passive packet capture and
-dissection with Scapy. The planned tool will capture traffic on a selected
-interface, apply BPF filters, display packet summaries, and optionally save
-packets to a PCAP file.
+[![Python 3.8+][python-badge]][python-home]
+[![Scapy][scapy-badge]][scapy-home]
 
-Only capture traffic on networks and interfaces you are authorized to
-monitor. Live packet capture generally requires root privileges.
+PySniffer is a command-line network sniffer written in Python with Scapy. It
+captures packets on a selected interface, filters traffic, identifies TCP,
+UDP, and ICMP packets, searches raw payloads for a string, and can save
+captured traffic to a PCAP file.
 
-## Setup
+Use it only on networks and interfaces you are authorized to monitor.
+Live packet capture requires root privileges on Linux and macOS.
 
-Create and activate a virtual environment, then install the dependency:
+## Features
+
+- Select a network interface and a Berkeley Packet Filter (BPF) expression.
+- Display source and destination details for TCP, UDP, and ICMP packets.
+- Search `Raw` payloads and print an alert when text matches.
+- Save captured packets to a PCAP file.
+- Print packet counts by protocol when capture stops.
+- Process packets in a worker thread using a queue.
+- Show a hexadecimal dump with verbose mode.
+
+## Installation
+
+Create and activate a virtual environment, then install the project
+dependency:
 
 ```bash
 python3 -m venv venv
@@ -18,118 +32,86 @@ source venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
-Start a continuous capture with root privileges. Press Ctrl+C to stop it:
+The dependency file installs Scapy. Run the tool with root privileges so
+Scapy can capture packets from the network interface.
+
+## Usage
+
+Start capturing on the default interface:
 
 ```bash
-sudo ./sniffer.py
+sudo ./venv/bin/python sniffer.py
 ```
 
-Choose a network interface with `-i` and apply a BPF filter with `-f`:
+Choose an interface and capture only HTTP traffic:
 
 ```bash
-sudo ./sniffer.py --interface eth0 --filter "icmp"
+sudo ./venv/bin/python sniffer.py --interface eth0 --filter "tcp port 80"
 ```
 
-Save captured packets to a PCAP file with `--write`:
+Search TCP payloads for a string:
 
 ```bash
-sudo ./sniffer.py --filter "icmp" --write output.pcap
+sudo ./venv/bin/python sniffer.py --interface eth0 --filter tcp \
+  --search "password="
 ```
 
-Add a hexadecimal dump after each packet line with `-v`:
+Save packets to a PCAP file and print hexadecimal dumps:
 
 ```bash
-sudo ./sniffer.py --verbose
+sudo ./venv/bin/python sniffer.py --interface eth0 \
+  --write traffic.pcap --verbose
 ```
 
-For IPv4 packets, the handler identifies TCP, UDP, or ICMP and prints the
-source and destination addresses:
+Press Ctrl+C to stop capture. PySniffer drains its packet queue, closes the
+PCAP writer, and prints the protocol counts.
+
+### Command-line options
+
+| Option | Description |
+| --- | --- |
+| `-i`, `--interface` | Network interface to capture on. |
+| `-f`, `--filter` | BPF expression, such as `icmp` or `tcp port 80`. |
+| `-s`, `--search` | Text to find in Scapy `Raw` payloads. |
+| `--write` | PCAP file to append captured packets to. |
+| `-v`, `--verbose` | Print a hexadecimal dump for each packet. |
+
+Example output:
 
 ```text
 [TCP] 192.168.1.5:49812 -> 1.1.1.1:80 | Flags: S
+[ALERT] Payload Match found!
+[INFO] Stopping capture...
+[STATS] Packet counts:
+TCP: 1
+UDP: 0
+ICMP: 0
+OTHER: 0
 ```
 
-## Exercise 0: project environment
+## Architecture
 
-Prepare the workspace by creating the virtual environment, installing Scapy,
-and making sure `sniffer.py` is executable. The script should start with the
-required Python 3 shebang and install Scapy in the active virtual environment.
+Scapy's capture callback acts as the producer: it places each packet in a
+thread-safe `Queue` and returns quickly. A separate processor thread consumes
+the queue and handles protocol parsing, payload searches, PCAP writing,
+statistics, and console output. A stop marker is added after capture ends;
+the worker processes the remaining packets before the file closes and the
+statistics are displayed.
 
-## Exercise 1: capture packet summaries
+`Sniffer` manages capture and the worker. `TCPProcessor`, `UDPProcessor`, and
+`ICMPProcessor` format protocol-specific output through the `PacketProcessor`
+interface.
 
-The entry point calls Scapy's `sniff()` with `packet_handler` as the
-`prn` callback and keeps capturing until Ctrl+C. Run it with `sudo` because
-packet capture requires root privileges.
+## Tests
 
-## Project roadmap
+Run the unit test from this directory. It constructs a Scapy packet locally
+and does not capture network traffic:
 
-- Capture packets from a selected network interface with Scapy.
-- Filter captured packets with a BPF expression.
-- Display source, destination, protocol, and relevant transport details.
-- Save selected packets to a `.pcap` file.
-- Organize capture and packet processing with `PacketHandler` and
-  `SnifferEngine` classes, then test the code without requiring live traffic.
+```bash
+./venv/bin/python -m unittest -v tests.py
+```
 
-## Exercise 2: identify protocols
-
-The packet handler checks for an IPv4 layer, then identifies TCP, UDP, or
-ICMP. It prints the protocol name and the source and destination IP addresses.
-Packets without IPv4 or without one of these protocols are ignored.
-
-## Exercise 3: show TCP details
-
-TCP packets include the source and destination ports and their flags in the
-output. UDP and ICMP packets keep the address-only format.
-
-## Exercise 4: continuous capture
-
-The sniffer runs until interrupted with Ctrl+C, then prints a stopping message.
-
-## Exercise 5: select interface and BPF filter
-
-The `-i` or `--interface` option selects the capture interface. The `-f` or
-`--filter` option passes a BPF expression to Scapy, such as `icmp`.
-
-## Exercise 6: write packets to PCAP
-
-The optional `--write` argument saves captured packets to the given PCAP file.
-One writer stays open for the capture and appends packets as they arrive.
-
-## Exercise 7: verbose packet output
-
-Use `-v` or `--verbose` to print Scapy's hexadecimal dump after each recognized
-packet summary. Without this option, the regular output is unchanged.
-
-## Exercise 8: organize capture with a class
-
-The `Sniffer` class stores the selected interface, BPF filter, and optional
-PCAP path. Its `start()` method manages capture and cleanup, while
-`_process_packet()` writes and displays each packet.
-
-## Exercise 9: process protocols with classes
-
-`PacketProcessor` defines the interface for protocol handlers. `TCPProcessor`,
-`UDPProcessor`, and `ICMPProcessor` format their packet details, and `Sniffer`
-delegates each recognized packet to the matching processor.
-
-## Exercise 10: search packet payloads
-
-Pass `-s` or `--search` with a text string to inspect Scapy `Raw` payloads.
-Matching payloads produce `[ALERT] Payload Match found!`; undecodable bytes
-are handled safely.
-
-## Exercise 11: show protocol statistics
-
-The sniffer counts TCP, UDP, ICMP, and other packets as they are processed.
-When Ctrl+C stops the capture, it prints a count for each category.
-
-## Exercise 12: process packets in a worker thread
-
-Scapy's capture callback adds packets to a queue. A separate worker thread
-handles packet parsing, output, payload searches, PCAP writing, and statistics.
-The queue is drained before the capture shuts down.
-
-## Exercise 13: test packet processing
-
-Run `python3 -m unittest -v tests.py` from this directory to test the TCP
-processor with a Scapy packet created locally, without capturing live traffic.
+[python-badge]: https://img.shields.io/badge/Python-3.8%2B-blue
+[python-home]: https://www.python.org/
+[scapy-badge]: https://img.shields.io/badge/Scapy-required-orange
+[scapy-home]: https://scapy.net/
