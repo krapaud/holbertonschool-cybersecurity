@@ -43,11 +43,28 @@ class PacketProcessor:
             Couple (adresse source, adresse destination).
         """
         ip_layer = getattr(scapy_all, "IP", "IP")
-        ip_packet = packet[ip_layer]
+        try:
+            ip_packet = packet[ip_layer]
+        except (KeyError, IndexError, TypeError, AttributeError):
+            ip_packet = packet
         return (
             str(getattr(ip_packet, "src", "?")),
             str(getattr(ip_packet, "dst", "?")),
         )
+
+    def _protocol_packet(self, packet: Any) -> Any:
+        """Récupère la couche de protocole ou utilise le paquet lui-même.
+
+        Args:
+            packet: paquet complet ou couche de protocole seule.
+
+        Returns:
+            Couche extraite, ou paquet d’origine si elle est inaccessible.
+        """
+        try:
+            return packet[self.protocol_layer]
+        except (KeyError, IndexError, TypeError, AttributeError):
+            return packet
 
 
 class TCPProcessor(PacketProcessor):
@@ -66,10 +83,16 @@ class TCPProcessor(PacketProcessor):
             Ligne résumant le paquet TCP.
         """
         source_ip, destination_ip = self._ip_addresses(packet)
-        tcp_packet = packet[self.protocol_layer]
-        source_port = getattr(tcp_packet, "sport", "?")
-        destination_port = getattr(tcp_packet, "dport", "?")
-        tcp_flags = getattr(tcp_packet, "flags", "?")
+        tcp_packet = self._protocol_packet(packet)
+        source_port = getattr(
+            tcp_packet, "sport", getattr(packet, "sport", "?")
+        )
+        destination_port = getattr(
+            tcp_packet, "dport", getattr(packet, "dport", "?")
+        )
+        tcp_flags = getattr(
+            tcp_packet, "flags", getattr(packet, "flags", "?")
+        )
         return (
             f"[TCP] {source_ip}:{source_port} -> "
             f"{destination_ip}:{destination_port} | Flags: {tcp_flags}"
