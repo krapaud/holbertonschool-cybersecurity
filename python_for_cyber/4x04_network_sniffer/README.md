@@ -122,3 +122,9 @@ are handled safely.
 
 The sniffer counts TCP, UDP, ICMP, and other packets as they are processed.
 When Ctrl+C stops the capture, it prints a count for each category.
+
+## Exercise 12: process packets in a worker thread
+
+Scapy's capture callback adds packets to a queue. A separate worker thread
+handles packet parsing, output, payload searches, PCAP writing, and statistics.
+The queue is drained before the capture shuts down.

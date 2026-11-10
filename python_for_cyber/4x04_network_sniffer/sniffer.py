@@ -3,6 +3,8 @@
 
 import argparse
 import os
+from queue import Queue
+from threading import Thread
 from typing import Any, Optional, Tuple
 
 import scapy.all as scapy_all
@@ -215,6 +217,9 @@ class Sniffer:
         self.verbose = False
         self.search_string: Optional[str] = None
         self.stats = self.stats.copy()
+        # Une file non bornée évite de bloquer le callback de capture.
+        self.packet_queue = Queue()
+        self._stop_signal = object()
         self._processors = (
             TCPProcessor(),
             UDPProcessor(),
@@ -230,6 +235,8 @@ class Sniffer:
         Returns:
             None.
         """
+        processor_thread = None
+        interrupted = False
         try:
             if self.output_file:
                 writer_class = getattr(scapy_all, "PcapWriter", None)
@@ -240,19 +247,60 @@ class Sniffer:
                     append=True,
                 )
 
+            processor_thread = Thread(
+                target=self._process_queue,
+                name="PySnifferProcessor",
+                daemon=True,
+            )
+            processor_thread.start()
             sniff(
                 iface=self.interface,
                 filter=self.filter_str,
-                prn=self._process_packet,
+                prn=self._enqueue_packet,
             )
         except KeyboardInterrupt:
             # Ctrl+C est une fin normale pour une capture continue.
             print("[INFO] Stopping capture...")
-            self._print_stats()
+            interrupted = True
         except Exception as error:
             print(f"[ERROR] Packet capture failed: {error}")
         finally:
+            if processor_thread is not None and processor_thread.is_alive():
+                # Le marqueur arrive après les paquets déjà capturés.
+                self.packet_queue.put(self._stop_signal)
+                self.packet_queue.join()
+                processor_thread.join()
             self._close_writer()
+        if interrupted:
+            self._print_stats()
+
+    def _enqueue_packet(self, packet: Any) -> None:
+        """Ajoute un paquet à traiter sans effectuer de sortie lente.
+
+        Args:
+            packet: paquet transmis par le callback Scapy.
+
+        Returns:
+            None.
+        """
+        self.packet_queue.put(packet)
+
+    def _process_queue(self) -> None:
+        """Traite les paquets de la file jusqu’au marqueur d’arrêt.
+
+        Returns:
+            None.
+        """
+        while True:
+            packet = self.packet_queue.get()
+            try:
+                if packet is self._stop_signal:
+                    return
+                self._process_packet(packet)
+            except Exception as error:
+                print(f"[ERROR] Packet processing failed: {error}")
+            finally:
+                self.packet_queue.task_done()
 
     def _process_packet(self, packet: Any) -> None:
         """Enregistre le paquet et affiche ses informations utiles.
