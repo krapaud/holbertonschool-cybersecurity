@@ -13,6 +13,8 @@ from scapy.all import sniff
 _pcap_writer: Any = None
 # Active le dump hexadécimal demandé par l’option verbose.
 _verbose = False
+# Résout Scapy dynamiquement pour rester compatible avec les mocks.
+hexdump = getattr(scapy_all, "hexdump", None)
 
 
 def packet_handler(packet: Any) -> None:
@@ -34,34 +36,42 @@ def packet_handler(packet: Any) -> None:
     udp_layer = getattr(scapy_all, "UDP", "UDP")
     icmp_layer = getattr(scapy_all, "ICMP", "ICMP")
 
-    if not packet.haslayer(ip_layer):
-        return
+    packet_summary = None
+    has_layer = getattr(packet, "haslayer", None)
+    if callable(has_layer) and has_layer(ip_layer):
+        source_ip = packet[ip_layer].src
+        destination_ip = packet[ip_layer].dst
+        for protocol_name, protocol_layer in (
+            ("TCP", tcp_layer),
+            ("UDP", udp_layer),
+            ("ICMP", icmp_layer),
+        ):
+            if has_layer(protocol_layer):
+                if protocol_name == "TCP":
+                    tcp_packet = packet[protocol_layer]
+                    packet_summary = (
+                        f"[TCP] {source_ip}:{tcp_packet.sport} -> "
+                        f"{destination_ip}:{tcp_packet.dport} | "
+                        f"Flags: {tcp_packet.flags}"
+                    )
+                else:
+                    packet_summary = (
+                        f"[{protocol_name}] {source_ip} -> "
+                        f"{destination_ip}"
+                    )
+                break
 
-    source_ip = packet[ip_layer].src
-    destination_ip = packet[ip_layer].dst
-    for protocol_name, protocol_layer in (
-        ("TCP", tcp_layer),
-        ("UDP", udp_layer),
-        ("ICMP", icmp_layer),
-    ):
-        if packet.haslayer(protocol_layer):
-            if protocol_name == "TCP":
-                tcp_packet = packet[protocol_layer]
-                print(
-                    f"[TCP] {source_ip}:{tcp_packet.sport} -> "
-                    f"{destination_ip}:{tcp_packet.dport} | "
-                    f"Flags: {tcp_packet.flags}"
-                )
-            else:
-                print(
-                    f"[{protocol_name}] {source_ip} -> "
-                    f"{destination_ip}"
-                )
-            if _verbose:
-                dump_packet = getattr(scapy_all, "hexdump", None)
-                if dump_packet is not None:
-                    dump_packet(packet)
-            return
+    # Pour les autres paquets, on conserve le résumé fourni par Scapy.
+    if packet_summary is None:
+        summary_method = getattr(packet, "summary", None)
+        packet_summary = summary_method() if callable(summary_method) else str(
+            packet
+        )
+
+    print(packet_summary)
+    dump_packet = hexdump or getattr(scapy_all, "hexdump", None)
+    if _verbose and dump_packet is not None:
+        dump_packet(packet)
 
 
 def main() -> None:
