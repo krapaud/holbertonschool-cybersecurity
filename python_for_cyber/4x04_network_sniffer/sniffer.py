@@ -212,6 +212,7 @@ class Sniffer:
         self.output_file = output_file
         self.verbose = False
         self.search_string: Optional[str] = None
+        self.stats = {"TCP": 0, "UDP": 0, "ICMP": 0, "OTHER": 0}
         self._processors = (
             TCPProcessor(),
             UDPProcessor(),
@@ -245,6 +246,7 @@ class Sniffer:
         except KeyboardInterrupt:
             # Ctrl+C est une fin normale pour une capture continue.
             print("[INFO] Stopping capture...")
+            self._print_stats()
         except Exception as error:
             print(f"[ERROR] Packet capture failed: {error}")
         finally:
@@ -272,6 +274,7 @@ class Sniffer:
         if callable(has_layer) and has_layer(ip_layer):
             for processor in self._processors:
                 if has_layer(processor.protocol_layer):
+                    self.stats[processor.protocol_name] += 1
                     processor.search_string = self.search_string
                     packet_summary = processor.process(packet)
                     processor_printed = True
@@ -279,6 +282,7 @@ class Sniffer:
 
         # Pour les autres paquets, on conserve le résumé fourni par Scapy.
         if packet_summary is None:
+            self.stats["OTHER"] += 1
             summary_method = getattr(packet, "summary", None)
             packet_summary = (
                 summary_method() if callable(summary_method) else str(
@@ -291,6 +295,16 @@ class Sniffer:
         dump_packet = hexdump or getattr(scapy_all, "hexdump", None)
         if self.verbose and dump_packet is not None:
             dump_packet(packet)
+
+    def _print_stats(self) -> None:
+        """Affiche le total de paquets capturés pour chaque protocole.
+
+        Returns:
+            None.
+        """
+        print("[STATS] Packet counts:")
+        for protocol_name, packet_count in self.stats.items():
+            print(f"{protocol_name}: {packet_count}")
 
     def _close_writer(self) -> None:
         """Ferme le writer PCAP s’il a été créé.

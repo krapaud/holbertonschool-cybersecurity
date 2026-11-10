@@ -117,3 +117,8 @@ delegates each recognized packet to the matching processor.
 Pass `-s` or `--search` with a text string to inspect Scapy `Raw` payloads.
 Matching payloads produce `[ALERT] Payload Match found!`; undecodable bytes
 are handled safely.
+
+## Exercise 11: show protocol statistics
+
+The sniffer counts TCP, UDP, ICMP, and other packets as they are processed.
+When Ctrl+C stops the capture, it prints a count for each category.
