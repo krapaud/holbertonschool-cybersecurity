@@ -99,3 +99,9 @@ One writer stays open for the capture and appends packets as they arrive.
 
 Use `-v` or `--verbose` to print Scapy's hexadecimal dump after each recognized
 packet summary. Without this option, the regular output is unchanged.
+
+## Exercise 8: organize capture with a class
+
+The `Sniffer` class stores the selected interface, BPF filter, and optional
+PCAP path. Its `start()` method manages capture and cleanup, while
+`_process_packet()` writes and displays each packet.
