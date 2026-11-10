@@ -19,6 +19,17 @@ class PacketProcessor:
     protocol_layer: Any = None
     protocol_name = ""
 
+    def __init__(self, search_string: Optional[str] = None) -> None:
+        """Mémorise le texte à rechercher dans les charges utiles.
+
+        Args:
+            search_string: texte recherché, ou None si inactive.
+
+        Returns:
+            None.
+        """
+        self.search_string = search_string
+
     def process(self, packet: Any) -> str:
         """Retourne une description du paquet selon son protocole.
 
@@ -32,6 +43,36 @@ class PacketProcessor:
             NotImplementedError: si une sous-classe ne définit pas le format.
         """
         raise NotImplementedError("A protocol processor must format packets.")
+
+    def _search_payload(self, packet: Any) -> None:
+        """Affiche une alerte si la charge utile contient le texte recherché.
+
+        Args:
+            packet: paquet Scapy à inspecter.
+
+        Returns:
+            None.
+        """
+        if not self.search_string:
+            return
+
+        raw_layer = getattr(scapy_all, "Raw", "Raw")
+        has_layer = getattr(packet, "haslayer", None)
+        if not callable(has_layer) or not has_layer(raw_layer):
+            return
+
+        try:
+            payload = packet[raw_layer]
+            raw_data = getattr(payload, "load", payload)
+            if isinstance(raw_data, bytes):
+                payload_text = raw_data.decode("utf-8", errors="replace")
+            else:
+                payload_text = str(raw_data)
+        except (KeyError, IndexError, TypeError, AttributeError, UnicodeError):
+            return
+
+        if self.search_string in payload_text:
+            print("[ALERT] Payload Match found!")
 
     def _ip_addresses(self, packet: Any) -> Tuple[str, str]:
         """Récupère les adresses IP source et destination du paquet.
@@ -82,6 +123,7 @@ class TCPProcessor(PacketProcessor):
         Returns:
             Ligne résumant le paquet TCP.
         """
+        self._search_payload(packet)
         source_ip, destination_ip = self._ip_addresses(packet)
         tcp_packet = self._protocol_packet(packet)
         source_port = getattr(
@@ -116,6 +158,7 @@ class UDPProcessor(PacketProcessor):
         Returns:
             Ligne résumant le paquet UDP.
         """
+        self._search_payload(packet)
         source_ip, destination_ip = self._ip_addresses(packet)
         summary = f"[UDP] {source_ip} -> {destination_ip}"
         print(summary)
@@ -137,6 +180,7 @@ class ICMPProcessor(PacketProcessor):
         Returns:
             Ligne résumant le paquet ICMP.
         """
+        self._search_payload(packet)
         source_ip, destination_ip = self._ip_addresses(packet)
         summary = f"[ICMP] {source_ip} -> {destination_ip}"
         print(summary)
@@ -167,6 +211,7 @@ class Sniffer:
         self.filter_str = filter_str
         self.output_file = output_file
         self.verbose = False
+        self.search_string: Optional[str] = None
         self._processors = (
             TCPProcessor(),
             UDPProcessor(),
@@ -227,6 +272,7 @@ class Sniffer:
         if callable(has_layer) and has_layer(ip_layer):
             for processor in self._processors:
                 if has_layer(processor.protocol_layer):
+                    processor.search_string = self.search_string
                     packet_summary = processor.process(packet)
                     processor_printed = True
                     break
@@ -280,6 +326,9 @@ def main() -> None:
         "--write", help="Append captured packets to a PCAP file."
     )
     parser.add_argument(
+        "-s", "--search", help="Alert when this text appears in Raw payloads."
+    )
+    parser.add_argument(
         "-v", "--verbose", action="store_true",
         help="Print a hexadecimal dump for each packet."
     )
@@ -296,6 +345,7 @@ def main() -> None:
         arguments.write,
     )
     sniffer.verbose = arguments.verbose
+    sniffer.search_string = arguments.search
     sniffer.start()
 
 

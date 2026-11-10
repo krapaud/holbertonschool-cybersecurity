@@ -111,3 +111,9 @@ PCAP path. Its `start()` method manages capture and cleanup, while
 `PacketProcessor` defines the interface for protocol handlers. `TCPProcessor`,
 `UDPProcessor`, and `ICMPProcessor` format their packet details, and `Sniffer`
 delegates each recognized packet to the matching processor.
+
+## Exercise 10: search packet payloads
+
+Pass `-s` or `--search` with a text string to inspect Scapy `Raw` payloads.
+Matching payloads produce `[ALERT] Payload Match found!`; undecodable bytes
+are handled safely.
