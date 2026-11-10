@@ -47,10 +47,6 @@ class Sniffer:
         Returns:
             None.
         """
-        if os.geteuid() != 0:
-            print("[ERROR] Run this script with sudo to capture packets.")
-            return
-
         try:
             if self.output_file:
                 writer_class = getattr(scapy_all, "PcapWriter", None)
@@ -172,6 +168,11 @@ def main() -> None:
         help="Print a hexadecimal dump for each packet."
     )
     arguments = parser.parse_args()
+
+    # La capture nécessite root; la classe reste testable sans privilèges.
+    if os.geteuid() != 0:
+        print("[ERROR] Run this script with sudo to capture packets.")
+        return
 
     sniffer = Sniffer(
         arguments.interface,
