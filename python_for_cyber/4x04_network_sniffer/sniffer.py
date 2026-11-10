@@ -104,10 +104,15 @@ class Sniffer:
                 if has_layer(protocol_layer):
                     if protocol_name == "TCP":
                         tcp_packet = packet[protocol_layer]
+                        source_port = getattr(tcp_packet, "sport", "?")
+                        destination_port = getattr(
+                            tcp_packet, "dport", "?"
+                        )
+                        tcp_flags = getattr(tcp_packet, "flags", "?")
                         packet_summary = (
-                            f"[TCP] {source_ip}:{tcp_packet.sport} -> "
-                            f"{destination_ip}:{tcp_packet.dport} | "
-                            f"Flags: {tcp_packet.flags}"
+                            f"[TCP] {source_ip}:{source_port} -> "
+                            f"{destination_ip}:{destination_port} | "
+                            f"Flags: {tcp_flags}"
                         )
                     else:
                         packet_summary = (
