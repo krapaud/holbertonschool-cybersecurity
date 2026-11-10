@@ -10,10 +10,11 @@ from scapy.all import sniff
 
 
 _pcap_writer: Any = None
+_verbose = False
 
 
 def packet_handler(packet: Any) -> None:
-    """Write captured packets and print recognized IP protocol details."""
+    """Write packets and print protocol details and optional hex output."""
     if _pcap_writer is not None:
         _pcap_writer.write(packet)
 
@@ -45,6 +46,10 @@ def packet_handler(packet: Any) -> None:
                     f"[{protocol_name}] {source_ip} -> "
                     f"{destination_ip}"
                 )
+            if _verbose:
+                dump_packet = getattr(scapy_all, "hexdump", None)
+                if dump_packet is not None:
+                    dump_packet(packet)
             return
 
 
@@ -60,7 +65,13 @@ def main() -> None:
     parser.add_argument(
         "--write", help="Append captured packets to a PCAP file."
     )
+    parser.add_argument(
+        "-v", "--verbose", action="store_true",
+        help="Print a hexadecimal dump for each packet."
+    )
     arguments = parser.parse_args()
+    global _verbose
+    _verbose = arguments.verbose
 
     if os.geteuid() != 0:
         print("[ERROR] Run this script with sudo to capture packets.")

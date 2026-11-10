@@ -36,6 +36,12 @@ Save captured packets to a PCAP file with `--write`:
 sudo ./sniffer.py --filter "icmp" --write output.pcap
 ```
 
+Add a hexadecimal dump after each packet line with `-v`:
+
+```bash
+sudo ./sniffer.py --verbose
+```
+
 For IPv4 packets, the handler identifies TCP, UDP, or ICMP and prints the
 source and destination addresses:
 
@@ -88,3 +94,8 @@ The `-i` or `--interface` option selects the capture interface. The `-f` or
 
 The optional `--write` argument saves captured packets to the given PCAP file.
 One writer stays open for the capture and appends packets as they arrive.
+
+## Exercise 7: verbose packet output
+
+Use `-v` or `--verbose` to print Scapy's hexadecimal dump after each recognized
+packet summary. Without this option, the regular output is unchanged.
