@@ -3,7 +3,7 @@
 
 import argparse
 import os
-from typing import Any, Optional
+from typing import Any, Optional, Tuple
 
 import scapy.all as scapy_all
 from scapy.all import sniff
@@ -11,6 +11,107 @@ from scapy.all import sniff
 
 # Résout Scapy dynamiquement pour rester compatible avec les mocks.
 hexdump = getattr(scapy_all, "hexdump", None)
+
+
+class PacketProcessor:
+    """Définit l’interface des processeurs de protocoles réseau."""
+
+    protocol_layer: Any = None
+    protocol_name = ""
+
+    def process(self, packet: Any) -> str:
+        """Retourne une description du paquet selon son protocole.
+
+        Args:
+            packet: paquet Scapy à décrire.
+
+        Returns:
+            Description textuelle du paquet.
+
+        Raises:
+            NotImplementedError: si une sous-classe ne définit pas le format.
+        """
+        raise NotImplementedError("A protocol processor must format packets.")
+
+    def _ip_addresses(self, packet: Any) -> Tuple[str, str]:
+        """Récupère les adresses IP source et destination du paquet.
+
+        Args:
+            packet: paquet Scapy contenant une couche IP.
+
+        Returns:
+            Couple (adresse source, adresse destination).
+        """
+        ip_layer = getattr(scapy_all, "IP", "IP")
+        ip_packet = packet[ip_layer]
+        return (
+            str(getattr(ip_packet, "src", "?")),
+            str(getattr(ip_packet, "dst", "?")),
+        )
+
+
+class TCPProcessor(PacketProcessor):
+    """Formate les paquets TCP avec ports et flags."""
+
+    protocol_layer = getattr(scapy_all, "TCP", "TCP")
+    protocol_name = "TCP"
+
+    def process(self, packet: Any) -> str:
+        """Retourne les adresses, ports et flags TCP du paquet.
+
+        Args:
+            packet: paquet Scapy contenant les couches IP et TCP.
+
+        Returns:
+            Ligne résumant le paquet TCP.
+        """
+        source_ip, destination_ip = self._ip_addresses(packet)
+        tcp_packet = packet[self.protocol_layer]
+        source_port = getattr(tcp_packet, "sport", "?")
+        destination_port = getattr(tcp_packet, "dport", "?")
+        tcp_flags = getattr(tcp_packet, "flags", "?")
+        return (
+            f"[TCP] {source_ip}:{source_port} -> "
+            f"{destination_ip}:{destination_port} | Flags: {tcp_flags}"
+        )
+
+
+class UDPProcessor(PacketProcessor):
+    """Formate les paquets UDP avec leurs adresses IP."""
+
+    protocol_layer = getattr(scapy_all, "UDP", "UDP")
+    protocol_name = "UDP"
+
+    def process(self, packet: Any) -> str:
+        """Retourne les adresses source et destination du paquet UDP.
+
+        Args:
+            packet: paquet Scapy contenant les couches IP et UDP.
+
+        Returns:
+            Ligne résumant le paquet UDP.
+        """
+        source_ip, destination_ip = self._ip_addresses(packet)
+        return f"[UDP] {source_ip} -> {destination_ip}"
+
+
+class ICMPProcessor(PacketProcessor):
+    """Formate les paquets ICMP avec leurs adresses IP."""
+
+    protocol_layer = getattr(scapy_all, "ICMP", "ICMP")
+    protocol_name = "ICMP"
+
+    def process(self, packet: Any) -> str:
+        """Retourne les adresses source et destination du paquet ICMP.
+
+        Args:
+            packet: paquet Scapy contenant les couches IP et ICMP.
+
+        Returns:
+            Ligne résumant le paquet ICMP.
+        """
+        source_ip, destination_ip = self._ip_addresses(packet)
+        return f"[ICMP] {source_ip} -> {destination_ip}"
 
 
 class Sniffer:
@@ -37,6 +138,11 @@ class Sniffer:
         self.filter_str = filter_str
         self.output_file = output_file
         self.verbose = False
+        self._processors = (
+            TCPProcessor(),
+            UDPProcessor(),
+            ICMPProcessor(),
+        )
         # Le writer reste ouvert pour éviter de rouvrir le PCAP
         # à chaque paquet.
         self._pcap_writer: Any = None
@@ -84,41 +190,14 @@ class Sniffer:
         if self._pcap_writer is not None:
             self._pcap_writer.write(packet)
 
-        # Les noms de couches en secours gardent la compatibilité
-        # avec les mocks.
+        # La classe choisie produit le résumé du protocole détecté.
         ip_layer = getattr(scapy_all, "IP", "IP")
-        tcp_layer = getattr(scapy_all, "TCP", "TCP")
-        udp_layer = getattr(scapy_all, "UDP", "UDP")
-        icmp_layer = getattr(scapy_all, "ICMP", "ICMP")
-
         packet_summary = None
         has_layer = getattr(packet, "haslayer", None)
         if callable(has_layer) and has_layer(ip_layer):
-            source_ip = packet[ip_layer].src
-            destination_ip = packet[ip_layer].dst
-            for protocol_name, protocol_layer in (
-                ("TCP", tcp_layer),
-                ("UDP", udp_layer),
-                ("ICMP", icmp_layer),
-            ):
-                if has_layer(protocol_layer):
-                    if protocol_name == "TCP":
-                        tcp_packet = packet[protocol_layer]
-                        source_port = getattr(tcp_packet, "sport", "?")
-                        destination_port = getattr(
-                            tcp_packet, "dport", "?"
-                        )
-                        tcp_flags = getattr(tcp_packet, "flags", "?")
-                        packet_summary = (
-                            f"[TCP] {source_ip}:{source_port} -> "
-                            f"{destination_ip}:{destination_port} | "
-                            f"Flags: {tcp_flags}"
-                        )
-                    else:
-                        packet_summary = (
-                            f"[{protocol_name}] {source_ip} -> "
-                            f"{destination_ip}"
-                        )
+            for processor in self._processors:
+                if has_layer(processor.protocol_layer):
+                    packet_summary = processor.process(packet)
                     break
 
         # Pour les autres paquets, on conserve le résumé fourni par Scapy.

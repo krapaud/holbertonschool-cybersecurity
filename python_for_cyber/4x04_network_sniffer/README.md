@@ -105,3 +105,9 @@ packet summary. Without this option, the regular output is unchanged.
 The `Sniffer` class stores the selected interface, BPF filter, and optional
 PCAP path. Its `start()` method manages capture and cleanup, while
 `_process_packet()` writes and displays each packet.
+
+## Exercise 9: process protocols with classes
+
+`PacketProcessor` defines the interface for protocol handlers. `TCPProcessor`,
+`UDPProcessor`, and `ICMPProcessor` format their packet details, and `Sniffer`
+delegates each recognized packet to the matching processor.
