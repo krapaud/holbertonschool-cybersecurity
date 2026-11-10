@@ -26,7 +26,7 @@ class PacketProcessor:
             packet: paquet Scapy à décrire.
 
         Returns:
-            Description textuelle du paquet.
+            Description textuelle affichée pour le paquet.
 
         Raises:
             NotImplementedError: si une sous-classe ne définit pas le format.
@@ -93,10 +93,12 @@ class TCPProcessor(PacketProcessor):
         tcp_flags = getattr(
             tcp_packet, "flags", getattr(packet, "flags", "?")
         )
-        return (
+        summary = (
             f"[TCP] {source_ip}:{source_port} -> "
             f"{destination_ip}:{destination_port} | Flags: {tcp_flags}"
         )
+        print(summary)
+        return summary
 
 
 class UDPProcessor(PacketProcessor):
@@ -115,7 +117,9 @@ class UDPProcessor(PacketProcessor):
             Ligne résumant le paquet UDP.
         """
         source_ip, destination_ip = self._ip_addresses(packet)
-        return f"[UDP] {source_ip} -> {destination_ip}"
+        summary = f"[UDP] {source_ip} -> {destination_ip}"
+        print(summary)
+        return summary
 
 
 class ICMPProcessor(PacketProcessor):
@@ -134,7 +138,9 @@ class ICMPProcessor(PacketProcessor):
             Ligne résumant le paquet ICMP.
         """
         source_ip, destination_ip = self._ip_addresses(packet)
-        return f"[ICMP] {source_ip} -> {destination_ip}"
+        summary = f"[ICMP] {source_ip} -> {destination_ip}"
+        print(summary)
+        return summary
 
 
 class Sniffer:
@@ -216,11 +222,13 @@ class Sniffer:
         # La classe choisie produit le résumé du protocole détecté.
         ip_layer = getattr(scapy_all, "IP", "IP")
         packet_summary = None
+        processor_printed = False
         has_layer = getattr(packet, "haslayer", None)
         if callable(has_layer) and has_layer(ip_layer):
             for processor in self._processors:
                 if has_layer(processor.protocol_layer):
                     packet_summary = processor.process(packet)
+                    processor_printed = True
                     break
 
         # Pour les autres paquets, on conserve le résumé fourni par Scapy.
@@ -232,7 +240,8 @@ class Sniffer:
                 )
             )
 
-        print(packet_summary)
+        if not processor_printed:
+            print(packet_summary)
         dump_packet = hexdump or getattr(scapy_all, "hexdump", None)
         if self.verbose and dump_packet is not None:
             dump_packet(packet)
