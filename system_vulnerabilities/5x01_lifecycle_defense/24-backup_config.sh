@@ -34,5 +34,13 @@ tar -tzf "$archive" >/dev/null || {
     printf '[ERROR] Vérification de l’archive échouée.\n' >&2
     exit 1
 }
+checksum_file="$archive.sha256"
+if ! sha256sum "$archive" > "$checksum_file"; then
+    rm -f -- "$archive" "$checksum_file"
+    printf '[ERROR] Calcul de l’empreinte SHA-256 échoué.\n' >&2
+    exit 1
+fi
+chmod 0600 "$checksum_file" || exit 1
 printf 'Configuration backup: %s\n' "$archive"
 printf 'Archive integrity: verified\n'
+printf 'SHA-256 checksum: %s\n' "$checksum_file"

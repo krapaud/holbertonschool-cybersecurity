@@ -29,6 +29,7 @@ trap 'rm -f -- "$temporary_file"' EXIT
 cat > "$temporary_file" <<'EOF'
 APT::Periodic::Update-Package-Lists "1";
 APT::Periodic::Unattended-Upgrade "1";
+APT::Periodic::Download-Upgradeable-Packages "1";
 APT::Periodic::AutocleanInterval "7";
 EOF
 install -o root -g root -m 0644 "$temporary_file" "$config_file" || {
@@ -39,6 +40,19 @@ if ! unattended-upgrade --dry-run --debug >/dev/null 2>&1; then
     printf '[ERROR] La vérification unattended-upgrades a échoué.\n' >&2
     exit 1
 fi
+if ! systemctl enable --now apt-daily.timer apt-daily-upgrade.timer; then
+    printf '[ERROR] Impossible d’activer les timers APT.\n' >&2
+    exit 1
+fi
+for timer in apt-daily.timer apt-daily-upgrade.timer; do
+    if ! systemctl is-enabled --quiet "$timer" ||
+        ! systemctl is-active --quiet "$timer"; then
+        printf '[ERROR] Le timer APT %s n’est pas actif et activé.\n' \
+            "$timer" >&2
+        exit 1
+    fi
+done
 printf 'unattended-upgrades: enabled\n'
 printf 'Configuration: %s\n' "$config_file"
+printf 'Timers: apt-daily.timer and apt-daily-upgrade.timer enabled and active\n'
 printf 'Dry run: passed\n'

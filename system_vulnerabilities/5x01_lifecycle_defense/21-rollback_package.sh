@@ -42,8 +42,8 @@ case "$confirmation" in
     y|Y|yes|YES) ;;
     *) printf 'Rollback annulé.\n'; exit 0 ;;
 esac
-DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    --allow-downgrades "$package=$version" || {
+DEBIAN_FRONTEND=noninteractive apt-get install -y --allow-downgrades \
+    "${package}=${version}" || {
     printf '[ERROR] Rétrogradation échouée. Consultez les sauvegardes.\n' >&2
     exit 1
 }
