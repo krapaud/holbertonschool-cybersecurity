@@ -1,0 +1,13 @@
+# Rapports produits lors des corrections Holberton
+CHECKER_REPORT.md
+
+# Résultats d'audit locaux
+*.log
+*.out
+*.tmp
+
+# Fichiers système et éditeurs
+.DS_Store
+*~
+*.swp
+*.swo
