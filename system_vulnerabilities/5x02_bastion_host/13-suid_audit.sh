@@ -8,7 +8,7 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-for command_name in find stat install mktemp; do
+for command_name in find stat install mktemp sort cat; do
     if ! command -v "$command_name" >/dev/null 2>&1; then
         printf '[ERROR] Commande requise introuvable: %s\n' \
             "$command_name" >&2
@@ -25,14 +25,23 @@ temporary_directory=$(mktemp -d) || {
 trap 'rm -rf -- "$temporary_directory"' EXIT
 
 binary_list=$temporary_directory/binaries
+suid_list=$temporary_directory/suid-binaries
+sgid_list=$temporary_directory/sgid-binaries
 find_errors=$temporary_directory/find-errors
 report_content=$temporary_directory/report
 
-if ! find / -xdev \( -path /proc -o -path /sys -o -path /dev \
-    -o -path /run \) -prune -o -type f \
-    \( -perm -4000 -o -perm -2000 \) -print0 \
-    > "$binary_list" 2> "$find_errors"; then
-    printf '[ERROR] La recherche des binaires SUID/SGID a échoué.\n' >&2
+if ! find / -xdev -type f -perm -4000 -print0 \
+    > "$suid_list" 2> "$find_errors"; then
+    printf '[ERROR] La recherche des binaires SUID a échoué.\n' >&2
+    exit 1
+fi
+if ! find / -xdev -type f -perm -2000 -print0 \
+    > "$sgid_list" 2>> "$find_errors"; then
+    printf '[ERROR] La recherche des binaires SGID a échoué.\n' >&2
+    exit 1
+fi
+if ! cat "$suid_list" "$sgid_list" | sort -zu > "$binary_list"; then
+    printf '[ERROR] Impossible de regrouper les binaires trouvés.\n' >&2
     exit 1
 fi
 
@@ -89,6 +98,10 @@ while IFS= read -r -d '' binary_path; do
         report "$report_line"
         suid_total=$((suid_total + 1))
     fi
+done < "$suid_list"
+
+while IFS= read -r -d '' binary_path; do
+    risk_label=$(get_risk_label "$binary_path")
     if [[ "$risk_label" == 'UNKNOWN - HIGH RISK' ]]; then
         unknown_total=$((unknown_total + 1))
     fi
@@ -107,7 +120,7 @@ while IFS= read -r -d '' binary_path; do
         "$binary_path" "$group" "$risk_label"
     report "$report_line"
     sgid_total=$((sgid_total + 1))
-done < "$binary_list"
+done < "$sgid_list"
 
 report ''
 report 'Summary:'
