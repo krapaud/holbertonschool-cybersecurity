@@ -29,7 +29,8 @@ find_errors=$temporary_directory/find-errors
 report_content=$temporary_directory/report
 
 if ! find / -xdev \( -path /proc -o -path /sys -o -path /dev \
-    -o -path /run \) -prune -o -type f -perm /6000 -print0 \
+    -o -path /run \) -prune -o -type f \
+    \( -perm -4000 -o -perm -2000 \) -print0 \
     > "$binary_list" 2> "$find_errors"; then
     printf '[ERROR] La recherche des binaires SUID/SGID a échoué.\n' >&2
     exit 1
