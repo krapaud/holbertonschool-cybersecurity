@@ -12,7 +12,7 @@ fi
 required_commands=(
     awk cp date findmnt grep install mkdir mktemp mount mountpoint rm
 )
-for command_name in "\${required_commands[@]}"; do
+for command_name in "${required_commands[@]}"; do
     if ! command -v "$command_name" >/dev/null 2>&1; then
         printf '[ERROR] Commande requise introuvable: %s\n' \
             "$command_name" >&2
