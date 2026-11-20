@@ -5,7 +5,7 @@
 **Classification :** Interne, sécurité informatique  
 **Statut :** Préparé pour revue, validation sur la VM requise
 
-## 1. Synthèse exécutive
+## 1. Executive Summary, synthèse exécutive
 
 Ce rapport décrit les mesures prévues pour réduire la surface d’attaque du
 bastion NovaTech avant son éventuelle mise en DMZ. Le périmètre couvre les
@@ -28,7 +28,7 @@ des résultats effectivement collectés sur la VM. La décision de mise en DMZ
 reste suspendue à l’audit réel, à la résolution ou à l’acceptation documentée
 des risques résiduels et à l’approbation du CISO.
 
-## 2. Évaluation de référence
+## 2. Baseline Assessment, état initial avant durcissement
 
 Le scénario fourni comme référence dans l’exercice 0 affiche un hardening
 index de 62, 256 tests, 18 avertissements et 45 suggestions. Les principaux
