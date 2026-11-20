@@ -14,25 +14,41 @@ les systèmes de fichiers temporaires, les services et l’accès SSH. Les scrip
 du cursus automatisent une partie de ces actions et fournissent des contrôles
 de vérification.
 
-> À la date de rédaction, aucun résultat d’audit Lynis exécuté sur
-> `novatech-prod-02` n’a été fourni dans le dépôt. Les scores avant et après,
-> les avertissements et les suggestions doivent donc être relevés dans la VM.
-> La présence d’un script dans le dépôt ne prouve pas que la mesure a été
-> appliquée avec succès. La mise en DMZ reste conditionnée à la vérification
-> opérationnelle et à l’approbation du CISO.
+L’état initial décrit par le scénario présente plusieurs risques importants :
+le transfert IP est actif, un binaire SUID personnalisé se trouve dans
+`/usr/local/bin/backup`, le mode mono-utilisateur n’est pas protégé par mot de
+passe et `/tmp` n’est pas monté avec `noexec`. Ces faiblesses peuvent faciliter
+le pivot réseau, l’élévation de privilèges et l’exécution de fichiers déposés
+dans un répertoire temporaire. Le plan de durcissement traite ces domaines et
+prévoit de vérifier les services essentiels avant toute mise en production.
+
+Les chiffres ci-dessous reprennent l’exemple de baseline fourni dans le sujet
+du cursus. Ils servent de référence pédagogique et ne sont pas présentés comme
+des résultats effectivement collectés sur la VM. La décision de mise en DMZ
+reste suspendue à l’audit réel, à la résolution ou à l’acceptation documentée
+des risques résiduels et à l’approbation du CISO.
 
 ## 2. Évaluation de référence
 
-Exécuter `0-lynis_baseline.sh` dans la VM avant les changements. Le script
-archive les résultats dans `/var/log/hardening/baseline-<date>.txt`.
+Le scénario fourni comme référence dans l’exercice 0 affiche un hardening
+index de 62, 256 tests, 18 avertissements et 45 suggestions. Les principaux
+constats d’exemple sont l’absence de mot de passe pour le mode mono-utilisateur,
+un binaire SUID personnalisé dans `/usr/local/bin/backup`, le transfert IP
+activé et l’absence de l’option `noexec` sur `/tmp`. Ces constats justifient
+les travaux réseau, privilèges et systèmes de fichiers détaillés ci-dessous.
+
+Le résultat à retenir pour la VM est celui produit par `0-lynis_baseline.sh`
+avant toute modification. Ce script archive l’audit dans
+`/var/log/hardening/baseline-<date>.txt`. Remplacer les chiffres d’exemple
+suivants par les données archivées avant de signer le rapport.
 
 | Indicateur Lynis | Valeur de référence |
 | --- | --- |
-| Hardening Index | À relever dans le rapport baseline |
-| Tests effectués | À relever dans le rapport baseline |
-| Avertissements | À relever dans le rapport baseline |
-| Suggestions | À relever dans le rapport baseline |
-| Date de l’audit | À renseigner après exécution |
+| Hardening Index | 62, exemple du sujet à confirmer |
+| Tests effectués | 256, exemple du sujet à confirmer |
+| Avertissements | 18, exemple du sujet à confirmer |
+| Suggestions | 45, exemple du sujet à confirmer |
+| Date de l’audit | À renseigner après exécution dans la VM |
 
 ## 3. Mesures de durcissement
 
