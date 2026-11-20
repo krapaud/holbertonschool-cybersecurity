@@ -185,6 +185,14 @@ hardening_temporary_filesystems()
     run_module 19-verify_filesystem.sh
 }
 
+minimize_services()
+{
+    printf '\n=== Service Minimization ===\n'
+    # Le module arrête et désactive avec systemctl disable --now
+    # les services inutiles, notamment cups et avahi-daemon.
+    run_module 20-minimize_services.sh
+}
+
 disable_ssh_root_login()
 {
     local ssh_config=/etc/ssh/sshd_config
@@ -290,6 +298,9 @@ for module in "${modules[@]}"; do
             ;;
         18-harden_other_tmp.sh|19-verify_filesystem.sh)
             continue
+            ;;
+        20-minimize_services.sh)
+            minimize_services
             ;;
         *)
             run_module "$module"
