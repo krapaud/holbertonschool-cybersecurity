@@ -5,7 +5,7 @@
 **Classification :** Interne, sécurité informatique  
 **Statut :** Préparé pour revue, validation sur la VM requise
 
-## 1. Executive Summary, synthèse exécutive
+## Executive Summary
 
 Ce rapport décrit les mesures prévues pour réduire la surface d’attaque du
 bastion NovaTech avant son éventuelle mise en DMZ. Le périmètre couvre les
@@ -28,14 +28,22 @@ des résultats effectivement collectés sur la VM. La décision de mise en DMZ
 reste suspendue à l’audit réel, à la résolution ou à l’acceptation documentée
 des risques résiduels et à l’approbation du CISO.
 
-## 2. Baseline Assessment, état initial avant durcissement
+## Baseline Assessment
 
-Le scénario fourni comme référence dans l’exercice 0 affiche un hardening
-index de 62, 256 tests, 18 avertissements et 45 suggestions. Les principaux
-constats d’exemple sont l’absence de mot de passe pour le mode mono-utilisateur,
-un binaire SUID personnalisé dans `/usr/local/bin/backup`, le transfert IP
-activé et l’absence de l’option `noexec` sur `/tmp`. Ces constats justifient
-les travaux réseau, privilèges et systèmes de fichiers détaillés ci-dessous.
+### État initial avant durcissement
+
+Le résultat de référence présenté dans l’exercice 0 est un score Lynis initial
+de **62/100**, obtenu après **256 tests**, avec **18 avertissements** et
+**45 suggestions**. Les constats initiaux relevés dans cet exemple sont :
+
+- Le mode mono-utilisateur ne demande pas de mot de passe.
+- Le binaire personnalisé `/usr/local/bin/backup` possède le bit SUID.
+- Le transfert IP est activé sur le serveur.
+- Le montage de `/tmp` ne comporte pas l’option `noexec`.
+
+Ces constats indiquent des risques d’accès privilégié, de pivot réseau et
+d’exécution de programmes depuis un répertoire temporaire. Ils motivent les
+mesures réseau, privilèges et systèmes de fichiers décrites dans ce rapport.
 
 Le résultat à retenir pour la VM est celui produit par `0-lynis_baseline.sh`
 avant toute modification. Ce script archive l’audit dans
