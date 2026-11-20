@@ -166,6 +166,15 @@ run_module()
     fi
 }
 
+minimize_software()
+{
+    printf '\n=== Software Minimization ===\n'
+    # Le module vérifie les dépendances avant apt-get remove gcc, g++ et make.
+    run_module 10-remove_compilers.sh
+    # Le module limite ensuite les outils réseau aux administrateurs.
+    run_module 11-restrict_nettools.sh
+}
+
 disable_ssh_root_login()
 {
     local ssh_config=/etc/ssh/sshd_config
@@ -259,7 +268,17 @@ fi
 disable_ssh_root_login
 
 for module in "${modules[@]}"; do
-    run_module "$module"
+    case "$module" in
+        10-remove_compilers.sh)
+            minimize_software
+            ;;
+        11-restrict_nettools.sh)
+            continue
+            ;;
+        *)
+            run_module "$module"
+            ;;
+    esac
 done
 
 run_module 13-suid_audit.sh
