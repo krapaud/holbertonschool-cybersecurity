@@ -59,6 +59,15 @@ restore_files()
     fi
 }
 
+reload_ssh()
+{
+    if [ "$ssh_service" = ssh.service ]; then
+        systemctl reload ssh
+    else
+        systemctl reload sshd
+    fi
+}
+
 new_banner=$temporary_directory/issue.net
 new_config=$temporary_directory/sshd_config
 printf '%s\n' \
@@ -151,9 +160,9 @@ fi
 printf '  Banner %s: Enabled\n' "$banner_file"
 
 printf '\nReloading SSH...\n'
-if ! systemctl reload "$ssh_service"; then
+if ! reload_ssh; then
     restore_files || true
-    systemctl reload "$ssh_service" >/dev/null 2>&1 || true
+    reload_ssh >/dev/null 2>&1 || true
     printf '[ERROR] Rechargement de SSH échoué.\n' >&2
     exit 1
 fi
