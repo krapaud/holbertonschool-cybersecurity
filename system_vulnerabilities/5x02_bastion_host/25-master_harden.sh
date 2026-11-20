@@ -175,6 +175,16 @@ minimize_software()
     run_module 11-restrict_nettools.sh
 }
 
+hardening_temporary_filesystems()
+{
+    printf '\n=== Temporary Filesystem Hardening ===\n'
+    # Configure /tmp et ses options persistantes noexec,nosuid,nodev.
+    run_module 17-harden_tmp.sh
+    # Le module met aussi à jour /etc/fstab pour /var/tmp et /dev/shm.
+    run_module 18-harden_other_tmp.sh
+    run_module 19-verify_filesystem.sh
+}
+
 disable_ssh_root_login()
 {
     local ssh_config=/etc/ssh/sshd_config
@@ -273,6 +283,12 @@ for module in "${modules[@]}"; do
             minimize_software
             ;;
         11-restrict_nettools.sh)
+            continue
+            ;;
+        17-harden_tmp.sh)
+            hardening_temporary_filesystems
+            ;;
+        18-harden_other_tmp.sh|19-verify_filesystem.sh)
             continue
             ;;
         *)
