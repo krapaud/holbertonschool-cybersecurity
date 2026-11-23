@@ -36,6 +36,17 @@ if ! dpkg --configure -a; then
     error 'La configuration des paquets interrompus a échoué.'
 fi
 
+printf 'Checking package dependencies...\n'
+if ! apt-get check; then
+    printf 'Repairing broken dependencies...\n'
+    if ! DEBIAN_FRONTEND=noninteractive apt-get install -f -y; then
+        error 'La réparation des dépendances cassées a échoué.'
+    fi
+    if ! apt-get check; then
+        error 'Des dépendances restent cassées après la réparation.'
+    fi
+fi
+
 printf 'Installing libpam-pwquality...\n'
 packages_to_install=()
 if dpkg-query -W -f='${db:Status-Status}' libpam-pwquality \
