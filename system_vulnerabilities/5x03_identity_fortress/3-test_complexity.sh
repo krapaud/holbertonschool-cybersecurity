@@ -46,7 +46,8 @@ tests=(
     'Str0ng!P@ssw0rd#2024|test-user|accept|Meets all requirements'
 )
 
-printf '=== Password Complexity Testing ===\n\n'
+echo '=== Password Complexity Testing ==='
+printf '\n'
 printf 'Testing password policy enforcement...\n'
 printf 'Using pwscore only; no account passwords will be changed.\n\n'
 test_number=0
