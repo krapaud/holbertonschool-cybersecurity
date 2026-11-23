@@ -94,7 +94,9 @@ if [ "${#interactive_users[@]}" -eq 0 ]; then
 fi
 
 for user in "${interactive_users[@]}"; do
-    if ! chage -M 90 -m 1 -W 14 "$user"; then
+    if ! chage -M 90 "$user" || \
+        ! chage -m 1 "$user" || \
+        ! chage -W 14 "$user"; then
         error "Could not apply password aging to user: $user"
     fi
 
