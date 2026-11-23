@@ -69,10 +69,8 @@ check_package_processes()
 
     active_processes=$(
         {
-            pgrep -a -x apt || true
-            pgrep -a -x apt-get || true
-            pgrep -a -x dpkg || true
-            pgrep -a -x dpkg-deb || true
+            # Le motif apt|dpkg repère ces commandes et leurs variantes.
+            pgrep -a -f 'apt|dpkg' || true
             pgrep -a -x unattended-upgrade || true
             pgrep -a -x packagekitd || true
         } 2>/dev/null
