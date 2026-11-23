@@ -21,7 +21,7 @@ done
 
 pam_file=/etc/pam.d/common-password
 history_file=/etc/security/opasswd
-backup_file=$pam_file.backup
+backup_file=/etc/pam.d/common-password.bak
 if [ ! -r "$pam_file" ]; then
     error "PAM configuration is missing or unreadable: $pam_file"
 fi
@@ -40,7 +40,8 @@ trap 'rm -rf -- "$temporary_directory"' EXIT
 new_pam=$temporary_directory/common-password
 
 # Je conserve le fichier initial pour pouvoir restaurer la configuration.
-if [ ! -e "$backup_file" ] && ! cp -a -- "$pam_file" "$backup_file"; then
+if [ ! -e "$backup_file" ] && \
+    ! cp /etc/pam.d/common-password /etc/pam.d/common-password.bak; then
     error "Could not create backup: $backup_file"
 fi
 
