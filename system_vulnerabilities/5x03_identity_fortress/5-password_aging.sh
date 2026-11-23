@@ -93,13 +93,13 @@ if [ "${#interactive_users[@]}" -eq 0 ]; then
     printf '  No interactive user accounts found.\n'
 fi
 
-for username in "${interactive_users[@]}"; do
-    if ! chage -M 90 -m 1 -W 14 "$username"; then
-        error "Could not apply password aging to user: $username"
+for user in "${interactive_users[@]}"; do
+    if ! chage -M 90 -m 1 -W 14 "$user"; then
+        error "Could not apply password aging to user: $user"
     fi
 
-    aging_info=$(LC_ALL=C chage -l "$username") || \
-        error "Could not verify password aging for user: $username"
+    aging_info=$(LC_ALL=C chage -l "$user") || \
+        error "Could not verify password aging for user: $user"
     max_days=$(printf '%s\n' "$aging_info" | awk -F': ' '
         {
             label = $1
@@ -130,10 +130,10 @@ for username in "${interactive_users[@]}"; do
 
     if [ "$max_days" != 90 ] || [ "$min_days" != 1 ] || \
         [ "$warn_days" != 14 ]; then
-        error "Password aging verification failed for user: $username"
+        error "Password aging verification failed for user: $user"
     fi
     printf '  %s: Max=%s, Min=%s, Warn=%s\n' \
-        "$username" "$max_days" "$min_days" "$warn_days"
+        "$user" "$max_days" "$min_days" "$warn_days"
 done
 
 printf '  [Skipping system accounts]\n'
