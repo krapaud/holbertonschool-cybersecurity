@@ -10,40 +10,40 @@ error()
 }
 
 if [ "$(id -u)" -ne 0 ]; then
-    error 'Lance ce script avec sudo pour modifier PAM.'
+    error 'Run this script with sudo to modify PAM.'
 fi
 
 for command_name in awk apt-get cp dirname dpkg dpkg-query grep install \
     mktemp rm stat; do
     command -v "$command_name" >/dev/null 2>&1 || \
-        error "Commande requise introuvable: $command_name"
+        error "Required command not found: $command_name"
 done
 
 config_file=/etc/security/pwquality.conf
 pam_file=/etc/pam.d/common-password
 
 if [ ! -r "$pam_file" ] || [ ! -w "$(dirname "$pam_file")" ]; then
-    error "Fichier PAM absent ou dossier non modifiable: $pam_file"
+    error "PAM file is missing or its directory is not writable: $pam_file"
 fi
 if ! grep -Eq '^[[:space:]]*password[[:space:]]+.*pam_unix[.]so' \
     "$pam_file"; then
-    error 'La ligne active pam_unix.so est introuvable dans common-password.'
+    error 'Active pam_unix.so line not found in common-password.'
 fi
 
 printf '=== Password Complexity Configuration ===\n\n'
 printf 'Checking interrupted package configuration...\n'
 if ! dpkg --configure -a; then
-    error 'La configuration des paquets interrompus a échoué.'
+    error 'Could not configure interrupted packages.'
 fi
 
 printf 'Checking package dependencies...\n'
 if ! apt-get check; then
     printf 'Repairing broken dependencies...\n'
     if ! DEBIAN_FRONTEND=noninteractive apt-get install -f -y; then
-        error 'La réparation des dépendances cassées a échoué.'
+        error 'Could not repair broken dependencies.'
     fi
     if ! apt-get check; then
-        error 'Des dépendances restent cassées après la réparation.'
+        error 'Broken dependencies remain after the repair.'
     fi
 fi
 
@@ -61,11 +61,11 @@ fi
 if [ "${#packages_to_install[@]}" -gt 0 ]; then
     if ! DEBIAN_FRONTEND=noninteractive apt-get install -y \
         "${packages_to_install[@]}"; then
-        error 'Installation des outils de vérification pwquality impossible.'
+        error 'Could not install the pwquality verification tools.'
     fi
 fi
 if ! command -v pwscore >/dev/null 2>&1; then
-    error 'pwscore reste introuvable après installation.'
+    error 'pwscore is still unavailable after installation.'
 fi
 
 # Je garde une copie initiale pour pouvoir revenir en arrière.
@@ -73,22 +73,22 @@ printf '\nBacking up configuration...\n'
 if [ -e "$config_file" ]; then
     if [ ! -e "$config_file.backup" ] && \
         ! cp -a -- "$config_file" "$config_file.backup"; then
-        error "Sauvegarde impossible: $config_file.backup"
+        error "Could not create backup: $config_file.backup"
     fi
 elif [ ! -e "$config_file.backup" ]; then
     if ! install -o root -g root -m 0600 /dev/null \
         "$config_file.backup"; then
-        error "Création de la sauvegarde impossible: $config_file.backup"
+        error "Could not create backup: $config_file.backup"
     fi
 fi
 if [ ! -e "$pam_file.backup" ] && \
     ! cp -a -- "$pam_file" "$pam_file.backup"; then
-    error "Sauvegarde impossible: $pam_file.backup"
+    error "Could not create backup: $pam_file.backup"
 fi
 printf '  %s.backup created\n' "$config_file"
 
 temporary_directory=$(mktemp -d) || \
-    error 'Impossible de créer un dossier temporaire.'
+    error 'Could not create a temporary directory.'
 trap 'rm -rf -- "$temporary_directory"' EXIT
 new_quality=$temporary_directory/pwquality.conf
 new_pam=$temporary_directory/common-password
@@ -112,7 +112,7 @@ if [ -e "$config_file" ]; then
         }
         { print }
     ' "$config_file" > "$new_quality"; then
-        error 'Lecture de pwquality.conf impossible.'
+        error 'Could not read pwquality.conf.'
     fi
 else
     : > "$new_quality"
@@ -136,7 +136,7 @@ if ! awk '
     }
     { print }
 ' "$pam_file" > "$new_pam"; then
-    error 'Préparation de common-password impossible.'
+    error 'Could not prepare common-password.'
 fi
 
 pam_owner=$(stat -c '%U' "$pam_file") || pam_owner=root
@@ -147,7 +147,7 @@ if ! install -o root -g root -m 0644 "$new_quality" "$config_file" || \
         "$new_pam" "$pam_file"; then
     cp -a -- "$config_file.backup" "$config_file" 2>/dev/null || true
     cp -a -- "$pam_file.backup" "$pam_file" 2>/dev/null || true
-    error 'Écriture de la configuration de qualité ou PAM impossible.'
+    error 'Could not write the password quality or PAM configuration.'
 fi
 
 printf '\nConfiguring %s:\n' "$config_file"
@@ -164,7 +164,7 @@ pwquality_rule+='[[:space:]]+pam_pwquality[.]so'
 if grep -Eq "$pwquality_rule" "$pam_file"; then
     printf '  pam_pwquality.so: Configured\n'
 else
-    error 'La règle pam_pwquality.so n’a pas été activée.'
+    error 'pam_pwquality.so rule was not enabled.'
 fi
 for setting in minlen=12 dcredit=-1 ucredit=-1 lcredit=-1 \
     ocredit=-1 usercheck=1 difok=3; do
@@ -173,7 +173,7 @@ for setting in minlen=12 dcredit=-1 ucredit=-1 lcredit=-1 \
     if ! awk -v key="$setting_name" -v expected="$setting_value" \
         '$1 == key && $2 == "=" && $3 == expected { found = 1 }
         END { exit !found }' "$config_file"; then
-        error "Vérification échouée pour $setting_name."
+        error "Configuration check failed for $setting_name."
     fi
 done
 
@@ -183,7 +183,7 @@ for weak_password in weak Password123; do
     if printf '%s\n' "$weak_password" | pwscore test-user \
         >/dev/null 2>&1; then
         printf "  Attempt '%s': ACCEPTED\n" "$weak_password"
-        error 'Un mot de passe faible a été accepté par pwscore.'
+        error 'pwscore accepted a weak password.'
     else
         printf "  Attempt '%s': REJECTED ✓\n" "$weak_password"
     fi
