@@ -57,7 +57,39 @@ get_ssh_setting()
     printf '%s' "${setting_value:-$fallback_value}"
 }
 
+# Je signale les opérations de paquets en cours sans modifier les verrous.
+check_package_processes()
+{
+    local active_processes
+
+    if ! command -v pgrep >/dev/null 2>&1; then
+        printf '  Process check: pgrep unavailable\n'
+        return 0
+    fi
+
+    active_processes=$(
+        {
+            pgrep -a -x apt || true
+            pgrep -a -x apt-get || true
+            pgrep -a -x dpkg || true
+            pgrep -a -x dpkg-deb || true
+            pgrep -a -x unattended-upgrade || true
+            pgrep -a -x packagekitd || true
+        } 2>/dev/null
+    )
+
+    if [ -n "$active_processes" ]; then
+        printf '%s\n' "$active_processes" | sed 's/^/  Active: /'
+    else
+        printf '  No apt/dpkg process running\n'
+    fi
+}
+
 printf '=== PAM Configuration Audit ===\n\n'
+
+printf 'Package Manager Activity:\n'
+check_package_processes
+printf '\n'
 
 printf '%s:\n' "$auth_file"
 if has_module pam_unix "$auth_file"; then
