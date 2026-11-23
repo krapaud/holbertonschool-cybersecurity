@@ -92,6 +92,11 @@ if ! grep -Eq "$history_rule" "$pam_file"; then
     cp -a -- "$backup_file" "$pam_file" 2>/dev/null || true
     error 'pam_pwhistory.so remember=5 was not enabled.'
 fi
+if ! grep -E 'pam_pwhistory.so' /etc/pam.d/common-password \
+    >/dev/null; then
+    cp -a -- "$backup_file" "$pam_file" 2>/dev/null || true
+    error 'pam_pwhistory.so was not found in common-password.'
+fi
 printf '  pam_pwhistory.so remember=5: Added\n'
 
 unix_line=$(grep -E '^[[:space:]]*password[[:space:]]+.*pam_unix[.]so' \
