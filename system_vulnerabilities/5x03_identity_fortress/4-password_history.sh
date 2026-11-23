@@ -70,7 +70,8 @@ else
     fi
     printf '  %s: Created\n' "$history_file"
 fi
-if ! chown root:root "$history_file" || ! chmod 0600 "$history_file"; then
+if ! chown root:root /etc/security/opasswd || \
+    ! chmod 600 /etc/security/opasswd; then
     error "Could not secure password history file: $history_file"
 fi
 
