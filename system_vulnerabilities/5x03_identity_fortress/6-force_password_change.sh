@@ -12,7 +12,7 @@ error()
 if [ "$(id -u)" -ne 0 ]; then
     error 'Run this script with sudo to update user accounts.'
 fi
-if [ "$#" -eq 0 ]; then
+if [ $# -eq 0 ]; then
     error "Usage: ${0##*/} username [username ...]"
 fi
 
