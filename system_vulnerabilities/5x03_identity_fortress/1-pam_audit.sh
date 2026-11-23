@@ -83,10 +83,33 @@ check_package_processes()
     fi
 }
 
+# Je repère les fichiers de verrou sans les supprimer ni les modifier.
+check_package_locks()
+{
+    local lock_file
+    local lock_files=(
+        /var/lib/dpkg/lock-frontend
+        /var/lib/dpkg/lock
+        /var/lib/apt/lists/lock
+        /var/cache/apt/archives/lock
+    )
+
+    for lock_file in "${lock_files[@]}"; do
+        [ -e "$lock_file" ] || continue
+        if command -v fuser >/dev/null 2>&1 && fuser -s "$lock_file"; then
+            printf '  In use: %s\n' "$lock_file"
+        else
+            printf '  Present, no holder detected: %s\n' "$lock_file"
+        fi
+    done
+}
+
 printf '=== PAM Configuration Audit ===\n\n'
 
 printf 'Package Manager Activity:\n'
 check_package_processes
+printf 'Package Manager Lock Files (inspection only):\n'
+check_package_locks
 printf '\n'
 
 printf '%s:\n' "$auth_file"
