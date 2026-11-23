@@ -27,6 +27,8 @@ changements PAM et SSH, puis les tester depuis une deuxième session.
 7. `8-configure_faillock.sh` configure le verrouillage après cinq échecs,
    avec une fenêtre de 15 minutes, un déverrouillage après 15 minutes et
    remet le compteur à zéro après une authentification réussie.
+8. `9-faillock_manage.sh` affiche les comptes verrouillés, les échecs récents
+   d’un utilisateur et permet à l’administrateur de réinitialiser son compteur.
 
 Exécuter les scripts qui modifient le système avec `sudo` dans la VM de
 laboratoire. Vérifier la syntaxe Bash avec `bash -n`.
