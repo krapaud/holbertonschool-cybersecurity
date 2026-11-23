@@ -24,6 +24,8 @@ changements PAM et SSH, puis les tester depuis une deuxième session.
    `/etc/login.defs` et applique les limites aux comptes interactifs existants.
 6. `6-force_password_change.sh` expire les mots de passe des comptes fournis
    et vérifie qu’ils devront le changer à leur prochaine connexion.
+7. `8-configure_faillock.sh` configure le verrouillage après cinq échecs,
+   avec une fenêtre de 15 minutes et un déverrouillage après 15 minutes.
 
 Exécuter les scripts qui modifient le système avec `sudo` dans la VM de
 laboratoire. Vérifier la syntaxe Bash avec `bash -n`.
