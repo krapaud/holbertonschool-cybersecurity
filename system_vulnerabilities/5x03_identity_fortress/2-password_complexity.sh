@@ -13,8 +13,8 @@ if [ "$(id -u)" -ne 0 ]; then
     error 'Lance ce script avec sudo pour modifier PAM.'
 fi
 
-for command_name in awk apt-get cp dirname dpkg-query grep install mktemp \
-    rm stat; do
+for command_name in awk apt-get cp dirname dpkg dpkg-query grep install \
+    mktemp rm stat; do
     command -v "$command_name" >/dev/null 2>&1 || \
         error "Commande requise introuvable: $command_name"
 done
@@ -31,6 +31,11 @@ if ! grep -Eq '^[[:space:]]*password[[:space:]]+.*pam_unix[.]so' \
 fi
 
 printf '=== Password Complexity Configuration ===\n\n'
+printf 'Checking interrupted package configuration...\n'
+if ! dpkg --configure -a; then
+    error 'La configuration des paquets interrompus a échoué.'
+fi
+
 printf 'Installing libpam-pwquality...\n'
 packages_to_install=()
 if dpkg-query -W -f='${db:Status-Status}' libpam-pwquality \
