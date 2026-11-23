@@ -22,6 +22,8 @@ changements PAM et SSH, puis les tester depuis une deuxième session.
    passe et protège `/etc/security/opasswd`.
 5. `5-password_aging.sh` configure les valeurs par défaut dans
    `/etc/login.defs` et applique les limites aux comptes interactifs existants.
+6. `6-force_password_change.sh` expire les mots de passe des comptes fournis
+   et vérifie qu’ils devront le changer à leur prochaine connexion.
 
 Exécuter les scripts qui modifient le système avec `sudo` dans la VM de
 laboratoire. Vérifier la syntaxe Bash avec `bash -n`.
