@@ -36,16 +36,6 @@ for setting in minlen=12 dcredit=-1 ucredit=-1 lcredit=-1 \
     fi
 done
 
-# Chaque cas contient le mot de passe, l'utilisateur, le résultat attendu
-# et la raison pédagogique du test.
-tests=(
-    'password|test-user|reject|Dictionary word'
-    'Password123|test-user|reject|Missing special character'
-    'Ab1!|test-user|reject|Minimum length not met'
-    'auditor2024|auditor|reject|Contains username'
-    'Str0ng!P@ssw0rd#2024|test-user|accept|Meets all requirements'
-)
-
 echo '=== Password Complexity Testing ==='
 printf '\n'
 printf 'Testing password policy enforcement...\n'
@@ -53,21 +43,45 @@ printf 'Using pwscore only; no account passwords will be changed.\n\n'
 test_number=0
 failed_tests=0
 
-for test_case in "${tests[@]}"; do
-    IFS='|' read -r candidate username expected_result reason <<< "$test_case"
+for test_pass in 'password' 'Password123' 'Ab1!' 'auditor2024' 'Str0ng!P@ssw0rd#2024'; do
     test_number=$((test_number + 1))
 
     case "$test_number" in
-        1) test_description='common word' ;;
-        2) test_description='no special character' ;;
-        3) test_description='too short' ;;
-        4) test_description='contains username' ;;
-        5) test_description='valid password' ;;
+        1)
+            username=test-user
+            expected_result=reject
+            reason='Dictionary word'
+            test_description='common word'
+            ;;
+        2)
+            username=test-user
+            expected_result=reject
+            reason='Missing special character'
+            test_description='no special character'
+            ;;
+        3)
+            username=test-user
+            expected_result=reject
+            reason='Minimum length not met'
+            test_description='too short'
+            ;;
+        4)
+            username=auditor
+            expected_result=reject
+            reason='Contains username'
+            test_description='contains username'
+            ;;
+        5)
+            username=test-user
+            expected_result=accept
+            reason='Meets all requirements'
+            test_description='valid password'
+            ;;
     esac
 
     printf 'Test %s: "%s" (%s)\n' \
-        "$test_number" "$candidate" "$test_description"
-    if printf '%s\n' "$candidate" | LC_ALL=C pwscore "$username" \
+        "$test_number" "$test_pass" "$test_description"
+    if printf '%s\n' "$test_pass" | LC_ALL=C pwscore "$username" \
         >/dev/null 2>&1; then
         actual_result=accept
     else
