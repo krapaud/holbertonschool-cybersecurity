@@ -67,6 +67,7 @@ if ! awk '
     { print }
     /^[[:space:]]*auth[[:space:]].*pam_unix[.]so/ {
         print "auth [default=die] pam_faillock.so authfail"
+        print "auth sufficient pam_faillock.so authsucc"
     }
     END { if (!preauth_added) exit 1 }
 ' "$pam_auth" > "$new_auth"; then
@@ -120,6 +121,7 @@ if ! install -o "$auth_owner" -g "$auth_group" -m "$auth_mode" \
 fi
 printf '  pam_faillock.so preauth: Added\n'
 printf '  pam_faillock.so authfail: Added\n'
+printf '  pam_faillock.so authsucc: Added\n'
 
 printf '\nUpdating %s...\n' "$pam_account"
 if ! install -o "$account_owner" -g "$account_group" \
@@ -140,6 +142,8 @@ fi
 if ! grep -Eq '^[[:space:]]*auth[[:space:]]+required[[:space:]]+pam_faillock[.]so[[:space:]]+preauth' \
     "$pam_auth" || \
     ! grep -Eq '^[[:space:]]*auth[[:space:]].*pam_faillock[.]so[[:space:]]+authfail' \
+    "$pam_auth" || \
+    ! grep -Eq '^[[:space:]]*auth[[:space:]]+sufficient[[:space:]]+pam_faillock[.]so[[:space:]]+authsucc' \
     "$pam_auth" || \
     ! grep -Eq '^[[:space:]]*account[[:space:]]+required[[:space:]]+pam_faillock[.]so' \
     "$pam_account" || \

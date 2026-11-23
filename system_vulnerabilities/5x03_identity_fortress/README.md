@@ -25,7 +25,8 @@ changements PAM et SSH, puis les tester depuis une deuxième session.
 6. `6-force_password_change.sh` expire les mots de passe des comptes fournis
    et vérifie qu’ils devront le changer à leur prochaine connexion.
 7. `8-configure_faillock.sh` configure le verrouillage après cinq échecs,
-   avec une fenêtre de 15 minutes et un déverrouillage après 15 minutes.
+   avec une fenêtre de 15 minutes, un déverrouillage après 15 minutes et
+   remet le compteur à zéro après une authentification réussie.
 
 Exécuter les scripts qui modifient le système avec `sudo` dans la VM de
 laboratoire. Vérifier la syntaxe Bash avec `bash -n`.
