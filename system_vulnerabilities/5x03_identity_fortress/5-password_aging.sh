@@ -94,9 +94,15 @@ if [ "${#interactive_users[@]}" -eq 0 ]; then
 fi
 
 for user in "${interactive_users[@]}"; do
-    if ! chage -M 90 "$user" || \
-        ! chage -m 1 "$user" || \
-        ! chage -W 14 "$user"; then
+    if [[ ! "$user" =~ ^[a-zA-Z0-9_.-]+$ ]]; then
+        error "Invalid account name returned by getent: $user"
+    fi
+
+    # Les noms validés ci-dessus ne contiennent ni espace ni joker shell.
+    # shellcheck disable=SC2086
+    if ! chage -M 90 $user || \
+        ! chage -m 1 $user || \
+        ! chage -W 14 $user; then
         error "Could not apply password aging to user: $user"
     fi
 
