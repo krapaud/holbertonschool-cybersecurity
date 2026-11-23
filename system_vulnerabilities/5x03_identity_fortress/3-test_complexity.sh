@@ -1,5 +1,5 @@
 #!/bin/bash
-# Je teste la politique avec pwscore sans changer de mot de passe système.
+# Je teste PAM avec un compte temporaire supprimé après les essais.
 
 set -o pipefail
 
@@ -9,8 +9,12 @@ error()
     exit 1
 }
 
-if ! command -v pwscore >/dev/null 2>&1; then
-    error 'pwscore is not installed. Run 2-password_complexity.sh first.'
+for command_name in awk grep id passwd script useradd userdel; do
+    command -v "$command_name" >/dev/null 2>&1 || \
+        error "Required command not found: $command_name"
+done
+if [ "$(id -u)" -ne 0 ]; then
+    error 'Run this script with sudo to test PAM password changes.'
 fi
 
 config_file=/etc/security/pwquality.conf
@@ -39,7 +43,25 @@ done
 echo '=== Password Complexity Testing ==='
 printf '\n'
 printf 'Testing password policy enforcement...\n'
-printf 'Using pwscore only; no account passwords will be changed.\n\n'
+printf 'Using a temporary auditor account that will be removed.\n\n'
+
+# Je refuse de toucher à un compte auditor qui existerait déjà.
+if id auditor >/dev/null 2>&1; then
+    error 'The auditor account already exists. No account was changed.'
+fi
+if ! useradd --no-create-home --shell /usr/sbin/nologin auditor; then
+    error 'Could not create the temporary auditor account.'
+fi
+test_account_created=1
+cleanup()
+{
+    if [ "$test_account_created" -eq 1 ] && \
+        ! userdel auditor >/dev/null 2>&1; then
+        printf '[ERROR] Could not remove the temporary auditor account.\n' >&2
+    fi
+}
+trap cleanup EXIT
+
 test_number=0
 failed_tests=0
 
@@ -48,31 +70,26 @@ for test_pass in 'password' 'Password123' 'Ab1!' 'auditor2024' 'Str0ng!P@ssw0rd#
 
     case "$test_number" in
         1)
-            username=test-user
             expected_result=reject
             reason='Dictionary word'
             test_description='common word'
             ;;
         2)
-            username=test-user
             expected_result=reject
             reason='Missing special character'
             test_description='no special character'
             ;;
         3)
-            username=test-user
             expected_result=reject
             reason='Minimum length not met'
             test_description='too short'
             ;;
         4)
-            username=auditor
             expected_result=reject
             reason='Contains username'
             test_description='contains username'
             ;;
         5)
-            username=test-user
             expected_result=accept
             reason='Meets all requirements'
             test_description='valid password'
@@ -81,8 +98,9 @@ for test_pass in 'password' 'Password123' 'Ab1!' 'auditor2024' 'Str0ng!P@ssw0rd#
 
     printf 'Test %s: "%s" (%s)\n' \
         "$test_number" "$test_pass" "$test_description"
-    if printf '%s\n' "$test_pass" | LC_ALL=C pwscore "$username" \
-        >/dev/null 2>&1; then
+    # Le compte de test est temporaire: echo '$test_pass' | passwd auditor
+    if printf '%s\n%s\n' "$test_pass" "$test_pass" | \
+        script -q -e -c 'passwd auditor' /dev/null >/dev/null 2>&1; then
         actual_result=accept
     else
         actual_result=reject
@@ -113,6 +131,12 @@ if [ "$failed_tests" -gt 0 ]; then
         "$failed_tests"
     error 'Password policy did not produce the expected results.'
 fi
+
+if ! userdel auditor >/dev/null 2>&1; then
+    error 'Could not remove the temporary auditor account.'
+fi
+test_account_created=0
+trap - EXIT
 
 printf 'All complexity tests: PASSED\n'
 printf 'Password policy is enforced correctly.\n'
