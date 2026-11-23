@@ -14,7 +14,7 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 for command_name in awk chmod chown cp find grep install mktemp \
-    rm stat tail; do
+    rm stat tail touch; do
     command -v "$command_name" >/dev/null 2>&1 || \
         error "Required command not found: $command_name"
 done
@@ -61,16 +61,17 @@ fi
 printf '=== Password History Configuration ===\n\n'
 printf 'Configuring pam_pwhistory...\n\n'
 printf 'Creating password history file...\n'
-if [ ! -e "$history_file" ]; then
-    if ! install -o root -g root -m 0600 /dev/null "$history_file"; then
+if [ -e "$history_file" ]; then
+    printf '  %s: Already exists\n' "$history_file"
+else
+    umask 077
+    if ! touch /etc/security/opasswd; then
         error "Could not create password history file: $history_file"
     fi
     printf '  %s: Created\n' "$history_file"
-else
-    if ! chown root:root "$history_file" || ! chmod 0600 "$history_file"; then
-        error "Could not secure password history file: $history_file"
-    fi
-    printf '  %s: Already exists, permissions secured\n' "$history_file"
+fi
+if ! chown root:root "$history_file" || ! chmod 0600 "$history_file"; then
+    error "Could not secure password history file: $history_file"
 fi
 
 pam_owner=$(stat -c '%U' "$pam_file") || pam_owner=root
@@ -85,6 +86,7 @@ fi
 
 history_rule='^[[:space:]]*password[[:space:]]+required'
 history_rule+='[[:space:]]+pam_pwhistory[.]so[[:space:]]+remember=5'
+history_rule+='[[:space:]]+use_authtok([[:space:]]|$)'
 if ! grep -Eq "$history_rule" "$pam_file"; then
     cp -a -- "$backup_file" "$pam_file" 2>/dev/null || true
     error 'pam_pwhistory.so remember=5 was not enabled.'
