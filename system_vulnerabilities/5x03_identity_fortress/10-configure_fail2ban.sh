@@ -20,7 +20,7 @@ for command_name in apt awk cp dpkg-query fail2ban-client \
 done
 
 config_directory=/etc/fail2ban
-config_file=$config_directory/jail.local
+config_file=/etc/fail2ban/jail.local
 backup_file=$config_file.backup
 temporary_directory=$(mktemp -d) || \
     error 'Could not create a temporary directory.'
