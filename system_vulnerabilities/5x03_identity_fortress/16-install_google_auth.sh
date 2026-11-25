@@ -14,7 +14,7 @@ if [ "$(id -u)" -ne 0 ]; then
     error 'Run this script with sudo to install the PAM module.'
 fi
 
-for command_name in apt-get dpkg-query grep head mktemp rm; do
+for command_name in apt dpkg-query grep head mktemp rm; do
     command -v "$command_name" >/dev/null 2>&1 || \
         error "Required command not found: $command_name"
 done
@@ -32,7 +32,7 @@ if dpkg-query -W -f='${db:Status-Status}' "$package_name" 2>/dev/null | \
     grep -q '^installed$'; then
     printf ' Package: Already installed\n'
 else
-    if ! DEBIAN_FRONTEND=noninteractive apt-get install -y libpam-google-authenticator; then
+    if ! DEBIAN_FRONTEND=noninteractive apt install -y libpam-google-authenticator; then
         error 'Could not install libpam-google-authenticator.'
     fi
     printf ' Package: Installed\n'
