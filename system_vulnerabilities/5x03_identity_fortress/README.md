@@ -48,6 +48,9 @@ changements PAM et SSH, puis les tester depuis une deuxième session.
     code TOTP, avec validation et restauration des configurations en cas d'échec.
 17. `19-test_mfa.sh` contrôle les réglages PAM/SSH, le secret TOTP et teste que
     la clé doit être présentée avant le second facteur.
+18. `20-emergency_procedures.txt` décrit la récupération après perte du facteur,
+    l’usage des codes de secours, les exceptions temporaires, le retour d’accès
+    administrateur et les informations à conserver dans la piste d’audit.
 
 Exécuter les scripts qui modifient le système avec `sudo` dans la VM de
 laboratoire. Vérifier la syntaxe Bash avec `bash -n`.

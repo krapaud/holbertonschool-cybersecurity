@@ -1,0 +1,114 @@
+NOVATECH SOLUTIONS
+IDENTITY AND SSH MFA EMERGENCY ACCESS PROCEDURE
+
+Purpose
+-------
+This procedure restores authorized access when a user loses a TOTP device or
+administrators lose normal access. Use the smallest, shortest-lived exception
+possible. Keep SSH public-key authentication enabled and password authentication
+disabled throughout recovery whenever technically possible.
+
+1. Lost phone or lost TOTP device
+---------------------------------
+1. The user reports the loss to the service desk using an approved contact
+   channel. Record an incident or service ticket before changing access.
+2. Verify the user's identity through the documented identity-proofing process
+   and a separate channel. A request from the affected account alone is not
+   sufficient.
+3. Check whether the user has another enrolled authenticator or an unused
+   emergency scratch code. If so, use that factor to sign in and continue with
+   step 5.
+4. If the user has no working factor, an authorized administrator uses the
+   server console or another separately authenticated administrative account.
+   Do not ask the user to send a TOTP secret or scratch code by email or chat.
+5. After identity verification, revoke the lost factor. Preserve a protected
+   copy of relevant configuration for the incident record, then remove or
+   replace only that user's old ~/.google_authenticator file. Do not display,
+   copy into a ticket, or transmit the secret contents.
+6. Enroll a replacement device with 17-setup_user_totp.sh as the affected user.
+   Confirm that the user can authenticate with their SSH key and the new TOTP
+   before closing the incident. Generate and store replacement recovery codes.
+7. Notify the user and record the factor revocation, enrollment, verification,
+   and ticket closure in the audit trail.
+
+2. Emergency scratch codes
+-------------------------
+Scratch codes are single-use recovery credentials. Store them offline in an
+approved password vault or sealed secure location, separately from the phone
+and SSH private key. Never place them in shell history, source control, email,
+chat, screenshots, or an ordinary support ticket.
+
+When a user needs one, first verify identity and confirm the code is unused.
+The user enters it only at the authentication prompt. Treat the code as
+consumed even if the login result is uncertain. Reconcile the remaining codes
+after access is restored. If the list may have been exposed, revoke the factor,
+enroll a new one, and issue a fresh set. Record that a code was used, but do not
+record its value.
+
+3. Temporary MFA bypass
+----------------------
+Use a bypass only when recovery codes and another enrolled factor are
+unavailable and business operations require immediate access.
+
+1. Obtain approval from the incident manager and the system owner. Open an
+   incident ticket and name the affected user, host, reason, and expiry time.
+2. Prefer console access or a separate, pre-provisioned break-glass account
+   protected by a different strong factor. Do not enable password SSH, remove
+   the public-key requirement, set pam_google_authenticator.so to nullok, or
+   disable MFA for all users as a shortcut.
+3. If a temporary SSH exception is unavoidable, require console access, keep
+   key authentication mandatory, restrict the exception to the named account
+   and a trusted source address using the approved network control, and set a
+   short expiry. Back up the exact PAM and SSH files before changing them.
+4. Have a second administrator review the change. Validate with sshd -t, reload
+   SSH, monitor the session, and keep an independent console session open.
+5. Restore the saved configuration immediately after the task or at expiry,
+   whichever comes first. Validate and reload again, remove any temporary
+   network rule, and confirm that both factors are required.
+6. Record the approval, exact change, start and end times, validation, and
+   restoration. If the bypass cannot be removed on time, escalate to the
+   incident manager and keep the host isolated from untrusted networks.
+
+4. Root access recovery
+----------------------
+Root SSH login remains disabled. Administrators use their named account and
+sudo so actions remain attributable.
+
+If an administrator can still sign in, use a separate authorized administrator
+account to check sudo configuration with visudo -c and review access with sudo
+-l. Restore the named administrator's approved sudo membership or SSH key from
+the console, then test a new session before ending the existing one. Do not
+share the root password or enable PermitRootLogin as a routine recovery step.
+
+If no administrator can sign in, use the cloud provider's authenticated serial
+or recovery console, or the approved physical console procedure. Verify the
+incident authorization first. In recovery mode, remount the root filesystem
+read/write only if required, restore a named administrator's account, SSH key,
+and sudo access, then verify sudo policy with visudo -c. Keep root locked and
+PermitRootLogin disabled. Reboot normally and test access using a separate
+session. Record console access and every recovery command.
+
+Exact rescue-mode and console steps depend on the host platform. Maintain and
+test a platform-specific runbook for the production environment; do not guess
+device names or filesystem commands during an incident.
+
+5. Audit trail requirements
+---------------------------
+For every emergency access event, retain the following in the approved,
+access-controlled incident system:
+
+- Incident or ticket number, business reason, affected host and account.
+- Identity verification method, approver, operator, and any second reviewer.
+- Start and end times in UTC, source address, access path, and session ID when
+  available.
+- Commands and configuration files changed, with before-and-after copies or
+  hashes stored securely. Redact secrets, private keys, TOTP seeds, and scratch
+  code values.
+- Authentication and system logs relevant to the event, with retention and
+  integrity protection following company policy.
+- MFA factor revoked or recovered, validation results, bypass expiry, rollback
+  confirmation, and any remaining action owner and due date.
+
+Notify the security team and system owner after recovery. Review the event for
+unauthorized activity and close the exception only after normal MFA access has
+been restored and verified.
