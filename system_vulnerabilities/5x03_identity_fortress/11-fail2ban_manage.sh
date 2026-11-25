@@ -96,20 +96,6 @@ show_banned()
     fi
 }
 
-unban_ip()
-{
-    local ip_address=$1
-
-    [[ "$ip_address" =~ ^[0-9a-fA-F:.]+$ ]] || \
-        error "Invalid IP address: $ip_address"
-    if ! fail2ban-client status sshd >/dev/null 2>&1; then
-        error 'The sshd jail is not active.'
-    fi
-    fail2ban-client set sshd unbanip "$ip_address" >/dev/null || \
-        error "Could not unban $ip_address from jail sshd."
-    printf 'IP %s unbanned from jail sshd\n' "$ip_address"
-}
-
 if [ "$#" -lt 1 ]; then
     usage
 fi
@@ -122,7 +108,14 @@ elif [ "$1" = "banned" ]; then
     show_banned
 elif [ "$1" = "unban" ]; then
     [ "$#" -eq 2 ] || usage
-    unban_ip "$2"
+    [[ "$2" =~ ^[0-9a-fA-F:.]+$ ]] || \
+        error "Invalid IP address: $2"
+    if ! fail2ban-client status sshd >/dev/null 2>&1; then
+        error 'The sshd jail is not active.'
+    fi
+    fail2ban-client set sshd unbanip "$2" >/dev/null || \
+        error "Could not unban $2 from jail sshd."
+    printf 'IP %s unbanned from jail sshd\n' "$2"
 else
     usage
 fi
