@@ -178,24 +178,19 @@ if [ "$#" -lt 1 ]; then
     usage
 fi
 
-case "$1" in
-    status)
-        [ "$#" -eq 1 ] || usage
-        show_all_locked
-        ;;
-    show)
-        [ "$#" -eq 2 ] || usage
-        show_user_status "$2"
-        ;;
-    reset)
-        [ "$#" -eq 2 ] || usage
-        validate_user "$2"
-        if ! faillock --user "$2" --reset; then
-            error "Could not clear faillock records for $2."
-        fi
-        printf 'Account %s: Lock cleared\n' "$2"
-        ;;
-    *)
-        usage
-        ;;
-esac
+if [ "$1" = "status" ]; then
+    [ "$#" -eq 1 ] || usage
+    show_all_locked
+elif [ "$1" = "show" ]; then
+    [ "$#" -eq 2 ] || usage
+    show_user_status "$2"
+elif [ "$1" = "reset" ]; then
+    [ "$#" -eq 2 ] || usage
+    validate_user "$2"
+    if ! faillock --user "$2" --reset; then
+        error "Could not clear faillock records for $2."
+    fi
+    printf 'Account %s: Lock cleared\n' "$2"
+else
+    usage
+fi
