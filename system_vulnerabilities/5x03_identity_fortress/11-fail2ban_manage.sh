@@ -113,7 +113,7 @@ elif [ "$1" = "unban" ]; then
     if ! fail2ban-client status sshd >/dev/null 2>&1; then
         error 'The sshd jail is not active.'
     fi
-    fail2ban-client set sshd unbanip "$2" >/dev/null || \
+    fail2ban-client set sshd unbanip $2 >/dev/null || \
         error "Could not unban $2 from jail sshd."
     printf 'IP %s unbanned from jail sshd\n' "$2"
 else
