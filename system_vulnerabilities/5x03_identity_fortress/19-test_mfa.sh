@@ -125,7 +125,8 @@ else
 fi
 
 printf '\nTest 4: SSH configuration check\n'
-if [ "$auth_methods" = 'publickey,keyboard-interactive' ]; then
+if grep -Eq '^[[:space:]]*AuthenticationMethods[[:space:]]+publickey,keyboard-interactive([[:space:]]|$)' "$ssh_file" && \
+    [ "$auth_methods" = 'publickey,keyboard-interactive' ]; then
     printf '  AuthenticationMethods: %s ✓\n' "$auth_methods"
 else
     printf '  AuthenticationMethods: %s (expected publickey,keyboard-interactive)\n' "${auth_methods:-not set}"
