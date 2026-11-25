@@ -74,7 +74,7 @@ if systemctl is-active --quiet ssh.service || \
     ssh_active=1
 fi
 if [ -r "$private_key" ] && [ "$ssh_active" -eq 1 ]; then
-    timeout 8 ssh -vv -F /dev/null \
+    timeout 8 ssh -i "$private_key" -vv -F /dev/null \
         -o BatchMode=yes \
         -o IdentitiesOnly=yes \
         -o PasswordAuthentication=no \
@@ -83,7 +83,7 @@ if [ -r "$private_key" ] && [ "$ssh_active" -eq 1 ]; then
         -o StrictHostKeyChecking=no \
         -o UserKnownHostsFile=/dev/null \
         -o ConnectTimeout=5 \
-        -i "$private_key" -p "$ssh_port" "$(id -un)@127.0.0.1" true \
+        -p "$ssh_port" "$(id -un)@127.0.0.1" true \
         > "$key_test_log" 2>&1 || true
     if grep -Fq 'Authenticated using "publickey" with partial success' "$key_test_log" && \
         grep -Fq 'Next authentication method: keyboard-interactive' "$key_test_log"; then
