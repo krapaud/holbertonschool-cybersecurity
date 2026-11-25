@@ -97,7 +97,7 @@ if [ ! -e "$authorized_keys" ]; then
     error "Could not create $authorized_keys."
 fi
 if ! chown "$account_uid:$account_gid" "$authorized_keys" || \
-    ! chmod 600 "$authorized_keys"; then
+    ! chmod 600 $HOME/.ssh/authorized_keys; then
     error "Could not secure $authorized_keys."
 fi
 
