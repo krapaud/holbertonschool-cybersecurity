@@ -15,6 +15,9 @@ secrets, les dépendances et les contrôles d'exécution.
    build nécessite un daemon Docker actif.
 3. `2-inspect_history.sh` affiche l'historique des couches d'une image Docker
    et retrouve les mots de passe inscrits dans les instructions `RUN` et `ENV`.
+4. `3-docker_bench.sh` lance Docker Bench Security pour auditer la configuration
+   Docker de l'hôte et les images locales, puis conserve la sortie complète dans
+   `docker-bench-report.txt`.
 
 Cette image contient volontairement des identifiants de démonstration et des
 configurations dangereuses. Ne pas l'utiliser hors du laboratoire.
