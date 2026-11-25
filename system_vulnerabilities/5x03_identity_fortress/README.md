@@ -35,6 +35,8 @@ changements PAM et SSH, puis les tester depuis une deuxième session.
     permet de débannir une adresse de la jail SSH.
 11. `12-generate_ssh_key.sh` crée une paire ED25519, recommande une phrase de
     passe et affiche l’empreinte et la clé publique.
+12. `13-deploy_ssh_key.sh` valide une clé publique et l’ajoute sans doublon
+    au fichier `authorized_keys` de l’utilisateur cible.
 
 Exécuter les scripts qui modifient le système avec `sudo` dans la VM de
 laboratoire. Vérifier la syntaxe Bash avec `bash -n`.
