@@ -69,7 +69,7 @@ if ! mkdir -p $HOME/.ssh; then
     error "Could not create $ssh_directory."
 fi
 if ! chown "$account_uid:$account_gid" "$ssh_directory" || \
-    ! chmod 700 "$ssh_directory"; then
+    ! chmod 700 $HOME/.ssh; then
     error "Could not secure $ssh_directory."
 fi
 
