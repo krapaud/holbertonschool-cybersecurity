@@ -53,6 +53,10 @@ changements PAM et SSH, puis les tester depuis une deuxième session.
     administrateur et les informations à conserver dans la piste d’audit.
 19. `21-identity_policy.txt` formalise les règles de mot de passe, verrouillage,
     SSH, MFA, cycle de vie des comptes et accès d’urgence.
+20. `22-identity_audit.sh` vérifie les politiques de mot de passe, le
+    verrouillage, Fail2ban, SSH/MFA et la conformité TOTP et d'expiration des
+    comptes sans lire les mots de passe. La force des mots de passe existants
+    n'est pas auditée par ce script.
 
 Exécuter les scripts qui modifient le système avec `sudo` dans la VM de
 laboratoire. Vérifier la syntaxe Bash avec `bash -n`.
