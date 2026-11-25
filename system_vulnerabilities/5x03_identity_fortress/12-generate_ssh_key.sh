@@ -42,7 +42,7 @@ printf '  Algorithm: ED25519 (recommended)\n'
 printf '  Key file: %s\n\n' "$private_key"
 printf 'Enter passphrase (recommended):\n'
 if ! ssh-keygen -t ed25519 -a 100 -C "$key_comment" \
-    -f "$private_key"; then
+    -f $HOME/.ssh/id_ed25519; then
     rm -f -- "$private_key" "$public_key"
     error 'SSH key generation failed.'
 fi
