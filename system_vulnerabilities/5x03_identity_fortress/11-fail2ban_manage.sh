@@ -114,7 +114,7 @@ if [ "$#" -lt 1 ]; then
     usage
 fi
 
-if [ "$1" = "status" ]; then
+if [ "$1" == "status" ]; then
     [ "$#" -eq 1 ] || usage
     show_status
 elif [ "$1" = "banned" ]; then
