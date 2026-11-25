@@ -26,6 +26,9 @@ secrets, les dépendances et les contrôles d'exécution.
    lancement et les transmet à `devstream-nosecrets:v1` avec `docker run -e`.
    Les secrets ne sont pas intégrés au Dockerfile ni à l'image. En production,
    privilégier un fichier de secrets monté ou un gestionnaire de secrets.
+7. `7-compare_sizes.sh` construit une image de comparaison avec `gcc` et `make`
+   conservés, puis l'image multi-stage. Il affiche les tailles réelles, calcule
+   la réduction et vérifie que Flask fonctionne sans les outils de compilation.
 
 L'image vulnérable construite par l'exercice 1 contient volontairement des
 identifiants de démonstration et des configurations dangereuses. Ne pas
