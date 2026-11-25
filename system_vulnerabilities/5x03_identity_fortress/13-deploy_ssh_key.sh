@@ -25,7 +25,10 @@ for command_name in awk cat chmod chown getent grep install mkdir mktemp \
         error "Required command not found: $command_name"
 done
 
-if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
+if [ $# -eq 0 ]; then
+    usage
+fi
+if [ "$#" -gt 2 ]; then
     usage
 fi
 
