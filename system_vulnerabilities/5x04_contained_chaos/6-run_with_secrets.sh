@@ -25,6 +25,4 @@ printf '\n'
 # Ces variables ne sont transmises qu'au conteneur lancé, jamais au build.
 export DB_HOST DB_USER DB_PASSWORD
 printf 'Starting devstream-nosecrets:v1 with runtime environment variables...\n'
-docker run --rm -p 5000:5000 \
-    -e DB_HOST -e DB_USER -e DB_PASSWORD \
-    devstream-nosecrets:v1
+docker run --rm -p 5000:5000 -e "DB_HOST=$DB_HOST" -e "DB_USER=$DB_USER" -e "DB_PASSWORD=$DB_PASSWORD" devstream-nosecrets:v1
