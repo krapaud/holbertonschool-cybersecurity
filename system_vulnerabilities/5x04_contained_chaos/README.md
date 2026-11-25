@@ -22,6 +22,12 @@ secrets, les dépendances et les contrôles d'exécution.
    démarre l'application depuis `/app` sans privilèges root. Vérification prévue :
    `docker build -t devstream-nonroot:v1 -f Dockerfile .`, puis
    `docker run --rm devstream-nonroot:v1 id`.
+6. `6-run_with_secrets.sh` demande les identifiants de base de données au
+   lancement et les transmet à `devstream-nosecrets:v1` avec `docker run -e`.
+   Les secrets ne sont pas intégrés au Dockerfile ni à l'image. En production,
+   privilégier un fichier de secrets monté ou un gestionnaire de secrets.
 
-Cette image contient volontairement des identifiants de démonstration et des
-configurations dangereuses. Ne pas l'utiliser hors du laboratoire.
+L'image vulnérable construite par l'exercice 1 contient volontairement des
+identifiants de démonstration et des configurations dangereuses. Ne pas
+l'utiliser hors du laboratoire. Le Dockerfile courant ne contient pas ces
+identifiants.
