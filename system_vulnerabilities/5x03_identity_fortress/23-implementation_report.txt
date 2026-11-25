@@ -1,0 +1,141 @@
+NOVATECH SOLUTIONS
+IDENTITY SECURITY HARDENING IMPLEMENTATION REPORT
+
+Audience: NovaTech leadership, CISO, system owners, and auditors
+Classification: Internal
+Assessment scope: Identity and SSH controls in the 5x03 Identity Fortress lab
+Report status: Implementation artifacts prepared; target-host runtime validation pending
+
+1. Executive Summary
+--------------------
+This report documents the identity-security controls prepared for the NovaTech
+Linux environment. The implementation covers password quality and history,
+password aging, account lockout, SSH key authentication, Google Authenticator
+TOTP, account lifecycle requirements, and emergency access.
+
+The scripts and policy files define a substantial baseline: passwords require
+at least 12 characters and character diversity; the last five passwords are
+remembered; interactive accounts receive 90-day password aging; PAM locks an
+account after five failures in 15 minutes; and SSH is intended to require both
+a public key and a TOTP code. Fail2ban is configured to ban SSH source IPs after
+five failures in ten minutes for one hour.
+
+The repository contains the implementation and verification scripts, but this
+report does not claim that they were applied to or runtime-verified on the
+production host. The identity audit and interactive MFA tests must be run in
+the lab environment, followed by system-owner review, before production
+approval. The audit script does not inspect password values and therefore
+cannot certify that existing passwords are strong.
+
+2. Initial Assessment
+---------------------
+The exercise baseline focused on these identity risks:
+
+- Password controls may be missing or incomplete, including complexity,
+  password-history enforcement, and aging for existing accounts.
+- Repeated failed logins may not be subject to a defined lockout threshold.
+- SSH password authentication may be enabled, increasing exposure to guessing
+  and credential reuse.
+- SSH may not require a second factor, and users may not have enrolled TOTP.
+- Account creation, privilege changes, termination, and emergency recovery need
+  documented approval and audit requirements.
+
+Host-specific baseline limitation: a fresh, signed-off output from
+1-pam_audit.sh was not captured as evidence for this report. The statements
+above describe the risks addressed by the exercise and must not be treated as
+verified live findings until the audit is run on the target host.
+
+3. Remediation Actions
+----------------------
+Password controls:
+- 2-password_complexity.sh configures pam_pwquality with minimum length 12,
+  uppercase, lowercase, digit, special-character, username, and difference
+  requirements.
+- 4-password_history.sh configures pam_pwhistory to remember five passwords
+  and protects /etc/security/opasswd.
+- 5-password_aging.sh sets maximum age to 90 days, minimum age to one day, and
+  warning to 14 days for new accounts and applies the limits to interactive
+  accounts.
+- 6-force_password_change.sh can expire passwords for named users after
+  compromise.
+
+Account protection:
+- 8-configure_faillock.sh configures PAM lockout after five failures in a
+  900-second window, with a 900-second unlock time.
+- 9-faillock_manage.sh provides administrator status, review, and reset actions.
+- 10-configure_fail2ban.sh enables the SSH jail with five retries, 600 seconds
+  find time, and a 3600-second ban.
+- 11-fail2ban_manage.sh supports jail status, banned-IP review, and unban actions.
+
+SSH and MFA:
+- 12-generate_ssh_key.sh creates an ED25519 key pair; 13-deploy_ssh_key.sh
+  installs validated public keys with protected permissions.
+- 14-disable_password_auth.sh disables SSH password authentication after
+  pre-flight checks and preserves public-key access.
+- 16-install_google_auth.sh installs the Google Authenticator PAM module.
+- 17-setup_user_totp.sh creates a user's TOTP secret, applies rate limiting,
+  disallows token reuse, and creates emergency codes.
+- 18-ssh_mfa.sh configures PAM and SSH for publickey followed by
+  keyboard-interactive TOTP, with configuration backups and rollback checks.
+- 19-test_mfa.sh tests the two authentication paths and checks effective SSH,
+  PAM, and per-user TOTP settings.
+
+Governance and recovery:
+- 20-emergency_procedures.txt documents lost-device response, scratch-code use,
+  temporary exceptions, root recovery, and audit records.
+- 21-identity_policy.txt defines identity requirements and account lifecycle.
+- 22-identity_audit.sh checks configured controls and account TOTP and aging
+  compliance without reading password values.
+
+4. Configuration Details
+------------------------
+Password quality: minlen=12; dcredit=-1; ucredit=-1; lcredit=-1; ocredit=-1;
+usercheck=1; difok=3.
+
+Password history and aging: remember=5 with use_authtok; maximum age 90 days;
+minimum age one day; warning period 14 days.
+
+PAM lockout: deny=5; fail_interval=900 seconds; unlock_time=900 seconds.
+
+Fail2ban SSH jail: maxretry=5; findtime=600 seconds; bantime=3600 seconds.
+
+SSH/MFA: PasswordAuthentication no; PubkeyAuthentication yes; UsePAM yes;
+ChallengeResponseAuthentication yes; KbdInteractiveAuthentication yes;
+AuthenticationMethods publickey,keyboard-interactive; PAM requires
+pam_google_authenticator.so. TOTP setup uses a three-attempt rate limit per
+30 seconds, disallows reuse, uses a window of three time steps, and generates
+five emergency scratch codes.
+
+5. Testing Results
+------------------
+Repository checks completed:
+- Bash syntax validation (bash -n) passed for the scripts created or updated
+  in this implementation work.
+- Git whitespace validation (git diff --check) passed before commits.
+- Changes were committed and pushed to the repository's main branch.
+
+Target-host runtime checks pending:
+- The PAM, SSH, Fail2ban, account-aging, and TOTP configuration scripts were
+  not executed against the VM as part of preparing this report.
+- 19-test_mfa.sh and 22-identity_audit.sh were not run against the target host.
+- No result is asserted for active services, number of users without TOTP,
+  expired accounts, or weak passwords. Run the audit and MFA test in the lab,
+  retain their output, and resolve every failed check before deployment.
+
+6. Remaining Recommendations
+----------------------------
+1. Capture the initial PAM/SSH audit output and attach it to the assessment
+   evidence before final sign-off.
+2. Apply the controls in the dedicated VM in a controlled order. Keep a second
+   administrator session or console available while changing PAM or SSH.
+3. Enroll every authorized interactive SSH user in TOTP and verify a fresh
+   public-key-plus-TOTP login before closing existing sessions.
+4. Run 19-test_mfa.sh and 22-identity_audit.sh on the target host. Archive
+   timestamped output and record the operator, host, and software versions.
+5. Review accounts without TOTP, expired accounts, service-account exclusions,
+   and all exceptions with their owners. Remove unused accounts and keys.
+6. Assess existing password strength only through a separately approved,
+   privacy-preserving process. The current audit intentionally does not read
+   or attempt to crack password credentials.
+7. Test emergency console recovery, backup restoration, and SSH rollback, then
+   obtain CISO and system-owner approval before production deployment.

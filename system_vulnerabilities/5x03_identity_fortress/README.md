@@ -57,6 +57,9 @@ changements PAM et SSH, puis les tester depuis une deuxième session.
     verrouillage, Fail2ban, SSH/MFA et la conformité TOTP et d'expiration des
     comptes sans lire les mots de passe. La force des mots de passe existants
     n'est pas auditée par ce script.
+21. `23-implementation_report.txt` récapitule l'évaluation initiale visée,
+    les mesures de durcissement, les paramètres, les vérifications disponibles
+    et les validations restantes sur la VM.
 
 Exécuter les scripts qui modifient le système avec `sudo` dans la VM de
 laboratoire. Vérifier la syntaxe Bash avec `bash -n`.
