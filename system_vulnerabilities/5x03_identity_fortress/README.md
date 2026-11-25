@@ -46,6 +46,8 @@ changements PAM et SSH, puis les tester depuis une deuxième session.
     limitation des essais, codes à usage unique et codes de secours.
 16. `18-ssh_mfa.sh` configure PAM et SSH pour imposer une clé publique et un
     code TOTP, avec validation et restauration des configurations en cas d'échec.
+17. `19-test_mfa.sh` contrôle les réglages PAM/SSH, le secret TOTP et teste que
+    la clé doit être présentée avant le second facteur.
 
 Exécuter les scripts qui modifient le système avec `sudo` dans la VM de
 laboratoire. Vérifier la syntaxe Bash avec `bash -n`.
