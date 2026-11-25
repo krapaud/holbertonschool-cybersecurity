@@ -35,13 +35,13 @@ printf '=== TOTP Setup for Current User ===\n\n'
 printf 'Running google-authenticator with secure defaults...\n\n'
 
 if ! google-authenticator \
-    --time-based \
-    --disallow-reuse \
-    --rate-limit=3 \
-    --rate-time=30 \
-    --window-size=3 \
-    --emergency-codes=5 \
-    --force; then
+    -t \
+    -d \
+    -r 3 \
+    -R 30 \
+    -w 3 \
+    -e 5 \
+    -f; then
     error 'Google Authenticator setup failed. Check the command output before retrying.'
 fi
 
