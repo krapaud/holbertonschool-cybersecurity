@@ -13,6 +13,8 @@ secrets, les dépendances et les contrôles d'exécution.
    construit l'image `devstream-vulnerable:latest` et affiche sa taille, son
    utilisateur configuré et les variables de base de données intégrées. Le
    build nécessite un daemon Docker actif.
+3. `2-inspect_history.sh` affiche l'historique des couches d'une image Docker
+   et retrouve les mots de passe inscrits dans les instructions `RUN` et `ENV`.
 
 Cette image contient volontairement des identifiants de démonstration et des
 configurations dangereuses. Ne pas l'utiliser hors du laboratoire.
