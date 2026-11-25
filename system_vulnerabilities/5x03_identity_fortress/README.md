@@ -42,6 +42,8 @@ changements PAM et SSH, puis les tester depuis une deuxième session.
     après rechargement échoue.
 14. `16-install_google_auth.sh` installe `libpam-google-authenticator` si
     nécessaire et vérifie l'emplacement du module PAM.
+15. `17-setup_user_totp.sh` crée le secret TOTP du compte courant, avec
+    limitation des essais, codes à usage unique et codes de secours.
 
 Exécuter les scripts qui modifient le système avec `sudo` dans la VM de
 laboratoire. Vérifier la syntaxe Bash avec `bash -n`.
