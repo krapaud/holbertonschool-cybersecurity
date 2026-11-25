@@ -47,7 +47,7 @@ if ! ssh-keygen -t ed25519 -a 100 -C "$key_comment" \
     error 'SSH key generation failed.'
 fi
 
-if ! chmod 600 "$private_key" || ! chmod 644 "$public_key"; then
+if ! chmod 600 $HOME/.ssh/id_ed25519 || ! chmod 644 "$public_key"; then
     error 'Could not set secure key permissions.'
 fi
 
