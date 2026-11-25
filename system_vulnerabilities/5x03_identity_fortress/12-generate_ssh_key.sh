@@ -51,7 +51,8 @@ if ! chmod 600 $HOME/.ssh/id_ed25519 || ! chmod 644 "$public_key"; then
     error 'Could not set secure key permissions.'
 fi
 
-fingerprint=$(ssh-keygen -lf "$public_key" -E sha256 | awk '{ print $2 }') || \
+fingerprint=$(ssh-keygen -lf $HOME/.ssh/id_ed25519.pub -E sha256 | \
+    awk '{ print $2 }') || \
     error 'Could not calculate the public key fingerprint.'
 
 printf '\nKey pair generated:\n'
