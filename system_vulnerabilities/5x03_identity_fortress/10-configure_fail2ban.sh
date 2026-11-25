@@ -13,7 +13,7 @@ if [ "$(id -u)" -ne 0 ]; then
     error 'Run this script with sudo to configure Fail2ban.'
 fi
 
-for command_name in awk apt-get cp dpkg-query fail2ban-client \
+for command_name in apt awk cp dpkg-query fail2ban-client \
     grep install mktemp rm systemctl; do
     command -v "$command_name" >/dev/null 2>&1 || \
         error "Required command not found: $command_name"
@@ -33,7 +33,7 @@ if dpkg-query -W -f='${db:Status-Status}' fail2ban 2>/dev/null | \
     grep -q '^installed$'; then
     printf '  fail2ban: Already installed\n'
 else
-    if ! DEBIAN_FRONTEND=noninteractive apt-get install -y fail2ban; then
+    if ! DEBIAN_FRONTEND=noninteractive apt install -y fail2ban; then
         error 'Could not install fail2ban.'
     fi
     printf '  fail2ban: Installed\n'
