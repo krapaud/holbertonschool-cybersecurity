@@ -40,6 +40,8 @@ changements PAM et SSH, puis les tester depuis une deuxième session.
 13. `14-disable_password_auth.sh` exige une connexion locale par clé avant de
     désactiver les mots de passe SSH et restaure la configuration si le test
     après rechargement échoue.
+14. `16-install_google_auth.sh` installe `libpam-google-authenticator` si
+    nécessaire et vérifie l'emplacement du module PAM.
 
 Exécuter les scripts qui modifient le système avec `sudo` dans la VM de
 laboratoire. Vérifier la syntaxe Bash avec `bash -n`.
