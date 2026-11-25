@@ -103,9 +103,8 @@ ssh_pubkey=$(ssh_setting pubkeyauthentication)
 ssh_pam=$(ssh_setting usepam)
 ssh_interactive=$(ssh_setting kbdinteractiveauthentication)
 ssh_methods=$(awk '$1 == "authenticationmethods" { $1 = ""; sub(/^[[:space:]]+/, ""); print; exit }' "$effective_ssh")
-expected_password_setting='PasswordAuthentication no'
 password_auth_disabled=0
-if grep -Fq "$expected_password_setting" "$ssh_config_file" && \
+if grep -Fq 'PasswordAuthentication no' "$ssh_config_file" && \
     [ "$ssh_password" = no ]; then
     password_auth_disabled=1
 fi
