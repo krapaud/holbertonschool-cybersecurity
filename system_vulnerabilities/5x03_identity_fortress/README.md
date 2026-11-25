@@ -33,6 +33,8 @@ changements PAM et SSH, puis les tester depuis une deuxième session.
    bannir une adresse après cinq échecs en dix minutes pendant une heure.
 10. `11-fail2ban_manage.sh` affiche l’état des jails, liste les IP bannies et
     permet de débannir une adresse de la jail SSH.
+11. `12-generate_ssh_key.sh` crée une paire ED25519, recommande une phrase de
+    passe et affiche l’empreinte et la clé publique.
 
 Exécuter les scripts qui modifient le système avec `sudo` dans la VM de
 laboratoire. Vérifier la syntaxe Bash avec `bash -n`.
