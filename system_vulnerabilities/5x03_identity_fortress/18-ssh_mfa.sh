@@ -60,10 +60,12 @@ effective_config=$temporary_directory/effective-config
 cp -a -- "$pam_file" "$old_pam" || error "Could not snapshot $pam_file."
 cp -a -- "$ssh_file" "$old_ssh" || error "Could not snapshot $ssh_file."
 if [ ! -e "$pam_backup" ]; then
-    cp -a -- "$pam_file" "$pam_backup" || error "Could not back up $pam_file."
+    cp /etc/pam.d/sshd /etc/pam.d/sshd.backup || \
+        error "Could not back up $pam_file."
 fi
 if [ ! -e "$ssh_backup" ]; then
-    cp -a -- "$ssh_file" "$ssh_backup" || error "Could not back up $ssh_file."
+    cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup || \
+        error "Could not back up $ssh_file."
 fi
 
 printf '=== SSH Multi-Factor Authentication ===\n\n'
