@@ -1,38 +1,16 @@
-# DevStream's "production" Dockerfile
-# DO NOT USE IN PRODUCTION (but they did...)
+# Image Python légère pour l'application DevStream.
+FROM python:3.11-slim
 
-FROM ubuntu:latest
+# Je crée un compte sans privilèges pour exécuter l'application.
+RUN useradd --create-home --uid 1000 appuser
 
-# Install everything we might need
-RUN apt-get update && apt-get install -y \
-    python3 \
-    python3-pip \
-    curl \
-    wget \
-    vim \
-    net-tools \
-    iputils-ping \
-    gcc \
-    make \
-    sudo
-
-# Set root password (for debugging)
-RUN echo 'root:devstream123' | chpasswd
-
-# Database credentials
-ENV DB_HOST=prod-db.devstream.internal
-ENV DB_USER=admin
-ENV DB_PASSWORD=Sup3rS3cr3t!Pr0d
-
-# Copy application
+# L'application et ses dépendances sont installées dans /app.
 WORKDIR /app
-COPY . /app
+COPY --chown=appuser:appuser app.py requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Install Python dependencies
-ENV PIP_BREAK_SYSTEM_PACKAGES=1
-RUN pip3 install -r requirements.txt
+# Le processus du conteneur s'exécute avec ce compte non-root.
+USER appuser
 
-# Run as root because it's easier
 EXPOSE 5000
-
-CMD ["python3", "app.py"]
+CMD ["python", "app.py"]

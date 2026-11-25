@@ -18,6 +18,10 @@ secrets, les dépendances et les contrôles d'exécution.
 4. `3-docker_bench.sh` lance Docker Bench Security pour auditer la configuration
    Docker de l'hôte et les images locales, puis conserve la sortie complète dans
    `docker-bench-report.txt`.
+5. `Dockerfile` utilise `python:3.11-slim`, crée `appuser` avec l'UID 1000 et
+   démarre l'application depuis `/app` sans privilèges root. Vérification prévue :
+   `docker build -t devstream-nonroot:v1 -f Dockerfile .`, puis
+   `docker run --rm devstream-nonroot:v1 id`.
 
 Cette image contient volontairement des identifiants de démonstration et des
 configurations dangereuses. Ne pas l'utiliser hors du laboratoire.
