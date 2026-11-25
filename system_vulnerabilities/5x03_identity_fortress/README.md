@@ -44,6 +44,8 @@ changements PAM et SSH, puis les tester depuis une deuxième session.
     nécessaire et vérifie l'emplacement du module PAM.
 15. `17-setup_user_totp.sh` crée le secret TOTP du compte courant, avec
     limitation des essais, codes à usage unique et codes de secours.
+16. `18-ssh_mfa.sh` configure PAM et SSH pour imposer une clé publique et un
+    code TOTP, avec validation et restauration des configurations en cas d'échec.
 
 Exécuter les scripts qui modifient le système avec `sudo` dans la VM de
 laboratoire. Vérifier la syntaxe Bash avec `bash -n`.
