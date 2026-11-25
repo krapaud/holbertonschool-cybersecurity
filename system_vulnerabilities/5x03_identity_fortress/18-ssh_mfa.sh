@@ -47,6 +47,15 @@ fi
 systemctl is-active --quiet "$ssh_service" || \
     error 'The SSH service is not active.'
 
+reload_ssh()
+{
+    if [ "$ssh_service" = ssh.service ]; then
+        systemctl reload ssh
+    else
+        systemctl reload sshd
+    fi
+}
+
 temporary_directory=$(mktemp -d) || \
     error 'Could not create a temporary directory.'
 trap 'rm -rf -- "$temporary_directory"' EXIT
@@ -122,7 +131,7 @@ restore_config()
 {
     install -o "$pam_owner" -g "$pam_group" -m "$pam_mode" "$old_pam" "$pam_file" || return 1
     install -o "$ssh_owner" -g "$ssh_group" -m "$ssh_mode" "$old_ssh" "$ssh_file" || return 1
-    sshd -t -f "$ssh_file" && systemctl reload "$ssh_service"
+    sshd -t -f "$ssh_file" && reload_ssh
 }
 
 printf '\nConfiguring %s...\n' "$pam_file"
@@ -163,7 +172,7 @@ printf '  sshd -t: OK\n'
 printf '  PAM syntax: OK (module rule verified)\n'
 
 printf '\nReloading SSH...\n'
-if ! systemctl reload "$ssh_service"; then
+if ! reload_ssh; then
     restore_config || true
     error 'SSH reload failed; previous configurations restored.'
 fi
