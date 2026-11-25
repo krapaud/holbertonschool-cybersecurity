@@ -40,7 +40,7 @@ fi
 
 # Je récupère le chemin du module à partir des fichiers réellement installés.
 if ! dpkg-query -L "$package_name" | \
-    grep -E '/pam_google_authenticator[.]so$' > "$module_list"; then
+    grep -E '/pam_google_authenticator\.so$' > "$module_list"; then
     error 'The package is installed, but the PAM module was not found.'
 fi
 
