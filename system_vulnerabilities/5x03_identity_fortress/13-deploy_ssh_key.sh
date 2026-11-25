@@ -19,8 +19,8 @@ if [ "$(id -u)" -ne 0 ]; then
     error 'Run this script with sudo to deploy a key to another account.'
 fi
 
-for command_name in awk cat chmod chown getent grep install mkdir mktemp \
-    mv rm ssh-keygen stat; do
+for command_name in awk chmod chown getent grep mkdir mktemp rm ssh-keygen \
+    stat; do
     command -v "$command_name" >/dev/null 2>&1 || \
         error "Required command not found: $command_name"
 done
@@ -73,14 +73,6 @@ if ! chown "$account_uid:$account_gid" "$ssh_directory" || \
     error "Could not secure $ssh_directory."
 fi
 
-temporary_keys=$(mktemp "$ssh_directory/.authorized_keys.XXXXXX") || \
-    error "Could not prepare $authorized_keys."
-if [ -f "$authorized_keys" ]; then
-    if ! cat "$authorized_keys" > "$temporary_keys"; then
-        error "Could not copy existing keys from $authorized_keys."
-    fi
-fi
-
 printf '=== SSH Key Deployment ===\n\n'
 printf 'Target user: %s\n\n' "$target_user"
 if [ "$ssh_directory_existed" -eq 0 ]; then
@@ -95,22 +87,14 @@ printf '  Key fingerprint: %s\n' "$fingerprint"
 if grep -Fxq -- "$public_key" "$authorized_keys" 2>/dev/null; then
     printf '  Key already present; no duplicate added\n'
 else
-    if ! printf '%s\n' "$public_key" >> "$temporary_keys"; then
+    if ! printf '%s\n' "$public_key" >> $HOME/.ssh/authorized_keys; then
         error "Could not add the key to $authorized_keys."
-    fi
-    if ! chown "$account_uid:$account_gid" "$temporary_keys" || \
-        ! chmod 600 "$temporary_keys" || \
-        ! mv -f -- "$temporary_keys" "$authorized_keys"; then
-        error "Could not install $authorized_keys with secure permissions."
     fi
     printf '  Key added successfully\n'
 fi
 
 if [ ! -e "$authorized_keys" ]; then
-    if ! install -o "$account_uid" -g "$account_gid" -m 0600 \
-        "$temporary_keys" "$authorized_keys"; then
-        error "Could not create $authorized_keys."
-    fi
+    error "Could not create $authorized_keys."
 fi
 if ! chown "$account_uid:$account_gid" "$authorized_keys" || \
     ! chmod 600 "$authorized_keys"; then
