@@ -28,6 +28,7 @@ interactive_users=$temporary_directory/interactive-users
 
 pam_quality=/etc/pam.d/common-password
 pam_sshd=/etc/pam.d/sshd
+ssh_config_file=/etc/ssh/sshd_config
 quality_config=/etc/security/pwquality.conf
 history_file=/etc/security/opasswd
 aging_config=/etc/login.defs
@@ -102,6 +103,12 @@ ssh_pubkey=$(ssh_setting pubkeyauthentication)
 ssh_pam=$(ssh_setting usepam)
 ssh_interactive=$(ssh_setting kbdinteractiveauthentication)
 ssh_methods=$(awk '$1 == "authenticationmethods" { $1 = ""; sub(/^[[:space:]]+/, ""); print; exit }' "$effective_ssh")
+expected_password_setting='PasswordAuthentication no'
+password_auth_disabled=0
+if grep -Fq "$expected_password_setting" "$ssh_config_file" && \
+    [ "$ssh_password" = no ]; then
+    password_auth_disabled=1
+fi
 totp_pam_rule=0
 if [ -r "$pam_sshd" ] && \
     grep -Eq '^[[:space:]]*auth[[:space:]]+required[[:space:]]+pam_google_authenticator[.]so' "$pam_sshd"; then
@@ -201,7 +208,7 @@ else
 fi
 
 printf '\nSSH Security:\n'
-if [ "$ssh_password" = no ]; then
+if [ "$password_auth_disabled" -eq 1 ]; then
     printf '  Password authentication: DISABLED\n'
 else
     printf '  Password authentication: ENABLED OR UNKNOWN\n'
@@ -236,7 +243,7 @@ if [ "$aging_max" = 90 ] && [ "$bad_aging_accounts" -eq 0 ]; then check_result '
 check_result 'PAM account lockout is active' "$faillock_active"
 if [ "$deny" = 5 ] && [ "$unlock_time" = 900 ] && [ "$fail_interval" = 900 ]; then check_result 'Lockout threshold and duration are configured' 1; else check_result 'Lockout threshold and duration are configured' 0; fi
 check_result 'Fail2ban SSH jail is active' "$fail2ban_active"
-if [ "$ssh_password" = no ]; then check_result 'SSH password authentication is disabled' 1; else check_result 'SSH password authentication is disabled' 0; fi
+check_result 'SSH password authentication is disabled' "$password_auth_disabled"
 if [ "$ssh_pubkey" = yes ]; then check_result 'SSH public-key authentication is enabled' 1; else check_result 'SSH public-key authentication is enabled' 0; fi
 check_result 'SSH requires public key and TOTP' "$mfa_active"
 if [ "$missing_totp" -eq 0 ]; then check_result 'All interactive users have protected TOTP files' 1; else check_result 'All interactive users have protected TOTP files' 0; fi
