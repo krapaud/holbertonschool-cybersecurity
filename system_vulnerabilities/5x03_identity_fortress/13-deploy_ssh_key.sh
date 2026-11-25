@@ -58,13 +58,14 @@ fingerprint=$(ssh-keygen -lf "$key_file" -E sha256 2>/dev/null | \
     awk '{ print $2; exit }')
 [ -n "$fingerprint" ] || error 'The supplied public key is invalid.'
 
-ssh_directory=$account_home/.ssh
+HOME=$account_home
+ssh_directory=$HOME/.ssh
 authorized_keys=$ssh_directory/authorized_keys
 ssh_directory_existed=1
 if [ ! -d "$ssh_directory" ]; then
     ssh_directory_existed=0
 fi
-if ! mkdir -p -- "$ssh_directory"; then
+if ! mkdir -p $HOME/.ssh; then
     error "Could not create $ssh_directory."
 fi
 if ! chown "$account_uid:$account_gid" "$ssh_directory" || \
