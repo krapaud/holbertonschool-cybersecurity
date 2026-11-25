@@ -1,0 +1,123 @@
+NOVATECH SOLUTIONS
+IDENTITY SECURITY POLICY
+
+Document owner: Chief Information Security Officer (CISO)
+Applies to: Employees, contractors, administrators, service accounts, and
+           systems managed by NovaTech Solutions
+Review frequency: At least annually and after a material security incident
+
+1. Purpose and scope
+--------------------
+This policy establishes minimum requirements for creating, authenticating,
+managing, and removing identities that access NovaTech systems and data.
+System owners must implement these controls and retain evidence of exceptions
+and reviews. Access must be assigned to named identities and follow least
+privilege.
+
+2. Password policy
+------------------
+- Passwords must be at least 12 characters long and contain at least one
+  uppercase letter, one lowercase letter, one digit, and one special character.
+- A password must not contain the account username and must differ from the
+  previous password by at least three characters.
+- The last five passwords must not be reused.
+- Passwords expire after 90 days. Users must wait at least one day between
+  changes and receive a warning 14 days before expiration.
+- Passwords must be unique to NovaTech accounts, kept confidential, and never
+  stored in plaintext or shared. Suspected compromise requires an immediate
+  reset and incident report.
+- Password aging defaults apply to new accounts. Account owners and system
+  administrators must ensure the same limits are applied to existing accounts.
+
+3. Account lockout policy
+-------------------------
+- PAM must lock an account after five failed authentication attempts within a
+  15-minute period.
+- The lockout lasts 15 minutes. Administrators may reset a lock only after
+  confirming the user's identity and checking for suspicious activity.
+- Fail2ban must protect SSH by banning an IP address after five failures within
+  ten minutes for one hour, where the service is deployed and supported.
+- Repeated lockouts or unusual authentication patterns must be reviewed and
+  escalated to the security team.
+
+4. SSH access policy
+--------------------
+- SSH access is limited to authorized users with a documented business need.
+- Public-key authentication using approved keys is required. ED25519 is the
+  preferred key type. Private keys must be protected with a passphrase and
+  owner-only permissions; public keys may be installed only after validation.
+- Password-based SSH authentication is disabled. Root login over SSH is
+  disabled. Administrators use named accounts and sudo for privileged actions.
+- SSH configuration changes must be backed up, validated with sshd -t, and
+  reloaded using the approved change process. Keep a separate recovery session
+  or console available when changing remote access controls.
+- Keys must be revoked promptly when access is no longer authorized or a key
+  may have been exposed.
+
+5. Multi-factor authentication requirements
+--------------------------------------------
+- SSH access to production and other designated sensitive systems requires
+  both a valid public key and a time-based one-time password (TOTP).
+- The SSH authentication sequence must require publickey followed by
+  keyboard-interactive authentication backed by PAM and
+  pam_google_authenticator.so.
+- TOTP secrets must be stored in the user's protected home directory with
+  owner-only permissions. The same TOTP code must not be reused. Apply rate
+  limiting of no more than three attempts in 30 seconds and a token window of
+  three time steps.
+- Users must securely store emergency scratch codes offline. They are
+  single-use credentials and must not be transmitted or recorded in tickets.
+- New users must enroll and verify TOTP before receiving access to systems that
+  require MFA. Lost or compromised factors must be revoked and replaced.
+- MFA exceptions require documented approval, a named owner, a narrow scope,
+  an expiry time, monitoring, and verified restoration. Password authentication
+  must not be enabled as an emergency shortcut.
+
+6. Account lifecycle
+--------------------
+Creation:
+- A manager or system owner must approve each account and its business purpose.
+- Provision a unique named account, verify the user's identity, assign only the
+  groups and privileges needed for the role, and record the owner and review
+  date. Shared human accounts are prohibited.
+- Deliver initial access through an approved secure channel. Require the user
+  to set a private password, deploy their own SSH public key where needed, and
+  enroll required MFA before access is granted.
+
+Modification:
+- Managers must request role or privilege changes through the approved access
+  process. The system owner approves the change and the administrator records
+  what changed and when.
+- Remove permissions that are no longer needed. Review privileged accounts,
+  SSH keys, and MFA enrollment at least quarterly and after role changes.
+- Service accounts must have a named owner, documented purpose, minimum
+  permissions, and a defined credential rotation and review process. They must
+  not be used for interactive human access unless explicitly approved.
+
+Termination:
+- On termination or contract end, disable interactive access promptly and no
+  later than the end of the user's authorized period. Revoke SSH keys, active
+  sessions, tokens, and other credentials; remove group and sudo privileges.
+- The manager and system owner must identify data or services requiring
+  transfer to a successor. Preserve records according to retention policy and
+  document completion of access removal.
+
+7. Emergency access procedures
+------------------------------
+Use the separate Identity and SSH MFA Emergency Access Procedure
+(20-emergency_procedures.txt) for lost devices, scratch-code recovery,
+temporary exceptions, or administrator recovery. Verify identity through an
+independent channel, obtain approval, prefer console access or a separately
+protected break-glass identity, retain SSH key authentication, set an expiry,
+and restore MFA immediately after recovery. Keep root SSH login disabled.
+Record approvals, operators, times, systems, actions, validation, and rollback
+in the approved incident system. Never record TOTP seeds or scratch-code values.
+
+8. Monitoring, exceptions, and compliance
+-----------------------------------------
+Authentication events, account changes, privileged actions, key changes, MFA
+recovery, and exceptions must be logged and protected from unauthorized
+alteration. The security team reviews relevant alerts and investigates
+unusual activity. Exceptions require written CISO or delegated approval and
+must be reviewed before expiry. Policy violations may result in access
+suspension and further action under company procedures.

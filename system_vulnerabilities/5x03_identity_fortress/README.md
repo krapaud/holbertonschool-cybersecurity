@@ -51,6 +51,8 @@ changements PAM et SSH, puis les tester depuis une deuxième session.
 18. `20-emergency_procedures.txt` décrit la récupération après perte du facteur,
     l’usage des codes de secours, les exceptions temporaires, le retour d’accès
     administrateur et les informations à conserver dans la piste d’audit.
+19. `21-identity_policy.txt` formalise les règles de mot de passe, verrouillage,
+    SSH, MFA, cycle de vie des comptes et accès d’urgence.
 
 Exécuter les scripts qui modifient le système avec `sudo` dans la VM de
 laboratoire. Vérifier la syntaxe Bash avec `bash -n`.
