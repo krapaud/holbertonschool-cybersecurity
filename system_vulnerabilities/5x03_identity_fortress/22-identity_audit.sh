@@ -103,6 +103,10 @@ ssh_pubkey=$(ssh_setting pubkeyauthentication)
 ssh_pam=$(ssh_setting usepam)
 ssh_interactive=$(ssh_setting kbdinteractiveauthentication)
 ssh_methods=$(awk '$1 == "authenticationmethods" { $1 = ""; sub(/^[[:space:]]+/, ""); print; exit }' "$effective_ssh")
+authentication_methods_configured=0
+if grep -Fq 'AuthenticationMethods publickey,keyboard-interactive' "$ssh_config_file"; then
+    authentication_methods_configured=1
+fi
 password_auth_disabled=0
 if grep -Fq 'PasswordAuthentication no' "$ssh_config_file" && \
     [ "$ssh_password" = no ]; then
@@ -217,7 +221,8 @@ if [ "$ssh_pubkey" = yes ]; then
 else
     printf '  Public key authentication: DISABLED OR UNKNOWN\n'
 fi
-if [ "$ssh_methods" = 'publickey,keyboard-interactive' ] && \
+if [ "$authentication_methods_configured" -eq 1 ] && \
+    [ "$ssh_methods" = 'publickey,keyboard-interactive' ] && \
     [ "$ssh_interactive" = yes ] && [ "$ssh_pam" = yes ] && [ "$totp_pam_rule" -eq 1 ]; then
     printf '  MFA required: ENABLED\n'
     mfa_active=1
@@ -244,7 +249,7 @@ if [ "$deny" = 5 ] && [ "$unlock_time" = 900 ] && [ "$fail_interval" = 900 ]; th
 check_result 'Fail2ban SSH jail is active' "$fail2ban_active"
 check_result 'SSH password authentication is disabled' "$password_auth_disabled"
 if [ "$ssh_pubkey" = yes ]; then check_result 'SSH public-key authentication is enabled' 1; else check_result 'SSH public-key authentication is enabled' 0; fi
-check_result 'SSH requires public key and TOTP' "$mfa_active"
+check_result 'SSH requires AuthenticationMethods publickey,keyboard-interactive and PAM TOTP' "$mfa_active"
 if [ "$missing_totp" -eq 0 ]; then check_result 'All interactive users have protected TOTP files' 1; else check_result 'All interactive users have protected TOTP files' 0; fi
 if [ "$expired_accounts" -eq 0 ]; then check_result 'No interactive accounts are past password age' 1; else check_result 'No interactive accounts are past password age' 0; fi
 
