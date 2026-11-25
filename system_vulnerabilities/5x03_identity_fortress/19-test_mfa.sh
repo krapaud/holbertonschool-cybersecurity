@@ -125,7 +125,7 @@ else
 fi
 
 printf '\nTest 4: SSH configuration check\n'
-if grep -Eq '^[[:space:]]*AuthenticationMethods[[:space:]]+publickey,keyboard-interactive([[:space:]]|$)' "$ssh_file" && \
+if grep -Fq 'AuthenticationMethods publickey,keyboard-interactive' "$ssh_file" && \
     [ "$auth_methods" = 'publickey,keyboard-interactive' ]; then
     printf '  AuthenticationMethods: %s ✓\n' "$auth_methods"
 else
