@@ -31,6 +31,8 @@ changements PAM et SSH, puis les tester depuis une deuxième session.
    d’un utilisateur et permet à l’administrateur de réinitialiser son compteur.
 9. `10-configure_fail2ban.sh` installe Fail2ban et configure le jail SSH pour
    bannir une adresse après cinq échecs en dix minutes pendant une heure.
+10. `11-fail2ban_manage.sh` affiche l’état des jails, liste les IP bannies et
+    permet de débannir une adresse de la jail SSH.
 
 Exécuter les scripts qui modifient le système avec `sudo` dans la VM de
 laboratoire. Vérifier la syntaxe Bash avec `bash -n`.
