@@ -70,6 +70,10 @@ new_config=$temporary_directory/sshd_config
 previous_config=$temporary_directory/sshd_config.previous
 cp -a -- "$config_file" "$previous_config" || \
     error "Could not prepare a rollback copy of $config_file."
+if [ ! -e /etc/ssh/sshd_config.backup ]; then
+    cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup || \
+        error 'Could not create the initial sshd_config backup.'
+fi
 cp -a -- "$config_file" "$backup_file" || \
     error "Could not back up $config_file."
 
