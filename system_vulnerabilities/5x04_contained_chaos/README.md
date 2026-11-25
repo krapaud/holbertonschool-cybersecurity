@@ -29,6 +29,9 @@ secrets, les dépendances et les contrôles d'exécution.
 7. `7-compare_sizes.sh` construit une image de comparaison avec `gcc` et `make`
    conservés, puis l'image multi-stage. Il affiche les tailles réelles, calcule
    la réduction et vérifie que Flask fonctionne sans les outils de compilation.
+8. Le `Dockerfile` installe `curl` pour le contrôle de santé et vérifie
+   `/health` toutes les 30 secondes, avec un délai de 10 secondes et trois
+   tentatives avant de déclarer le conteneur unhealthy.
 
 L'image vulnérable construite par l'exercice 1 contient volontairement des
 identifiants de démonstration et des configurations dangereuses. Ne pas

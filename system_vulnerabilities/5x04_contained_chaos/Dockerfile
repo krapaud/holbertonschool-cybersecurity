@@ -10,7 +10,10 @@ RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
 
 # Deuxième étape : l'image finale ne contient que Python et l'application.
 FROM python:3.11-slim AS runtime
-RUN useradd --create-home --uid 1000 appuser
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd --create-home --uid 1000 appuser
 WORKDIR /app
 COPY --from=builder /wheels /wheels
 COPY requirements.txt .
@@ -23,4 +26,6 @@ COPY --chown=appuser:appuser app.py ./app.py
 # Exemple : docker run -e DB_HOST=... -e DB_USER=... -e DB_PASSWORD=...
 USER appuser
 EXPOSE 5000
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+    CMD curl -f http://localhost:5000/health || exit 1
 CMD ["python", "app.py"]
