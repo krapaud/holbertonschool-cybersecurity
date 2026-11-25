@@ -105,12 +105,12 @@ printf '  Image: %s\n' "$image_name"
 printf '  Build: SUCCESS\n'
 
 # Je lis les métadonnées réelles de l'image au lieu d'inventer sa taille.
-image_size=$(docker image inspect --format '{{.Size}}' "$image_name") || \
+image_size=$(docker inspect --type=image --format '{{.Size}}' "$image_name") || \
     error 'Could not read image size.'
-image_user=$(docker image inspect --format \
+image_user=$(docker inspect --type=image --format \
     '{{if .Config.User}}{{.Config.User}}{{else}}root{{end}}' "$image_name") || \
     error 'Could not read the configured image user.'
-image_environment=$(docker image inspect --format \
+image_environment=$(docker inspect --type=image --format \
     '{{range .Config.Env}}{{println .}}{{end}}' "$image_name") || \
     error 'Could not read image environment variables.'
 
