@@ -79,6 +79,12 @@ cp -a -- "$config_file" "$backup_file" || \
 
 printf '\nBacking up sshd_config...\n'
 printf '  %s\n' "$backup_file"
+
+reload_ssh()
+{
+    systemctl reload ssh || systemctl reload sshd.service
+}
+
 if ! awk '
     BEGIN {
         print "PasswordAuthentication no"
@@ -115,7 +121,7 @@ restore_config()
 {
     install -o "$config_owner" -g "$config_group" -m "$config_mode" \
         "$previous_config" "$config_file"
-    sshd -t -f "$config_file" && systemctl reload "$ssh_service"
+    sshd -t -f "$config_file" && reload_ssh
 }
 
 effective_config=$temporary_directory/effective-config
@@ -136,7 +142,7 @@ printf '\nValidating configuration...\n'
 printf '  sshd -t: Configuration OK\n'
 
 printf '\nReloading SSH...\n'
-if ! systemctl reload "$ssh_service"; then
+if ! reload_ssh; then
     restore_config || true
     error 'SSH reload failed; previous config restored.'
 fi
