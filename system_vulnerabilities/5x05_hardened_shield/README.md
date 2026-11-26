@@ -36,8 +36,9 @@ protège les dossiers temporaires et certains fichiers, arrête des services
 inutiles, liste les fichiers SUID/SGID et écrit une bannière légale. Relancer
 le script ne duplique pas sa configuration.
 
-Le script retourne `1` s'il n'est pas lancé en root, `2` si l'inventaire
-SUID/SGID échoue, et `3` si l'écriture de la bannière échoue. Si Docker refuse
+Le script retourne `0` quand les étapes se terminent, `1` s'il n'est pas lancé
+en root, `2` si l'inventaire SUID/SGID échoue, et `3` si la bannière ne peut pas
+être écrite. Si Docker refuse
 un paramètre sysctl, un avertissement indique qu'il faut le régler avec Docker
 ou sur l'hôte. Le script ne change pas les montages.
 
