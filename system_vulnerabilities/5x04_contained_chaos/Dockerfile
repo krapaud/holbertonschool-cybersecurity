@@ -10,6 +10,11 @@ RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
 
 # Deuxième étape : l'image finale ne contient que Python et l'application.
 FROM python:3.11-slim AS runtime
+LABEL org.opencontainers.image.title="Secure Python Development Environment" \
+      org.opencontainers.image.description="Python 3.11 development image with least-privilege defaults" \
+      org.opencontainers.image.version="1.0" \
+      org.opencontainers.image.vendor="NovaTech Solutions"
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/* \
