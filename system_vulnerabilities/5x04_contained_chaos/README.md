@@ -36,6 +36,9 @@ secrets, les dépendances et les contrôles d'exécution.
    vérifie que `CapPrm` et `CapEff` sont nuls et attend une réponse valide sur
    `/health`. Le conteneur reste lancé après la vérification; définir
    `IMAGE_NAME` permet de choisir une autre image compatible.
+10. `11-run_readonly.sh` construit une image de vérification, démarre le
+    conteneur avec `--read-only` et monte `/tmp` ainsi que `/app/logs` en tmpfs.
+    Il vérifie les chemins bloqués, l'écriture temporaire et le fichier de log.
 
 L'image vulnérable construite par l'exercice 1 contient volontairement des
 identifiants de démonstration et des configurations dangereuses. Ne pas

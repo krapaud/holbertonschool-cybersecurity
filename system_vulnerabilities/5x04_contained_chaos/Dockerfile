@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
     && useradd --create-home --uid 1000 appuser
 WORKDIR /app
+RUN mkdir -p /app/logs && chown appuser:appuser /app/logs
 COPY --from=builder /wheels /wheels
 COPY requirements.txt .
 RUN pip install --no-cache-dir --no-index --find-links=/wheels \
@@ -24,6 +25,7 @@ COPY --chown=appuser:appuser app.py ./app.py
 
 # Les secrets sont fournis à l'exécution, jamais dans une couche de build.
 # Exemple : docker run -e DB_HOST=... -e DB_USER=... -e DB_PASSWORD=...
+ENV APP_LOG_FILE=/app/logs/app.log
 USER appuser
 EXPOSE 5000
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
