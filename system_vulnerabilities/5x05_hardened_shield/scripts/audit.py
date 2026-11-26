@@ -1,31 +1,35 @@
 #!/usr/bin/env python3
-"""Audit simple des exigences statiques de l'image The Hardened Shield."""
+"""Vérifie quelques éléments du Dockerfile du projet."""
 
 from pathlib import Path
 import json
 
 
-ROOT = Path(__file__).resolve().parents[1]
-DOCKERFILE = ROOT / "Dockerfile"
+DOSSIER_PROJET = Path(__file__).resolve().parents[1]
+DOCKERFILE = DOSSIER_PROJET / "Dockerfile"
 
 
 def main():
-    """Affiche les contrôles Dockerfile vérifiables sans privilèges."""
+    """Affiche les vérifications et retourne un code d'erreur si besoin."""
     content = DOCKERFILE.read_text(encoding="utf-8")
     checks = {
-        "Ubuntu 20.04 base": "FROM ubuntu:20.04" in content,
-        "Non-root application account": "useradd --system" in content,
-        "Nginx web server": "nginx" in content,
-        "OpenSSH server": "openssh-server" in content,
-        "Health check": "HEALTHCHECK" in content,
-        "OCI image labels": "org.opencontainers.image.title" in content,
-        "No embedded database password": "DB_PASSWORD=" not in content,
-        "Initialization scripts": all(
-            (ROOT / "scripts" / name).is_file()
+        "Image Ubuntu 20.04": "FROM ubuntu:20.04" in content,
+        "Compte applicatif non-root": "useradd --system" in content,
+        "Serveur Web Nginx": "nginx" in content,
+        "Serveur SSH": "openssh-server" in content,
+        "Contrôle de santé": "HEALTHCHECK" in content,
+        "Labels OCI": "org.opencontainers.image.title" in content,
+        "Pas de mot de passe dans le Dockerfile": "DB_PASSWORD=" not in content,
+        "Scripts présents": all(
+            (DOSSIER_PROJET / "scripts" / name).is_file()
             for name in ("init-hardening.sh", "init-identity.sh", "init-services.sh")
         ),
     }
-    report = {"checks": checks, "passed": sum(checks.values()), "total": len(checks)}
+    report = {
+        "verifications": checks,
+        "reussies": sum(checks.values()),
+        "total": len(checks),
+    }
     print(json.dumps(report, indent=2))
     return 0 if all(checks.values()) else 1
 

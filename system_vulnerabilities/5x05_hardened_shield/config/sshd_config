@@ -1,3 +1,4 @@
+ # SSH refuse root et les mots de passe. Il accepte les clés pour shieldadmin.
 Port 22
 AddressFamily any
 ListenAddress 0.0.0.0

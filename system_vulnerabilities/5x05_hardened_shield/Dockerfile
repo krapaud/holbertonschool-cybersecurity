@@ -1,4 +1,4 @@
-# Image de base Ubuntu LTS, pour garder les outils système connus des exercices.
+# Je pars d'Ubuntu 20.04, comme demandé dans les exercices.
 FROM ubuntu:20.04
 
 LABEL org.opencontainers.image.title="The Hardened Shield" \
@@ -11,8 +11,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8
 
-# Nginx sert de serveur Web; OpenSSH fournit l'administration distante.
-# Les modules PAM et Fail2ban apportent les contrôles d'identité appris.
+# J'installe Nginx pour le Web et OpenSSH pour l'administration.
+# J'ajoute PAM et Fail2ban pour les contrôles d'identité.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         ca-certificates \
@@ -41,7 +41,7 @@ RUN apt-get update \
 
 WORKDIR /opt/hardened-shield
 
-# Les scripts restent détenus par root et exécutables par l'entrypoint.
+# Les scripts appartiennent à root et sont rendus exécutables dans l'image.
 COPY --chown=root:root scripts/ /opt/hardened-shield/scripts/
 COPY --chown=root:root config/ /opt/hardened-shield/config/
 RUN install -o root -g root -m 0644 \
@@ -51,8 +51,7 @@ RUN install -o root -g root -m 0644 \
     && chmod 0755 /opt/hardened-shield/scripts/*.sh \
     && chmod 0755 /opt/hardened-shield/scripts/audit.py
 
-# Aucun mot de passe ni secret privé n'est incorporé à l'image.
-# Fournir les secrets au lancement via Docker secrets ou des fichiers montés.
+# Je ne copie aucun secret dans l'image. Les secrets sont fournis au lancement.
 EXPOSE 80 22
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
