@@ -3,7 +3,7 @@
 Image Docker de base pour les exercices du capstone: serveur Web Nginx,
 administration SSH par clé, modules PAM, Fail2ban et scripts d'initialisation.
 
-## Première étape: Dockerfile
+## Tâche 0: Dockerfile
 
 Le Dockerfile part d'Ubuntu 20.04 minimal, installe uniquement les composants
 nécessaires au service Web, SSH et aux politiques PAM. Nginx exécute ses workers
@@ -31,7 +31,33 @@ Contrôler le serveur Web sur `http://localhost:8080/health`. Le fichier monté
 clé, le conteneur démarre mais SSH n'accepte aucune connexion. En production,
 utiliser un secret Docker ou un orchestrateur de secrets.
 
-## Contenu
+## Tâche 1: durcissement système
+
+`scripts/init-hardening.sh` est idempotent et retourne un code non nul si un
+outil requis manque, si les permissions d'exécution sont insuffisantes ou si
+une écriture essentielle échoue. Il configure les paramètres sysctl réseau et
+noyau accessibles, règle `/tmp` et `/var/tmp` à `1777`, protège les fichiers
+d'authentification, arrête les services facultatifs connus, consigne les fichiers
+SUID/SGID détectés dans `/run/hardened-shield-suid-audit.txt`, puis installe la
+bannière d'accès dans `/etc/issue` et `/etc/issue.net`. Les refus sysctl liés
+aux capacités du conteneur et les montages temporaires sans `noexec` sont
+signalés comme avertissements afin que l'opérateur applique le contrôle à
+l'hôte ou au lancement Docker.
+
+Pour appliquer les protections de montage au démarrage, ajouter par exemple:
+
+```sh
+--tmpfs /tmp:rw,noexec,nosuid,nodev,size=64m \\
+--tmpfs /var/tmp:rw,noexec,nosuid,nodev,size=64m \\
+--tmpfs /dev/shm:rw,noexec,nosuid,nodev,size=64m
+```
+
+Les paramètres de noyau non modifiables depuis un conteneur doivent être
+explicitement passés au moteur Docker avec `--sysctl` ou définis sur l'hôte.
+L'audit SUID/SGID est volontairement consultatif: les fichiers système légitimes
+ne sont pas dépouillés automatiquement de leurs bits.
+
+## Fichiers du projet
 
 - `Dockerfile`: image Ubuntu 20.04, paquets réduits, comptes séparés,
   services, labels et HEALTHCHECK.
