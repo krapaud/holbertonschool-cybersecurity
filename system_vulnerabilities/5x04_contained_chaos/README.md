@@ -58,6 +58,13 @@ secrets, les dépendances et les contrôles d'exécution.
     Vérifications : `docker build -t secure-python-dev:v1 -f
     15-Dockerfile.securedev .`, puis lancer l'image avec `id`, `python
     --version` et `pylint --version`.
+15. `docker-compose.yml` fournit le service `dev` et construit cette image. Il
+    monte le code en lecture seule, rend la racine non modifiable, limite les
+    capacités et ressources, active `no-new-privileges` et utilise `/tmp`
+    temporaire pour les caches. Exemples : `docker-compose run --rm dev python
+    my_script.py`, `docker-compose run --rm dev pytest tests/`,
+    `docker-compose run --rm dev pylint my_module/` et
+    `docker-compose run --rm dev black --check .`.
 
 L'image vulnérable construite par l'exercice 1 contient volontairement des
 identifiants de démonstration et des configurations dangereuses. Ne pas

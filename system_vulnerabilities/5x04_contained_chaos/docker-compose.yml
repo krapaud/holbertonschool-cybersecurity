@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  dev:
+    image: secure-python-dev:v1
+    build:
+      context: .
+      dockerfile: 15-Dockerfile.securedev
+    working_dir: /workspace
+    user: "1000:1000"
+    init: true
+    read_only: true
+    volumes:
+      - ./:/workspace:ro
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=64m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: 1.0
+    pids_limit: 100
+    environment:
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTEST_ADDOPTS: "-p no:cacheprovider"
+      MYPY_CACHE_DIR: /tmp/mypy-cache
