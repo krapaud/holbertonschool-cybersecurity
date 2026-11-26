@@ -31,18 +31,18 @@ Contrôler le serveur Web sur `http://localhost:8080/health`. Le fichier monté
 clé, le conteneur démarre mais SSH n'accepte aucune connexion. En production,
 utiliser un secret Docker ou un orchestrateur de secrets.
 
-## Tâche 1: durcissement système
+## Tâche 1: script de durcissement système
 
-`scripts/init-hardening.sh` est idempotent et retourne un code non nul si un
-outil requis manque, si les permissions d'exécution sont insuffisantes ou si
-une écriture essentielle échoue. Il configure les paramètres sysctl réseau et
-noyau accessibles, règle `/tmp` et `/var/tmp` à `1777`, protège les fichiers
-d'authentification, arrête les services facultatifs connus, consigne les fichiers
-SUID/SGID détectés dans `/run/hardened-shield-suid-audit.txt`, puis installe la
-bannière d'accès dans `/etc/issue` et `/etc/issue.net`. Les refus sysctl liés
-aux capacités du conteneur et les montages temporaires sans `noexec` sont
-signalés comme avertissements afin que l'opérateur applique le contrôle à
-l'hôte ou au lancement Docker.
+Au démarrage, `scripts/init-hardening.sh` règle les paramètres sysctl, protège
+`/tmp`, `/var/tmp` et quelques fichiers sensibles, arrête certains services
+facultatifs, fait une liste des fichiers SUID/SGID et écrit la bannière légale
+dans `/etc/issue` et `/etc/issue.net`. Le script peut être relancé sans ajouter
+de nouvelles règles ni de nouvelles lignes.
+
+Le script retourne `1` s'il n'est pas lancé en root ou si l'écriture de la
+bannière échoue, et `2` si l'inventaire SUID/SGID échoue. Certains paramètres
+sysctl ne sont pas modifiables depuis un conteneur sans options Docker adaptées;
+le script affiche alors un avertissement. Il ne modifie pas les montages lui-même.
 
 Pour appliquer les protections de montage au démarrage, ajouter par exemple:
 
@@ -52,10 +52,10 @@ Pour appliquer les protections de montage au démarrage, ajouter par exemple:
 --tmpfs /dev/shm:rw,noexec,nosuid,nodev,size=64m
 ```
 
-Les paramètres de noyau non modifiables depuis un conteneur doivent être
-explicitement passés au moteur Docker avec `--sysctl` ou définis sur l'hôte.
-L'audit SUID/SGID est volontairement consultatif: les fichiers système légitimes
-ne sont pas dépouillés automatiquement de leurs bits.
+Les paramètres noyau refusés par Docker doivent être transmis avec `--sysctl`
+ou réglés sur l'hôte. La liste SUID/SGID est enregistrée dans
+`/run/hardened-shield-suid-audit.txt`; le script ne retire pas ces permissions
+automatiquement, car certains programmes système en ont besoin.
 
 ## Fichiers du projet
 
