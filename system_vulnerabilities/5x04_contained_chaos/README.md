@@ -18,10 +18,11 @@ secrets, les dépendances et les contrôles d'exécution.
 4. `3-docker_bench.sh` lance Docker Bench Security pour auditer la configuration
    Docker de l'hôte et les images locales, puis conserve la sortie complète dans
    `docker-bench-report.txt`.
-5. `Dockerfile` utilise `python:3.11-slim`, crée `appuser` avec l'UID 1000 et
-   démarre l'application depuis `/app` sans privilèges root. Vérification prévue :
-   `docker build -t devstream-nonroot:v1 -f Dockerfile .`, puis
-   `docker run --rm devstream-nonroot:v1 id`.
+5. `Dockerfile` utilise `python:3.11-slim`, crée `appuser` (UID/GID 1000) et
+   démarre l'application sans privilèges root. L'exercice 15 y ajoute aussi
+   `devuser` (UID/GID 1000), pip, venv, pylint, black, pytest et mypy; l'image
+   finale utilise `devuser`. Vérifier avec `docker build -t secure-python-dev:v1
+   -f Dockerfile .`, puis `docker run --rm secure-python-dev:v1 id`.
 6. `6-run_with_secrets.sh` demande les identifiants de base de données au
    lancement et les transmet à `devstream-nosecrets:v1` avec `docker run -e`.
    Les secrets ne sont pas intégrés au Dockerfile ni à l'image. En production,
