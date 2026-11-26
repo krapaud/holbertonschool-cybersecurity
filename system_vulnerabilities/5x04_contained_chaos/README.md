@@ -39,6 +39,9 @@ secrets, les dépendances et les contrôles d'exécution.
 10. `11-run_readonly.sh` construit une image de vérification, démarre le
     conteneur avec `--read-only` et monte `/tmp` ainsi que `/app/logs` en tmpfs.
     Il vérifie les chemins bloqués, l'écriture temporaire et le fichier de log.
+11. `12-run_limited.sh` démarre `devstream-limited` avec 256 Mo de mémoire,
+    sans swap, 0,5 CPU et un plafond de 50 processus. Il confirme les valeurs
+    effectives avec `docker inspect`.
 
 L'image vulnérable construite par l'exercice 1 contient volontairement des
 identifiants de démonstration et des configurations dangereuses. Ne pas
