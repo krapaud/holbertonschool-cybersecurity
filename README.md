@@ -10,6 +10,7 @@ holbertonschool-cybersecurity/
 ├── network_security/     # Réseaux, capture, périmètre et capstone
 ├── security_concepts/    # Concepts, contrôle d'accès, logs et défense
 ├── python_for_cyber/     # Python appliqué à la cybersécurité
+├── system_vulnerabilities/ # Vulnérabilités, correctifs, identité et conteneurs
 └── strategy_layer/       # Analyse et stratégie de sécurité
 ```
 
@@ -40,6 +41,18 @@ holbertonschool-cybersecurity/
 - `3x04_the_watchtower` : collecte, analyse, corrélation et détection dans les logs.
 - `3x05_incident_response` : premières étapes de réponse à incident.
 - `3x06_defensive_architect` : architecture et automatisation des contrôles défensifs.
+
+## System Vulnerabilities
+
+Les projets de cette partie couvrent l'analyse et le durcissement de systèmes,
+la gestion des identités, puis la sécurisation des conteneurs.
+
+- [`5x00_vulnerability_ecosystem`](system_vulnerabilities/5x00_vulnerability_ecosystem/README.md) : inventaire et analyse de vulnérabilités.
+- [`5x01_lifecycle_defense`](system_vulnerabilities/5x01_lifecycle_defense/README.md) : correctifs et cycle de vie des paquets.
+- [`5x02_bastion_host`](system_vulnerabilities/5x02_bastion_host/README.md) : durcissement d'un serveur Ubuntu.
+- [`5x03_identity_fortress`](system_vulnerabilities/5x03_identity_fortress/README.md) : PAM, mots de passe, SSH et MFA.
+- [`5x04_contained_chaos`](system_vulnerabilities/5x04_contained_chaos/README.md) : sécurité des images et conteneurs Docker.
+- [`5x05_hardened_shield`](system_vulnerabilities/5x05_hardened_shield/README.md) : capstone qui rassemble durcissement Linux, identité et sécurité Docker. Les premières tâches construisent l'image et appliquent les contrôles système.
 
 ## Python for Cybersecurity
 
