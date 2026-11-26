@@ -86,3 +86,4 @@ for file in /etc/issue /etc/issue.net; do
 done
 
 echo '[OK] Durcissement système terminé.'
+exit 0
