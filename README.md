@@ -6,12 +6,12 @@ Ce dépôt regroupe les travaux pratiques du parcours cybersécurité. Les modul
 
 ```text
 holbertonschool-cybersecurity/
-├── linux_security/       # Fondamentaux et durcissement Linux
-├── network_security/     # Réseaux, capture, périmètre et capstone
-├── security_concepts/    # Concepts, contrôle d'accès, logs et défense
-├── python_for_cyber/     # Python appliqué à la cybersécurité
-├── system_vulnerabilities/ # Vulnérabilités, correctifs, identité et conteneurs
-└── strategy_layer/       # Analyse et stratégie de sécurité
+├── linux_security/          # Fondamentaux, identité et durcissement Linux
+├── network_security/        # Réseaux, capture, périmètre et capstone
+├── security_concepts/       # Contrôle d'accès, logs et défense
+├── python_for_cyber/        # Python appliqué à la cybersécurité
+├── system_vulnerabilities/  # Vulnérabilités, correctifs, identité et conteneurs
+└── strategy_layer/          # Analyse métier et stratégie de sécurité
 ```
 
 ## Linux Security
@@ -22,6 +22,7 @@ holbertonschool-cybersecurity/
 - `1x03_system_visibility` : visibilité et journalisation système.
 - `1x04_security_automation` : automatisation des contrôles de sécurité.
 - `1x05_hardening` : durcissement d'un système Linux.
+- `1x06_vulnerability_analysis` : évaluation de vulnérabilités et analyse de risques.
 
 ## Network Security
 
@@ -44,9 +45,10 @@ holbertonschool-cybersecurity/
 
 ## System Vulnerabilities
 
-Les projets de cette partie couvrent l'analyse et le durcissement de systèmes,
-la gestion des identités, puis la sécurisation des conteneurs.
+Les projets couvrent l'analyse de vulnérabilités, la gestion des correctifs,
+le durcissement Linux, l'identité et la sécurisation des conteneurs.
 
+- `0x00_vulnerability_ecosystem` : dossier d'analyse de vulnérabilités présent dans le dépôt.
 - [`5x00_vulnerability_ecosystem`](system_vulnerabilities/5x00_vulnerability_ecosystem/README.md) : inventaire et analyse de vulnérabilités.
 - [`5x01_lifecycle_defense`](system_vulnerabilities/5x01_lifecycle_defense/README.md) : correctifs et cycle de vie des paquets.
 - [`5x02_bastion_host`](system_vulnerabilities/5x02_bastion_host/README.md) : durcissement d'un serveur Ubuntu.
@@ -66,6 +68,18 @@ Le premier projet contient notamment :
 - `requirements.txt` : dépendances Python.
 - `.gitignore` : fichiers exclus du versionnement.
 - `venv/` : environnement virtuel local, non versionné.
+
+Autres projets Python présents dans le dépôt:
+
+- [`4x01_log_alchemist`](python_for_cyber/4x01_log_alchemist/README.md) : analyse et détection dans les journaux.
+- [`4x02_network_probing`](python_for_cyber/4x02_network_probing/README.md) : sondage réseau local autorisé avec Python.
+- [`4x03_IntelBroker`](python_for_cyber/4x03_IntelBroker/README.md) : enrichissement d'adresses IP avec des données de renseignement simulées.
+- [`4x04_network_sniffer`](python_for_cyber/4x04_network_sniffer/README.md) : capture et analyse de paquets avec Scapy.
+
+## Strategy Layer
+
+[`strategy_layer`](strategy_layer/README.md) traite l'analyse des causes
+profondes d'un incident et les décisions métier qui influencent la sécurité.
 
 ## Conventions générales
 
