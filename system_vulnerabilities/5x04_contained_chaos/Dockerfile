@@ -39,7 +39,7 @@ ENV PATH="/opt/venv/bin:${PATH}"
 WORKDIR /workspace
 
 # Les secrets sont fournis à l'exécution, jamais dans une couche de build.
-# Exemple : docker run -e DB_HOST=... -e DB_USER=... -e DB_PASSWORD=...
+# Exemple : transmettre les identifiants via un gestionnaire de secrets au lancement.
 ENV APP_LOG_FILE=/app/logs/app.log
 USER devuser
 EXPOSE 5000

@@ -21,7 +21,9 @@ secrets, les dépendances et les contrôles d'exécution.
 5. `Dockerfile` utilise `python:3.11-slim`, crée `appuser` (UID/GID 1000) et
    démarre l'application sans privilèges root. L'exercice 15 y ajoute aussi
    `devuser` (UID/GID 1000), pip, venv, pylint, black, pytest et mypy; l'image
-   finale utilise `devuser` et contient les métadonnées OCI. Vérifier avec
+   finale utilise `devuser`, contient les métadonnées OCI et ne stocke aucun
+   secret; ceux-ci sont transmis au lancement par un gestionnaire dédié.
+   Vérifier avec
    `docker build -t secure-python-dev:v1
    -f Dockerfile .`, puis `docker run --rm secure-python-dev:v1 id`.
 6. `6-run_with_secrets.sh` demande les identifiants de base de données au
