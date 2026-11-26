@@ -48,6 +48,12 @@ secrets, les dépendances et les contrôles d'exécution.
 13. `14-design_document.md` décrit l'image Python, les outils de développement,
     l'utilisateur non-root, les montages, les mesures de sécurité et le
     workflow destiné aux développeurs.
+14. `15-Dockerfile.securedev` construit l'environnement Python 3.11 avec pip,
+    venv, pylint, black, pytest et mypy. Il utilise `devuser` (UID/GID 1000),
+    des labels OCI, un contrôle de santé et n'intègre aucun secret.
+    Vérifications : `docker build -t secure-python-dev:v1 -f
+    15-Dockerfile.securedev .`, puis lancer l'image avec `id`, `python
+    --version` et `pylint --version`.
 
 L'image vulnérable construite par l'exercice 1 contient volontairement des
 identifiants de démonstration et des configurations dangereuses. Ne pas

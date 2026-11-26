@@ -1,0 +1,34 @@
+# Image légère pour développer et vérifier des projets Python 3.11.
+FROM python:3.11-slim
+
+LABEL org.opencontainers.image.title="Secure Python Development Environment" \
+      org.opencontainers.image.description="Minimal Python 3.11 image with standard development tools" \
+      org.opencontainers.image.version="1.0" \
+      org.opencontainers.image.vendor="NovaTech Solutions"
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+# L'image n'a besoin que des outils Python, installés sans cache pip.
+RUN python -m pip install --no-cache-dir \
+    pylint \
+    black \
+    pytest \
+    mypy \
+    && python -m venv /opt/venv \
+    && useradd --create-home --uid 1000 --user-group devuser \
+    && mkdir -p /workspace /tmp/health \
+    && chown devuser:devuser /workspace /tmp/health \
+    && chmod 0755 /opt/venv
+
+ENV PATH="/opt/venv/bin:${PATH}"
+
+WORKDIR /workspace
+USER devuser
+
+# Aucun secret n'est copié dans l'image; les projets sont montés à l'exécution.
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+    CMD python -c "import sys; sys.exit(0 if sys.version_info[:2] == (3, 11) else 1)"
+
+CMD ["python", "--version"]
