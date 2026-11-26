@@ -32,6 +32,10 @@ secrets, les dépendances et les contrôles d'exécution.
 8. Le `Dockerfile` installe `curl` pour le contrôle de santé et vérifie
    `/health` toutes les 30 secondes, avec un délai de 10 secondes et trois
    tentatives avant de déclarer le conteneur unhealthy.
+9. `10-run_minimal_caps.sh` lance `devstream-health:v1` avec `--cap-drop ALL`,
+   vérifie que `CapPrm` et `CapEff` sont nuls et attend une réponse valide sur
+   `/health`. Le conteneur reste lancé après la vérification; définir
+   `IMAGE_NAME` permet de choisir une autre image compatible.
 
 L'image vulnérable construite par l'exercice 1 contient volontairement des
 identifiants de démonstration et des configurations dangereuses. Ne pas
