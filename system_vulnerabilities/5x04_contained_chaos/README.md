@@ -73,6 +73,10 @@ secrets, les dépendances et les contrôles d'exécution.
 17. `18-security_guidelines.md` définit les règles de Dockerfile, les images de
     base approuvées, la gestion des secrets, les exigences d'exécution, les
     audits et le processus de demande d'exception pour l'équipe DevStream.
+18. `19-implementation_report.md` récapitule l'état initial, les corrections,
+    les protections ajoutées, les livrables et les recommandations. Il
+    distingue les scores de référence de l'exercice des mesures qui restent à
+    collecter avec Docker Bench.
 
 L'image vulnérable construite par l'exercice 1 contient volontairement des
 identifiants de démonstration et des configurations dangereuses. Ne pas
