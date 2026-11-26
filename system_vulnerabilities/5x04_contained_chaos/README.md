@@ -45,6 +45,9 @@ secrets, les dépendances et les contrôles d'exécution.
 12. `13-run_secure.sh` lance l'application avec `no-new-privileges`, seccomp,
     zéro capacité, un système de fichiers en lecture seule et l'utilisateur
     `appuser`. Il vérifie l'état `NoNewPrivs`, le mode seccomp et l'utilisateur.
+13. `14-design_document.md` décrit l'image Python, les outils de développement,
+    l'utilisateur non-root, les montages, les mesures de sécurité et le
+    workflow destiné aux développeurs.
 
 L'image vulnérable construite par l'exercice 1 contient volontairement des
 identifiants de démonstration et des configurations dangereuses. Ne pas
