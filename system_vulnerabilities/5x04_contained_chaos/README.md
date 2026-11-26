@@ -65,6 +65,11 @@ secrets, les dépendances et les contrôles d'exécution.
     my_script.py`, `docker-compose run --rm dev pytest tests/`,
     `docker-compose run --rm dev pylint my_module/` et
     `docker-compose run --rm dev black --check .`.
+16. `17-final_audit.sh` lance Docker Bench sur l'hôte et l'inventaire local,
+    résume les résultats observés et enregistre le rapport dans
+    `17-final-audit-report.txt`. Docker Bench ne calcule pas de score isolé
+    pour chaque image; une comparaison stricte demande des rapports recueillis
+    sur des hôtes isolés.
 
 L'image vulnérable construite par l'exercice 1 contient volontairement des
 identifiants de démonstration et des configurations dangereuses. Ne pas
