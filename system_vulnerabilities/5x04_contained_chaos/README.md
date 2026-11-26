@@ -42,6 +42,9 @@ secrets, les dépendances et les contrôles d'exécution.
 11. `12-run_limited.sh` démarre `devstream-limited` avec 256 Mo de mémoire,
     sans swap, 0,5 CPU et un plafond de 50 processus. Il confirme les valeurs
     effectives avec `docker inspect`.
+12. `13-run_secure.sh` lance l'application avec `no-new-privileges`, seccomp,
+    zéro capacité, un système de fichiers en lecture seule et l'utilisateur
+    `appuser`. Il vérifie l'état `NoNewPrivs`, le mode seccomp et l'utilisateur.
 
 L'image vulnérable construite par l'exercice 1 contient volontairement des
 identifiants de démonstration et des configurations dangereuses. Ne pas
