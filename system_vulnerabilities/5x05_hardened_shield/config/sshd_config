@@ -14,4 +14,5 @@ X11Forwarding no
 AllowTcpForwarding no
 MaxAuthTries 3
 LoginGraceTime 30
+Banner /etc/issue.net
 Subsystem sftp /usr/lib/openssh/sftp-server
