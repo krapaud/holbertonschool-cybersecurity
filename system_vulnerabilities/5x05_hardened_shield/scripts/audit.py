@@ -47,7 +47,16 @@ def directive(chemin, cle):
 
 
 def sysctl(nom):
-    """Lit un paramètre noyau dans /proc/sys."""
+    """Lit un paramètre noyau avec sysctl, puis dans /proc/sys si besoin."""
+    try:
+        resultat = subprocess.run(
+            ["sysctl", "-n", nom], capture_output=True, text=True, check=False
+        )
+        if resultat.returncode == 0:
+            return resultat.stdout.strip()
+    except OSError:
+        pass
+
     chemin = Path("/proc/sys") / nom.replace(".", "/")
     return lire(chemin)
 
@@ -310,6 +319,13 @@ def check_container_security():
         "Container security", "no-new-privileges actif",
         no_new_privs is not None and no_new_privs.group(1) == "1",
         no_new_privs.group(1) if no_new_privs else "indisponible",
+    )
+
+    seccomp = re.search(r"(?m)^Seccomp:\s*(\d+)", status)
+    ajouter(
+        "Container security", "Filtre Seccomp actif",
+        seccomp is not None and seccomp.group(1) == "2",
+        seccomp.group(1) if seccomp else "indisponible",
     )
 
     options = options_montage("/")
