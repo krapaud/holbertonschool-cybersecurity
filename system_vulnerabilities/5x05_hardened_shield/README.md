@@ -128,9 +128,9 @@ sont vérifiées sur l'environnement d'exécution.
 - `scripts/init-identity.sh`: configure PAM, faillock, SSH et verrouille root.
 - `scripts/init-services.sh`: applique les préparations, démarre SSH et Nginx,
   puis contrôle leurs réponses.
-- `scripts/audit.py`: vérifie les contrôles actifs et produit
-  `audit_result.md`.
-- `audit_result.md`: emplacement du rapport Markdown généré par l'audit.
+- `scripts/audit.py`: vérifie les contrôles actifs et produit le rapport
+  `audit_result.md` à la racine du projet et dans le dossier `scripts/`.
+- `audit_result.md`: rapport Markdown généré par l'audit.
 
 Ce README sera complété à chaque tâche avec les contrôles, les commandes
 d'utilisation et les résultats observés.
