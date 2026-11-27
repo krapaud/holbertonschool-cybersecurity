@@ -54,7 +54,7 @@ le durcissement Linux, l'identité et la sécurisation des conteneurs.
 - [`5x02_bastion_host`](system_vulnerabilities/5x02_bastion_host/README.md) : durcissement d'un serveur Ubuntu.
 - [`5x03_identity_fortress`](system_vulnerabilities/5x03_identity_fortress/README.md) : PAM, mots de passe, SSH et MFA.
 - [`5x04_contained_chaos`](system_vulnerabilities/5x04_contained_chaos/README.md) : sécurité des images et conteneurs Docker.
-- [`5x05_hardened_shield`](system_vulnerabilities/5x05_hardened_shield/README.md) : capstone qui rassemble durcissement Linux, identité et sécurité Docker. Les premières tâches construisent l'image et appliquent les contrôles système.
+- [`5x05_hardened_shield`](system_vulnerabilities/5x05_hardened_shield/README.md) : capstone qui rassemble durcissement Linux, politiques PAM, verrouillage des comptes, sécurité SSH et sécurité Docker.
 
 ## Python for Cybersecurity
 

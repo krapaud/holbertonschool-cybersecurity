@@ -55,13 +55,34 @@ l'hôte. La liste SUID/SGID se trouve dans
 `/run/hardened-shield-suid-audit.txt`. Je ne supprime pas ces permissions
 automatiquement, car certains programmes en ont besoin.
 
+## Tâche 2: script de durcissement de l'identité
+
+`scripts/init-identity.sh` configure les règles PAM de mot de passe (12
+caractères minimum, catégories de caractères, historique des cinq derniers
+mots de passe), le verrouillage après cinq échecs et les directives SSH.
+L'accès SSH est limité à `shieldadmin`, les mots de passe SSH et la connexion
+root sont désactivés, et le mot de passe du compte root est verrouillé.
+La clé publique montée dans `/run/secrets/authorized_keys` est aussi installée
+avec des permissions privées au démarrage.
+
+Les fichiers PAM, SSH et les réglages pwquality/faillock déjà présents sont
+sauvegardés avec le suffixe `.backup` avant leur première modification. Le
+script peut être relancé: il remplace les règles qu'il gère et conserve les
+autres réglages. Les paramètres appliqués se trouvent dans
+`/etc/security/pwquality.conf` et `/etc/security/faillock.conf`.
+
+Le script retourne `0` si les réglages sont installés et vérifiés, `1` s'il
+n'est pas lancé en root ou si une commande manque, `2` si un fichier ou le
+module PAM faillock est absent, `3` si une sauvegarde ou une modification
+échoue, et `4` si la vérification finale échoue.
+
 ## Fichiers du projet
 
 - `Dockerfile`: construit l'image et copie les scripts.
 - `config/nginx.conf`: configuration du serveur Web.
 - `config/sshd_config`: configuration du serveur SSH.
 - `scripts/init-hardening.sh`: applique les réglages système disponibles.
-- `scripts/init-identity.sh`: installe la clé publique et vérifie SSH.
+- `scripts/init-identity.sh`: configure PAM, faillock, SSH et verrouille root.
 - `scripts/init-services.sh`: prépare le conteneur et démarre les services.
 - `scripts/audit.py`: vérifie quelques exigences du Dockerfile.
 
