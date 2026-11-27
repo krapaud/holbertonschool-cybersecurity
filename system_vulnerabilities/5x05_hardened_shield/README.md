@@ -31,6 +31,27 @@ Ouvrir `http://localhost:8080/health` pour vérifier Nginx. Le fichier
 conteneur démarre mais il n'est pas possible de se connecter en SSH. Pour un
 vrai déploiement, fournir la clé avec Docker Secrets ou un outil équivalent.
 
+## Démarrer avec Docker Compose
+
+Le fichier `docker-compose.yml` publie les ports 80 et 22, limite la mémoire,
+le CPU et le nombre de processus, retire les capabilities par défaut et
+active `no-new-privileges`. Il monte la clé publique de l’hôte en lecture
+seule, conserve les journaux Nginx dans un volume et protège les dossiers
+temporaires avec `noexec`, `nosuid` et `nodev`.
+
+Indiquer le chemin du fichier de clés avant le démarrage, puis lancer le
+conteneur en arrière-plan:
+
+```sh
+cd system_vulnerabilities/5x05_hardened_shield
+export AUTHORIZED_KEYS_FILE="$HOME/.ssh/authorized_keys"
+docker compose up --build -d
+docker compose ps
+```
+
+Arrêter le conteneur avec `docker compose down`. Les ports hôte 80 et 22
+doivent être libres.
+
 ## Tâche 1: script de durcissement système
 
 Au démarrage, `scripts/init-hardening.sh` applique les réglages sysctl permis,
@@ -115,13 +136,14 @@ python3 /opt/hardened-shield/scripts/audit.py
 
 Un autre chemin de sortie peut être fourni avec `--output chemin.md`. Le code
 de sortie est `0` si tous les contrôles passent, `1` si au moins un contrôle
-échoue, et `2` si le rapport ne peut pas être écrit. Les options de lancement
-Les options Docker, comme les capabilities et les montages en lecture seule,
-sont vérifiées sur l'environnement d'exécution.
+échoue, et `2` si le rapport ne peut pas être écrit. Les options Docker,
+comme les capabilities et les montages en lecture seule, sont vérifiées au
+moment de l'exécution.
 
 ## Fichiers du projet
 
 - `Dockerfile`: construit l'image et copie les scripts.
+- `docker-compose.yml`: publie les ports et applique les limites runtime.
 - `config/nginx.conf`: configuration du serveur Web.
 - `config/sshd_config`: configuration du serveur SSH.
 - `scripts/init-hardening.sh`: applique les réglages système disponibles.
