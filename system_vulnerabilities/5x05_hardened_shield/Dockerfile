@@ -61,8 +61,6 @@ RUN install -o root -g root -m 0644 \
     && chmod 0755 /opt/hardened-shield/scripts/audit.py \
     && ssh-keygen -q -t ed25519 -N '' \
         -f /run/ssh-host-keys/ssh_host_ed25519_key \
-    && ssh-keygen -q -t rsa -b 3072 -N '' \
-        -f /run/ssh-host-keys/ssh_host_rsa_key \
     && /opt/hardened-shield/scripts/init-hardening.sh \
     && /opt/hardened-shield/scripts/init-identity.sh \
     && rm -f /run/ssh-host-keys/* \
