@@ -105,11 +105,47 @@ def processus_non_root(nom_voulu):
 def resultat_kernel():
     """Vérifie les protections noyau configurées par le script système."""
     regles = {
+        "Routage IPv4 désactivé": ("net.ipv4.ip_forward", "0"),
         "Redirections IPv4 désactivées": ("net.ipv4.conf.all.accept_redirects", "0"),
+        "Redirections IPv4 par défaut désactivées": (
+            "net.ipv4.conf.default.accept_redirects", "0"
+        ),
+        "Envoi de redirections IPv4 désactivé": (
+            "net.ipv4.conf.all.send_redirects", "0"
+        ),
+        "Envoi de redirections IPv4 par défaut désactivé": (
+            "net.ipv4.conf.default.send_redirects", "0"
+        ),
         "Filtrage de route IPv4 activé": ("net.ipv4.conf.all.rp_filter", "1"),
+        "Filtrage de route IPv4 par défaut activé": (
+            "net.ipv4.conf.default.rp_filter", "1"
+        ),
         "SYN cookies activés": ("net.ipv4.tcp_syncookies", "1"),
+        "Source routing IPv4 désactivé": (
+            "net.ipv4.conf.all.accept_source_route", "0"
+        ),
+        "Source routing IPv4 par défaut désactivé": (
+            "net.ipv4.conf.default.accept_source_route", "0"
+        ),
+        "ICMP broadcast ignoré": ("net.ipv4.icmp_echo_ignore_broadcasts", "1"),
+        "Paquets martiens journalisés": ("net.ipv4.conf.all.log_martians", "1"),
+        "Paquets martiens par défaut journalisés": (
+            "net.ipv4.conf.default.log_martians", "1"
+        ),
+        "Redirections IPv6 désactivées": ("net.ipv6.conf.all.accept_redirects", "0"),
+        "Redirections IPv6 par défaut désactivées": (
+            "net.ipv6.conf.default.accept_redirects", "0"
+        ),
+        "Source routing IPv6 désactivé": (
+            "net.ipv6.conf.all.accept_source_route", "0"
+        ),
+        "Source routing IPv6 par défaut désactivé": (
+            "net.ipv6.conf.default.accept_source_route", "0"
+        ),
+        "Routage IPv6 désactivé": ("net.ipv6.conf.all.forwarding", "0"),
         "Randomisation mémoire activée": ("kernel.randomize_va_space", "2"),
         "Pointeurs noyau masqués": ("kernel.kptr_restrict", "2"),
+        "Accès aux logs noyau restreint": ("kernel.dmesg_restrict", "1"),
         "Dumps SUID désactivés": ("fs.suid_dumpable", "0"),
     }
     for nom, (cle, attendu) in regles.items():
