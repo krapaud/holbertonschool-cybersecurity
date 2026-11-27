@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Security audit checks: kernel hardening, filesystem, identity, services,
-and container security. check_kernel_hardening uses sysctl -n to check kernel
+and container security. check_kernel_hardening uses sysctl -a to check kernel
 settings. The audit calculates category scores and overall PASS/FAIL status,
 then writes formatted results to a Markdown report.
 """
@@ -15,7 +15,22 @@ import textwrap
 
 
 def check_kernel_hardening():
-    """Check kernel hardening sysctl settings."""
+    """Check kernel hardening settings from sysctl -a."""
+    kernel_values = {}
+    try:
+        result = subprocess.run(
+            ["sysctl", "-a"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        for line in result.stdout.splitlines():
+            key, separator, value = line.partition("=")
+            if separator:
+                kernel_values[key.strip()] = value.strip()
+    except OSError:
+        pass
+
     kernel_rules = {
         "IPv4 forwarding disabled": ("net.ipv4.ip_forward", "0"),
         "IPv4 redirects disabled": ("net.ipv4.conf.all.accept_redirects", "0"),
@@ -67,18 +82,19 @@ def check_kernel_hardening():
         "SUID core dumps disabled": ("fs.suid_dumpable", "0"),
     }
     for name, (key, expected) in kernel_rules.items():
-        actual = ""
-        try:
-            result = subprocess.run(
-                ["sysctl", "-n", key],
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            if result.returncode == 0:
-                actual = result.stdout.strip()
-        except OSError:
-            pass
+        actual = kernel_values.get(key, "")
+        if not actual:
+            try:
+                result = subprocess.run(
+                    ["sysctl", "-n", key],
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                if result.returncode == 0:
+                    actual = result.stdout.strip()
+            except OSError:
+                pass
         if not actual:
             sysctl_file = Path("/proc/sys") / key.replace(".", "/")
             try:
