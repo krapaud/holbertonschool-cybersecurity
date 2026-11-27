@@ -308,11 +308,26 @@ def faire_rapport():
         succes = sum(r["ok"] for r in resultats)
         score = round(succes * 100 / len(resultats)) if resultats else 0
         lignes.extend([f"## {categorie}: {score}% ({succes}/{len(resultats)})", ""])
-        lignes.extend(["| Contrôle | Résultat | Détail |", "|---|---|---|"])
+        table = [("Contrôle", "Résultat", "Détail")]
         for resultat in resultats:
             marque = "PASS" if resultat["ok"] else "FAIL"
             detail = resultat["detail"].replace("|", "\\|").replace("\n", " ")
-            lignes.append(f"| {resultat['nom']} | {marque} | {detail} |")
+            table.append((resultat["nom"], marque, detail))
+        largeurs = [max(len(row[index]) for row in table) for index in range(3)]
+        lignes.append(
+            "| " + " | ".join(
+                table[0][index].ljust(largeurs[index]) for index in range(3)
+            ) + " |"
+        )
+        lignes.append(
+            "| " + " | ".join("-" * largeur for largeur in largeurs) + " |"
+        )
+        for row in table[1:]:
+            lignes.append(
+                "| " + " | ".join(
+                    row[index].ljust(largeurs[index]) for index in range(3)
+                ) + " |"
+            )
         lignes.append("")
 
     lignes.extend([
