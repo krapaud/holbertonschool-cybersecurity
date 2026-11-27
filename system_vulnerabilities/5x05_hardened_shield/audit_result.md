@@ -1,10 +1,10 @@
-# Hardened Shield: rapport d'audit
+# Hardened Shield Security Audit
 
-- Date: 2026-11-27 09:32:49 UTC
-- Résultat global: **FAIL**
+- Date: 2026-11-27 09:49:43 UTC
+- Overall status: **FAIL**
 - Score: **42%** (23/55)
 
-## Scores par catégorie
+## Category scores
 
 - Kernel hardening: **45%** (10/22)
 - Filesystem security: **29%** (2/7)
@@ -12,80 +12,80 @@
 - Service security: **20%** (1/5)
 - Container security: **43%** (3/7)
 
-## Détails des contrôles
+## Check details
 
 ### Kernel hardening: 45% (10/22)
 
-- [FAIL] Routage IPv4 désactivé: 1
-- [PASS] Redirections IPv4 désactivées: 0
-- [FAIL] Redirections IPv4 par défaut désactivées: 1
-- [FAIL] Envoi de redirections IPv4 désactivé: 1
-- [FAIL] Envoi de redirections IPv4 par défaut désactivé: 1
-- [FAIL] Filtrage de route IPv4 activé: 0
-- [FAIL] Filtrage de route IPv4 par défaut activé: 0
-- [PASS] SYN cookies activés: 1
-- [PASS] Source routing IPv4 désactivé: 0
-- [FAIL] Source routing IPv4 par défaut désactivé: 1
-- [PASS] ICMP broadcast ignoré: 1
-- [FAIL] Paquets martiens journalisés: 0
-- [FAIL] Paquets martiens par défaut journalisés: 0
-- [FAIL] Redirections IPv6 désactivées: 1
-- [FAIL] Redirections IPv6 par défaut désactivées: 1
-- [PASS] Source routing IPv6 désactivé: 0
-- [PASS] Source routing IPv6 par défaut désactivé: 0
-- [PASS] Routage IPv6 désactivé: 0
-- [PASS] Randomisation mémoire activée: 2
-- [FAIL] Pointeurs noyau masqués: 0
-- [PASS] Accès aux logs noyau restreint: 1
-- [PASS] Dumps SUID désactivés: 0
+- [FAIL] IPv4 forwarding disabled: 1
+- [PASS] IPv4 redirects disabled: 0
+- [FAIL] Default IPv4 redirects disabled: 1
+- [FAIL] IPv4 redirect sending disabled: 1
+- [FAIL] Default IPv4 redirect sending disabled: 1
+- [FAIL] IPv4 reverse path filtering enabled: 0
+- [FAIL] Default IPv4 reverse path filtering enabled: 0
+- [PASS] TCP SYN cookies enabled: 1
+- [PASS] IPv4 source routing disabled: 0
+- [FAIL] Default IPv4 source routing disabled: 1
+- [PASS] ICMP broadcasts ignored: 1
+- [FAIL] Martian packets logged: 0
+- [FAIL] Default martian packets logged: 0
+- [FAIL] IPv6 redirects disabled: 1
+- [FAIL] Default IPv6 redirects disabled: 1
+- [PASS] IPv6 source routing disabled: 0
+- [PASS] Default IPv6 source routing disabled: 0
+- [PASS] IPv6 forwarding disabled: 0
+- [PASS] Address space randomization enabled: 2
+- [FAIL] Kernel pointers restricted: 0
+- [PASS] Kernel log access restricted: 1
+- [PASS] SUID core dumps disabled: 0
 
 ### Filesystem security: 29% (2/7)
 
-- [PASS] Permissions sûres sur /tmp: 1777
-- [FAIL] Options noexec,nosuid,nodev sur /tmp: rw
-- [PASS] Permissions sûres sur /var/tmp: 1777
-- [FAIL] Options noexec,nosuid,nodev sur /var/tmp: rw
-- [FAIL] Accès privé à /etc/shadow: 0640
-- [FAIL] Accès privé à /etc/gshadow: 0640
-- [FAIL] Inventaire SUID/SGID présent: non généré
+- [PASS] Safe permissions on /tmp: 1777
+- [FAIL] noexec,nosuid,nodev options on /tmp: rw
+- [PASS] Safe permissions on /var/tmp: 1777
+- [FAIL] noexec,nosuid,nodev options on /var/tmp: rw
+- [FAIL] Private access to /etc/shadow: 0640
+- [FAIL] Private access to /etc/gshadow: 0640
+- [FAIL] SUID/SGID inventory exists: not generated
 
 ### Identity security: 50% (7/14)
 
-- [PASS] pam_pwquality actif: common-password
-- [FAIL] Politique mot de passe minlen: absent
-- [FAIL] Politique mot de passe dcredit: absent
-- [FAIL] Politique mot de passe ucredit: absent
-- [FAIL] Politique mot de passe lcredit: absent
-- [FAIL] Politique mot de passe ocredit: absent
-- [FAIL] Historique de cinq mots de passe: PAM
-- [FAIL] Verrouillage après cinq échecs: faillock.conf
+- [PASS] pam_pwquality enabled: common-password
+- [FAIL] Password policy minlen: missing
+- [FAIL] Password policy dcredit: missing
+- [FAIL] Password policy ucredit: missing
+- [FAIL] Password policy lcredit: missing
+- [FAIL] Password policy ocredit: missing
+- [FAIL] Five password history: PAM
+- [FAIL] Lockout after five failures: faillock.conf
 - [PASS] SSH PermitRootLogin: no
 - [PASS] SSH PasswordAuthentication: no
 - [PASS] SSH PubkeyAuthentication: yes
 - [PASS] SSH AllowUsers: shieldadmin
-- [PASS] Syntaxe de sshd_config: configuration valide
-- [PASS] Mot de passe root verrouillé: passwd -S
+- [PASS] sshd_config syntax: configuration valid
+- [PASS] Root password locked: passwd -S
 
 ### Service security: 20% (1/5)
 
-- [FAIL] Nginx actif: processus absent
-- [FAIL] SSH actif: processus absent
-- [FAIL] Fail2ban actif: processus absent
-- [FAIL] Contrôle HTTP /health: endpoint non joignable
-- [PASS] Services inutiles arrêtés: aucun processus détecté
+- [FAIL] Nginx active: process absent
+- [FAIL] SSH active: process absent
+- [FAIL] Fail2ban active: process absent
+- [FAIL] HTTP /health check: endpoint unavailable
+- [PASS] Unused services stopped: no processes detected
 
 ### Container security: 43% (3/7)
 
-- [PASS] Exécution dans un conteneur: marqueur Docker/OCI
-- [FAIL] Worker Nginx non-root: aucun worker actif
-- [FAIL] Aucune capability effective: 00000000a80425fb
-- [FAIL] no-new-privileges actif: 0
-- [PASS] Filtre Seccomp actif: 2
-- [FAIL] Rootfs en lecture seule: rw
-- [PASS] Aucun secret intégré au Dockerfile: Dockerfile
+- [PASS] Running in a container: Docker/OCI marker
+- [FAIL] Non-root Nginx worker: no active worker
+- [FAIL] No effective capabilities: 00000000a80425fb
+- [FAIL] no-new-privileges enabled: 0
+- [PASS] Seccomp filter enabled: 2
+- [FAIL] Read-only root filesystem: rw
+- [PASS] No secrets in Dockerfile: Dockerfile
 
 ## Conclusion
 
-Le statut PASS exige que tous les contrôles réussissent. Les contrôles
-de capabilities, de montage et d'exécution reflètent les options Docker
-réellement utilisées au lancement, et non seulement le contenu de l'image.
+PASS requires every check to succeed. Capability, mount, and runtime
+checks reflect the Docker options used at container launch, not only
+the contents of the image.
