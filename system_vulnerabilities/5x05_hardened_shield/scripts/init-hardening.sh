@@ -3,11 +3,11 @@
 set -euo pipefail
 
 if [ "$(id -u)" -ne 0 ]; then
-    echo '[ERROR] Lance ce script en root dans le conteneur.' >&2
+    echo '[ERREUR] Lance ce script en root dans le conteneur.' >&2
     exit 1
 fi
 
-echo '=== System Hardening ==='
+echo '=== Durcissement du système ==='
 
 # Je règle les paramètres noyau vus dans le projet Bastion Host.
 # Docker peut refuser certains paramètres. Je le signale pour les régler au lancement.
@@ -38,19 +38,40 @@ sysctl_rules=(
 
 for rule in "${sysctl_rules[@]}"; do
     if ! sysctl -w "$rule" >/dev/null 2>&1; then
-        echo "[WARN] $rule non modifiable ici; à régler avec Docker ou sur l'hôte."
+        echo "[AVERTISSEMENT] $rule ne peut pas être modifié ici; règle-le avec Docker ou sur l'hôte."
     fi
 done
 
 # Je protège les dossiers temporaires et les fichiers qui contiennent des secrets.
-chmod 1777 /tmp /var/tmp
+if ! chmod 1777 /tmp /var/tmp; then
+    echo '[ERREUR] Impossible de sécuriser /tmp et /var/tmp.' >&2
+    exit 4
+fi
+if [ -d /var/log/nginx ]; then
+    if ! chown -R root:appuser /var/log/nginx || \
+        ! chmod 0770 /var/log/nginx; then
+        echo '[ERREUR] Impossible de sécuriser les journaux Nginx.' >&2
+        exit 4
+    fi
+    for log_file in /var/log/nginx/*.log; do
+        if [ -f "$log_file" ]; then
+            if ! chmod 0660 "$log_file"; then
+                echo "[ERREUR] Impossible de protéger $log_file." >&2
+                exit 4
+            fi
+        fi
+    done
+fi
 for file in /etc/shadow /etc/gshadow /etc/ssh/ssh_host_*_key; do
     if [ -f "$file" ]; then
-        chmod 600 "$file"
+        if ! chmod 600 "$file"; then
+            echo "[ERREUR] Impossible de protéger $file." >&2
+            exit 4
+        fi
     fi
 done
 
-echo '[INFO] Ajouter noexec,nosuid,nodev aux montages temporaires dans Docker.'
+echo '[INFO] Ajoute noexec,nosuid,nodev aux montages temporaires dans Docker.'
 
 # J'arrête quelques services inutiles s'ils sont installés.
 # Je garde SSH, Nginx et Fail2ban, qui sont utilisés par le projet.
@@ -60,7 +81,7 @@ for service in avahi-daemon cups rpcbind postfix snapd; do
         if command -v update-rc.d >/dev/null 2>&1; then
             update-rc.d "$service" disable >/dev/null 2>&1 || true
         fi
-        echo "[INFO] Service désactivé: $service"
+        echo "[INFO] Service désactivé : $service"
     fi
 done
 
@@ -68,22 +89,25 @@ done
 find /bin /sbin /usr/bin /usr/sbin /usr/local/bin /usr/local/sbin \
     -type f \( -perm -4000 -o -perm -2000 \) -print 2>/dev/null \
     | sort -u > /run/hardened-shield-suid-audit.txt || {
-        echo '[ERROR] Impossible de faire l’audit SUID/SGID.' >&2
+        echo '[ERREUR] Impossible de faire l’audit SUID/SGID.' >&2
         exit 2
     }
-echo '[INFO] Résultat SUID/SGID: /run/hardened-shield-suid-audit.txt'
+echo '[INFO] Résultat SUID/SGID : /run/hardened-shield-suid-audit.txt'
 
 # J'affiche le même avertissement sur la console et lors d'une connexion SSH.
 banner='Authorized access only. Activity may be monitored and recorded.'
 for file in /etc/issue /etc/issue.net; do
     if [ ! -f "$file" ] || [ "$(cat "$file")" != "$banner" ]; then
         printf '%s\n' "$banner" > "$file" || {
-            echo "[ERROR] Impossible d’écrire dans $file." >&2
+            echo "[ERREUR] Impossible d’écrire dans $file." >&2
             exit 3
         }
-        chmod 644 "$file"
+        chmod 644 "$file" || {
+            echo "[ERREUR] Impossible de régler les permissions de $file." >&2
+            exit 3
+        }
     fi
 done
 
-echo '[OK] Durcissement système terminé.'
+echo '[RÉUSSI] Durcissement du système terminé.'
 exit 0

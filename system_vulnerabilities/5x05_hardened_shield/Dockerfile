@@ -2,7 +2,7 @@
 FROM ubuntu:20.04
 
 LABEL org.opencontainers.image.title="The Hardened Shield" \
-      org.opencontainers.image.description="Ubuntu web and SSH base image with automated security initialization" \
+      org.opencontainers.image.description="Image Ubuntu pour le Web et SSH avec configuration automatique de la sécurité" \
       org.opencontainers.image.version="1.0.0" \
       org.opencontainers.image.vendor="NovaTech Solutions" \
       org.opencontainers.image.licenses="Educational"
@@ -48,6 +48,9 @@ RUN install -o root -g root -m 0644 \
         /opt/hardened-shield/config/nginx.conf /etc/nginx/nginx.conf \
     && install -o root -g root -m 0644 \
         /opt/hardened-shield/config/sshd_config /etc/ssh/sshd_config \
+    && chown -R root:appuser /var/log/nginx \
+    && chmod 0770 /var/log/nginx \
+    && chmod 0660 /var/log/nginx/*.log \
     && chmod 0755 /opt/hardened-shield/scripts/*.sh \
     && chmod 0755 /opt/hardened-shield/scripts/audit.py
 
