@@ -103,9 +103,9 @@ Le statut est `PASS` uniquement si tous les contrôles réussissent. Le script
 Pour le noyau, il vérifie notamment le routage, les redirections et le filtrage
 IPv4/IPv6, les SYN cookies, les paquets martiens, la randomisation mémoire et
 les restrictions d'accès aux informations du noyau.
-Les valeurs sont lues avec `sysctl -n`, puis dans `/proc/sys` si la commande
-n'est pas disponible. Les contrôles conteneur vérifient aussi le filtre
-Seccomp.
+Les valeurs du noyau sont d’abord lues avec `sysctl -a`. Si une valeur manque,
+le script essaie `sysctl -n`, puis lit le fichier correspondant dans
+`/proc/sys`. Les contrôles conteneur vérifient aussi le filtre Seccomp.
 
 Lancer l'audit dans le conteneur pour mesurer ses réglages actifs:
 
