@@ -14,6 +14,66 @@ import subprocess
 import textwrap
 
 
+def check_kernel_hardening():
+    """Check kernel hardening sysctl settings."""
+    kernel_rules = {
+        "IPv4 forwarding disabled": ("net.ipv4.ip_forward", "0"),
+        "IPv4 redirects disabled": ("net.ipv4.conf.all.accept_redirects", "0"),
+        "Default IPv4 redirects disabled": (
+            "net.ipv4.conf.default.accept_redirects", "0"
+        ),
+        "IPv4 redirect sending disabled": (
+            "net.ipv4.conf.all.send_redirects", "0"
+        ),
+        "Default IPv4 redirect sending disabled": (
+            "net.ipv4.conf.default.send_redirects", "0"
+        ),
+        "IPv4 reverse path filtering enabled": (
+            "net.ipv4.conf.all.rp_filter", "1"
+        ),
+        "Default IPv4 reverse path filtering enabled": (
+            "net.ipv4.conf.default.rp_filter", "1"
+        ),
+        "TCP SYN cookies enabled": ("net.ipv4.tcp_syncookies", "1"),
+        "IPv4 source routing disabled": (
+            "net.ipv4.conf.all.accept_source_route", "0"
+        ),
+        "Default IPv4 source routing disabled": (
+            "net.ipv4.conf.default.accept_source_route", "0"
+        ),
+        "ICMP broadcasts ignored": (
+            "net.ipv4.icmp_echo_ignore_broadcasts", "1"
+        ),
+        "Martian packets logged": ("net.ipv4.conf.all.log_martians", "1"),
+        "Default martian packets logged": (
+            "net.ipv4.conf.default.log_martians", "1"
+        ),
+        "IPv6 redirects disabled": ("net.ipv6.conf.all.accept_redirects", "0"),
+        "Default IPv6 redirects disabled": (
+            "net.ipv6.conf.default.accept_redirects", "0"
+        ),
+        "IPv6 source routing disabled": (
+            "net.ipv6.conf.all.accept_source_route", "0"
+        ),
+        "Default IPv6 source routing disabled": (
+            "net.ipv6.conf.default.accept_source_route", "0"
+        ),
+        "IPv6 forwarding disabled": ("net.ipv6.conf.all.forwarding", "0"),
+        "Address space randomization enabled": (
+            "kernel.randomize_va_space", "2"
+        ),
+        "Kernel pointers restricted": ("kernel.kptr_restrict", "2"),
+        "Kernel log access restricted": ("kernel.dmesg_restrict", "1"),
+        "SUID core dumps disabled": ("fs.suid_dumpable", "0"),
+    }
+    for name, (key, expected) in kernel_rules.items():
+        actual = read_sysctl(key)
+        add_result(
+            "Kernel hardening", name, actual == expected,
+            actual or "unavailable",
+        )
+
+
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 RESULTS = []
 CATEGORIES = [
@@ -119,66 +179,6 @@ def find_non_root_process(wanted_name):
         if uid and uid.group(1) != "0":
             return uid.group(1)
     return ""
-
-
-def check_kernel_hardening():
-    """Check kernel hardening sysctl settings."""
-    kernel_rules = {
-        "IPv4 forwarding disabled": ("net.ipv4.ip_forward", "0"),
-        "IPv4 redirects disabled": ("net.ipv4.conf.all.accept_redirects", "0"),
-        "Default IPv4 redirects disabled": (
-            "net.ipv4.conf.default.accept_redirects", "0"
-        ),
-        "IPv4 redirect sending disabled": (
-            "net.ipv4.conf.all.send_redirects", "0"
-        ),
-        "Default IPv4 redirect sending disabled": (
-            "net.ipv4.conf.default.send_redirects", "0"
-        ),
-        "IPv4 reverse path filtering enabled": (
-            "net.ipv4.conf.all.rp_filter", "1"
-        ),
-        "Default IPv4 reverse path filtering enabled": (
-            "net.ipv4.conf.default.rp_filter", "1"
-        ),
-        "TCP SYN cookies enabled": ("net.ipv4.tcp_syncookies", "1"),
-        "IPv4 source routing disabled": (
-            "net.ipv4.conf.all.accept_source_route", "0"
-        ),
-        "Default IPv4 source routing disabled": (
-            "net.ipv4.conf.default.accept_source_route", "0"
-        ),
-        "ICMP broadcasts ignored": (
-            "net.ipv4.icmp_echo_ignore_broadcasts", "1"
-        ),
-        "Martian packets logged": ("net.ipv4.conf.all.log_martians", "1"),
-        "Default martian packets logged": (
-            "net.ipv4.conf.default.log_martians", "1"
-        ),
-        "IPv6 redirects disabled": ("net.ipv6.conf.all.accept_redirects", "0"),
-        "Default IPv6 redirects disabled": (
-            "net.ipv6.conf.default.accept_redirects", "0"
-        ),
-        "IPv6 source routing disabled": (
-            "net.ipv6.conf.all.accept_source_route", "0"
-        ),
-        "Default IPv6 source routing disabled": (
-            "net.ipv6.conf.default.accept_source_route", "0"
-        ),
-        "IPv6 forwarding disabled": ("net.ipv6.conf.all.forwarding", "0"),
-        "Address space randomization enabled": (
-            "kernel.randomize_va_space", "2"
-        ),
-        "Kernel pointers restricted": ("kernel.kptr_restrict", "2"),
-        "Kernel log access restricted": ("kernel.dmesg_restrict", "1"),
-        "SUID core dumps disabled": ("fs.suid_dumpable", "0"),
-    }
-    for name, (key, expected) in kernel_rules.items():
-        actual = read_sysctl(key)
-        add_result(
-            "Kernel hardening", name, actual == expected,
-            actual or "unavailable",
-        )
 
 
 def check_filesystem_security():
