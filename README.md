@@ -58,6 +58,9 @@ le durcissement Linux, l'identité et la sécurisation des conteneurs.
   services et conteneurs.
   Il comprend un guide de démarrage, un Compose avec limites runtime, un audit
   automatisé et des documents de sécurité et conformité.
+  L'intégration Ubuntu 20.04 a été vérifiée : HTTP, SSH par clé, Fail2ban et
+  audit conteneur (`100%`, `PASS`). Les paramètres noyau de l'hôte et
+  l'activation du TOTP restent documentés comme points à vérifier.
   Les détails et les documents sont dans le
   [dossier 5x05](system_vulnerabilities/5x05_hardened_shield/).
 

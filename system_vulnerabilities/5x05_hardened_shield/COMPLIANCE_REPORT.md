@@ -1,101 +1,91 @@
 # Rapport de conformité technique
 
-**Projet :** The Hardened Shield  
-**Date du rapport :** 27 novembre 2026  
-**Référentiel :** contrôles définis dans le projet 5x05
+**Projet :** The Hardened Shield
+**Date :** 27 novembre 2026
+**Périmètre :** critères du projet 5x05 et contrôles exécutés dans le conteneur
 
 ## 1. Résumé exécutif
 
-L'image Ubuntu 20.04 démarre avec Nginx et SSH. Les règles PAM, les
-permissions système et plusieurs protections Docker ont été vérifiées. Le
-test du conteneur a obtenu `41/55`, soit `75%`, avec le résultat `FAIL`.
+L'image Ubuntu 20.04 a été construite puis démarrée avec Compose et les
+restrictions prévues. Nginx, SSH et Fail2ban sont actifs. L'endpoint Web est
+accessible, une connexion SSH par clé a réussi et l'audit a rendu
+**100% (50/50), PASS** pour les contrôles applicables au conteneur.
 
-Le système de fichiers et les contrôles d'identité testés ont tous réussi.
-L'audit relève encore des risques concernant les paramètres noyau fournis par
-l'hôte, Fail2ban, la racine du conteneur en lecture-écriture et l'absence de
-configuration TOTP active. La solution n'est donc pas approuvée pour la
-production à la date de ce rapport.
+Ce score ne certifie ni la configuration de l'hôte ni l'activation du TOTP.
+Google Authenticator est installé, mais SSH ne demande pas encore le code
+TOTP. Cette limite doit être prise en compte avant de déclarer la solution
+conforme à une politique exigeant deux facteurs.
 
 ## 2. Périmètre
 
-Cette vérification porte sur les fichiers de
-`system_vulnerabilities/5x05_hardened_shield`, l'image construite sur
-Ubuntu 20.04 et son lancement avec les restrictions prévues dans Compose.
-Elle couvre les règles PAM et SSH, les services, les fichiers, les montages
-et les options de sécurité visibles depuis le conteneur.
+Les tests ont porté sur le Dockerfile, les scripts, les fichiers de
+configuration et le lancement Compose sous Ubuntu 20.04. Pour ne pas
+interrompre d'autres services de l'hôte, le test a relié les ports hôte
+`18082` et `12224` aux ports conteneur 80 et 22.
 
-Le test ne certifie pas la configuration de l'hôte, les clés privées des
-utilisateurs, l'accès SSH avec une clé réelle ni les règles réseau externes.
-Le test SSH a utilisé un fichier de clés publiques vide. La configuration
-sshd a été validée et le port a répondu, mais une connexion utilisateur
-complète n'a pas été vérifiée.
+La validation couvre la construction, le démarrage et l'état de santé du
+conteneur, la réponse HTTP, l'authentification SSH par clé, la configuration
+PAM et SSH, le démarrage du jail Fail2ban, les permissions, les montages et
+les restrictions Docker. Les paramètres noyau globaux sont gérés par l'hôte
+et doivent faire l'objet d'une vérification distincte.
 
 ## 3. Contrôles mis en place
 
-- **Mots de passe :** `pam_pwquality` impose 12 caractères minimum, avec une
-  majuscule, une minuscule, un chiffre et un caractère spécial.
-- **Historique et verrouillage :** PAM conserve les cinq derniers mots de
-  passe et bloque après cinq échecs pendant 900 secondes.
-- **SSH :** l'accès root et l'authentification par mot de passe sont
-  désactivés. L'accès est limité à `shieldadmin` par clé publique.
-- **Comptes :** le mot de passe root est verrouillé. La clé publique est
-  montée depuis l'hôte en lecture seule et installée avec des permissions
-  restreintes.
-- **Système :** le script de démarrage protège des fichiers sensibles,
-  applique les réglages sysctl autorisés, écrit la bannière et produit un
-  inventaire SUID/SGID.
-- **Services :** Nginx sert `/health`; SSH démarre et répond sur le port 22.
-  Les workers Nginx tournent sous `appuser`.
-- **Conteneur :** Compose retire les capabilities par défaut, n'ajoute que
-  cinq capabilities nécessaires, active `no-new-privileges`, conserve
-  Seccomp et limite mémoire, CPU et processus.
-- **Montages :** les répertoires temporaires utilisent `noexec`, `nosuid` et
-  `nodev`. Les clés publiques de l'hôte sont montées en lecture seule.
+- **Mots de passe :** longueur minimale de 12 caractères et exigences de
+  classes de caractères via `pam_pwquality`.
+- **Historique et verrouillage :** cinq mots de passe mémorisés par PAM;
+  verrouillage après cinq échecs sur une fenêtre de 900 secondes.
+- **SSH :** connexion root et authentification par mot de passe désactivées;
+  clés publiques autorisées pour `shieldadmin`.
+- **Comptes :** mot de passe root verrouillé et répertoires SSH protégés.
+- **Système :** protection des fichiers sensibles, bannière et inventaire
+  SUID/SGID.
+- **Services :** Nginx, OpenSSH et Fail2ban démarrent sans intervention
+  manuelle. Le jail `sshd` surveille `/var/log/auth.log`.
+- **Conteneur :** système de fichiers racine en lecture seule, capacités
+  limitées, `no-new-privileges`, profil Seccomp et limites de ressources.
+- **Secrets :** clé publique fournie en montage lecture seule; aucun mot de
+  passe ou secret n'est codé en dur dans l'image.
 
-Le paquet Google Authenticator est présent, mais PAM ne l'exige pas pour SSH.
-Le TOTP n'est donc pas un contrôle actif.
+Le paquet Google Authenticator est installé, mais l'authentification TOTP
+n'est pas activée pour SSH. Les secrets de chaque utilisateur doivent être
+provisionnés avant de rendre ce second facteur obligatoire.
 
 ## 4. Résultats des tests
 
-Le 27 novembre 2026, l'image a été construite et lancée avec Ubuntu 20.04 et
-les restrictions Compose. Le conteneur est devenu `healthy`. Les contrôles
-de syntaxe des scripts, `pycodestyle`, la configuration Compose et le point
-de contrôle HTTP ont réussi.
+| Vérification | Résultat |
+| --- | --- |
+| Construction de l'image Ubuntu 20.04 | PASS |
+| Démarrage Compose et état de santé | PASS |
+| Réponse HTTP sur le port conteneur 80 | PASS, `/health` renvoie `ok` |
+| Connexion SSH par clé sur le port conteneur 22 | PASS |
+| Jail Fail2ban et lecture du journal SSH | PASS |
+| Audit des contrôles applicables au conteneur | PASS, 100% (50/50) |
 
-Résultats de l'audit automatisé :
-
-- Durcissement du noyau : `45%` (`10/22`)
-- Sécurité du système de fichiers : `100%` (`7/7`)
-- Sécurité des identités : `100%` (`14/14`)
-- Sécurité des services : `80%` (`4/5`)
-- Sécurité du conteneur : `86%` (`6/7`)
-- Résultat global : `75%` (`41/55`), `FAIL`
-
-Le rapport détaillé se trouve dans [audit_result.md](audit_result.md). Les
-valeurs noyau refusées par le conteneur reflètent l'environnement de test et
-doivent être contrôlées sur l'hôte de déploiement.
+L'audit détaille les résultats `PASS`, `FAIL` et `INFO` dans
+[`audit_result.md`](audit_result.md). Les réglages noyau gérés par l'hôte
+apparaissent en `INFO` et ne sont pas inclus dans le score du conteneur.
 
 ## 5. Risques résiduels
 
-- Plusieurs paramètres sysctl ne sont pas appliqués dans le conteneur. Ils
-  doivent être évalués et définis sur l'hôte ou dans la configuration Docker.
-- Fail2ban est installé, mais le script de démarrage ne lance pas le service.
-- Le système de fichiers racine reste monté en lecture-écriture.
-- Le module TOTP est installé, mais l'authentification à deux facteurs
-  n'est pas configurée pour SSH.
-- L'accès avec une vraie clé publique n'a pas été testé de bout en bout.
-- Les risques de l'hôte, du réseau, des clés privées et des mises à jour
-  sortent du périmètre de cet audit de conteneur.
+- Les paramètres du noyau doivent être évalués et vérifiés sur chaque hôte
+  Docker de production.
+- TOTP n'est pas encore un facteur SSH obligatoire. Préparer les secrets
+  utilisateurs, tester la récupération et activer le module PAM dans un
+  déploiement contrôlé avant d'exiger le second facteur.
+- Les tests ne certifient pas les règles réseau, les sauvegardes de l'hôte,
+  la rotation des clés ni le processus de mise à jour des images.
+- Les ports hôte 80 et 22 doivent être disponibles dans l'environnement cible.
 
 ## 6. Validation
 
-**Décision actuelle : NON APPROUVÉ POUR LA PRODUCTION**  
-**Motif :** l'audit automatisé retourne `FAIL` et les risques résiduels
-ci-dessus ne sont pas résolus.
+**Résultat des critères d'intégration : PASS.** L'image se construit, Compose
+démarre le service, les accès HTTP et SSH par clé fonctionnent et l'audit
+réussit sur tous les contrôles qu'il mesure.
 
-La mise en production doit attendre la correction des points applicables,
-puis un nouvel audit et un test d'accès SSH avec une vraie clé.
+**Revue QA manuelle : en attente.** Le TOTP et les paramètres de sécurité de
+l'hôte doivent être évalués selon la politique de déploiement avant toute
+approbation de production.
 
-**Responsable de validation :** à compléter  
-**Date de validation :** à compléter  
-**Signature :** en attente de la revue QA
+**Responsable :** à compléter
+**Date de signature :** à compléter
