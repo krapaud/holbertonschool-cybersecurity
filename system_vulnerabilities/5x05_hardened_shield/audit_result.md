@@ -1,71 +1,71 @@
 # Hardened Shield: rapport d'audit
 
-- Date: 2026-11-27 09:23:06 UTC
+- Date: 2026-11-27 09:25:26 UTC
 - Résultat global: **FAIL**
 - Score: **42%** (16/38)
 
-## Kernel hardening: 67% (4/6)
+## Scores par catégorie
 
-| Contrôle                      | Résultat | Détail |
-| ----------------------------- | -------- | ------ |
-| Redirections IPv4 désactivées | PASS     | 0      |
-| Filtrage de route IPv4 activé | FAIL     | 0      |
-| SYN cookies activés           | PASS     | 1      |
-| Randomisation mémoire activée | PASS     | 2      |
-| Pointeurs noyau masqués       | FAIL     | 0      |
-| Dumps SUID désactivés         | PASS     | 0      |
+- Kernel hardening: **67%** (4/6)
+- Filesystem security: **29%** (2/7)
+- Identity security: **50%** (7/14)
+- Service security: **20%** (1/5)
+- Container security: **33%** (2/6)
 
-## Filesystem security: 29% (2/7)
+## Détails des contrôles
 
-| Contrôle                                 | Résultat | Détail     |
-| ---------------------------------------- | -------- | ---------- |
-| Permissions sûres sur /tmp               | PASS     | 1777       |
-| Options noexec,nosuid,nodev sur /tmp     | FAIL     | rw         |
-| Permissions sûres sur /var/tmp           | PASS     | 1777       |
-| Options noexec,nosuid,nodev sur /var/tmp | FAIL     | rw         |
-| Accès privé à /etc/shadow                | FAIL     | 0640       |
-| Accès privé à /etc/gshadow               | FAIL     | 0640       |
-| Inventaire SUID/SGID présent             | FAIL     | non généré |
+### Kernel hardening: 67% (4/6)
 
-## Identity security: 50% (7/14)
+- [PASS] Redirections IPv4 désactivées: 0
+- [FAIL] Filtrage de route IPv4 activé: 0
+- [PASS] SYN cookies activés: 1
+- [PASS] Randomisation mémoire activée: 2
+- [FAIL] Pointeurs noyau masqués: 0
+- [PASS] Dumps SUID désactivés: 0
 
-| Contrôle                         | Résultat | Détail               |
-| -------------------------------- | -------- | -------------------- |
-| pam_pwquality actif              | PASS     | common-password      |
-| Politique mot de passe minlen    | FAIL     | absent               |
-| Politique mot de passe dcredit   | FAIL     | absent               |
-| Politique mot de passe ucredit   | FAIL     | absent               |
-| Politique mot de passe lcredit   | FAIL     | absent               |
-| Politique mot de passe ocredit   | FAIL     | absent               |
-| Historique de cinq mots de passe | FAIL     | PAM                  |
-| Verrouillage après cinq échecs   | FAIL     | faillock.conf        |
-| SSH PermitRootLogin              | PASS     | no                   |
-| SSH PasswordAuthentication       | PASS     | no                   |
-| SSH PubkeyAuthentication         | PASS     | yes                  |
-| SSH AllowUsers                   | PASS     | shieldadmin          |
-| Syntaxe de sshd_config           | PASS     | configuration valide |
-| Mot de passe root verrouillé     | PASS     | passwd -S            |
+### Filesystem security: 29% (2/7)
 
-## Service security: 20% (1/5)
+- [PASS] Permissions sûres sur /tmp: 1777
+- [FAIL] Options noexec,nosuid,nodev sur /tmp: rw
+- [PASS] Permissions sûres sur /var/tmp: 1777
+- [FAIL] Options noexec,nosuid,nodev sur /var/tmp: rw
+- [FAIL] Accès privé à /etc/shadow: 0640
+- [FAIL] Accès privé à /etc/gshadow: 0640
+- [FAIL] Inventaire SUID/SGID présent: non généré
 
-| Contrôle                  | Résultat | Détail                  |
-| ------------------------- | -------- | ----------------------- |
-| Nginx actif               | FAIL     | processus absent        |
-| SSH actif                 | FAIL     | processus absent        |
-| Fail2ban actif            | FAIL     | processus absent        |
-| Contrôle HTTP /health     | FAIL     | endpoint non joignable  |
-| Services inutiles arrêtés | PASS     | aucun processus détecté |
+### Identity security: 50% (7/14)
 
-## Container security: 33% (2/6)
+- [PASS] pam_pwquality actif: common-password
+- [FAIL] Politique mot de passe minlen: absent
+- [FAIL] Politique mot de passe dcredit: absent
+- [FAIL] Politique mot de passe ucredit: absent
+- [FAIL] Politique mot de passe lcredit: absent
+- [FAIL] Politique mot de passe ocredit: absent
+- [FAIL] Historique de cinq mots de passe: PAM
+- [FAIL] Verrouillage après cinq échecs: faillock.conf
+- [PASS] SSH PermitRootLogin: no
+- [PASS] SSH PasswordAuthentication: no
+- [PASS] SSH PubkeyAuthentication: yes
+- [PASS] SSH AllowUsers: shieldadmin
+- [PASS] Syntaxe de sshd_config: configuration valide
+- [PASS] Mot de passe root verrouillé: passwd -S
 
-| Contrôle                           | Résultat | Détail              |
-| ---------------------------------- | -------- | ------------------- |
-| Exécution dans un conteneur        | PASS     | marqueur Docker/OCI |
-| Worker Nginx non-root              | FAIL     | aucun worker actif  |
-| Aucune capability effective        | FAIL     | 00000000a80425fb    |
-| no-new-privileges actif            | FAIL     | 0                   |
-| Rootfs en lecture seule            | FAIL     | rw                  |
-| Aucun secret intégré au Dockerfile | PASS     | Dockerfile          |
+### Service security: 20% (1/5)
+
+- [FAIL] Nginx actif: processus absent
+- [FAIL] SSH actif: processus absent
+- [FAIL] Fail2ban actif: processus absent
+- [FAIL] Contrôle HTTP /health: endpoint non joignable
+- [PASS] Services inutiles arrêtés: aucun processus détecté
+
+### Container security: 33% (2/6)
+
+- [PASS] Exécution dans un conteneur: marqueur Docker/OCI
+- [FAIL] Worker Nginx non-root: aucun worker actif
+- [FAIL] Aucune capability effective: 00000000a80425fb
+- [FAIL] no-new-privileges actif: 0
+- [FAIL] Rootfs en lecture seule: rw
+- [PASS] Aucun secret intégré au Dockerfile: Dockerfile
 
 ## Conclusion
 
