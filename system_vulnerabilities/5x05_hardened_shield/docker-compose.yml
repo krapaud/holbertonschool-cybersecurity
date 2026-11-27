@@ -1,0 +1,43 @@
+services:
+  hardened-shield:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: hardened-shield:latest
+    container_name: hardened-shield
+    restart: unless-stopped
+    init: true
+    ports:
+      - "80:80"
+      - "22:22"
+    volumes:
+      # La clé reste sur l’hôte et est montée en lecture seule.
+      - type: bind
+        source: ${AUTHORIZED_KEYS_FILE:?Set AUTHORIZED_KEYS_FILE}
+        target: /run/secrets/authorized_keys
+        read_only: true
+      # Je garde les journaux Nginx dans un volume Docker.
+      - type: volume
+        source: nginx-logs
+        target: /var/log/nginx
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=64m
+      - /var/tmp:rw,noexec,nosuid,nodev,size=64m
+      - /dev/shm:rw,noexec,nosuid,nodev,size=64m
+    cap_drop:
+      - ALL
+    cap_add:
+      # Je garde seulement les droits de port, UID/GID et chroot SSH.
+      - NET_BIND_SERVICE
+      - CHOWN
+      - SETUID
+      - SETGID
+      - SYS_CHROOT
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 512m
+    cpus: 1.0
+    pids_limit: 128
+
+volumes:
+  nginx-logs:
