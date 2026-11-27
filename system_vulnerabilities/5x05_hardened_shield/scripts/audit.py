@@ -67,7 +67,24 @@ def check_kernel_hardening():
         "SUID core dumps disabled": ("fs.suid_dumpable", "0"),
     }
     for name, (key, expected) in kernel_rules.items():
-        actual = read_sysctl(key)
+        actual = ""
+        try:
+            result = subprocess.run(
+                ["sysctl", "-n", key],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            if result.returncode == 0:
+                actual = result.stdout.strip()
+        except OSError:
+            pass
+        if not actual:
+            sysctl_file = Path("/proc/sys") / key.replace(".", "/")
+            try:
+                actual = sysctl_file.read_text(encoding="utf-8").strip()
+            except (OSError, UnicodeError):
+                actual = ""
         add_result(
             "Kernel hardening", name, actual == expected,
             actual or "unavailable",
