@@ -17,9 +17,10 @@ import textwrap
 def check_kernel_hardening():
     """Check kernel hardening settings from sysctl -a."""
     kernel_values = {}
+    sysctl_all_command = "sysctl -a"
     try:
         result = subprocess.run(
-            ["sysctl", "-a"],
+            sysctl_all_command.split(),
             capture_output=True,
             text=True,
             check=False,
