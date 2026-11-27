@@ -513,9 +513,11 @@ def build_report():
 def main():
     """Run the checks, display scores, and write the report."""
     parser = argparse.ArgumentParser(description=__doc__)
+    default_output = PROJECT_DIR / "audit_result.md"
+    script_output = Path(__file__).resolve().parent / "audit_result.md"
     parser.add_argument(
         "--output",
-        default=str(PROJECT_DIR / "audit_result.md"),
+        default=str(default_output),
         help="Markdown output file",
     )
     arguments = parser.parse_args()
@@ -544,14 +546,19 @@ def main():
 
     report, passed_count, total, percentage, status = build_report()
     output_file = Path(arguments.output)
-    try:
-        output_file.write_text(report, encoding="utf-8")
-    except OSError as error:
-        print(f"\n[ERROR] Could not write {output_file}: {error}")
-        return 2
+    output_files = [output_file]
+    if output_file == default_output:
+        output_files.append(script_output)
+    for report_path in output_files:
+        try:
+            report_path.write_text(report, encoding="utf-8")
+        except OSError as error:
+            print(f"\n[ERROR] Could not write {report_path}: {error}")
+            return 2
 
     print(f"\nOverall: {percentage}% ({passed_count}/{total}) - {status}")
-    print(f"Markdown report: {output_file}")
+    for report_path in output_files:
+        print(f"Markdown report: {report_path}")
     return 0 if status == "PASS" else 1
 
 
