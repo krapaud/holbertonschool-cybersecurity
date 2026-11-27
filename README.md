@@ -56,9 +56,10 @@ le durcissement Linux, l'identité et la sécurisation des conteneurs.
 - [`5x04_contained_chaos`](system_vulnerabilities/5x04_contained_chaos/README.md) : sécurité des images et conteneurs Docker.
 - `5x05_hardened_shield` : capstone de durcissement Linux, identité, SSH,
   services et conteneurs.
-  Il comprend un Compose avec limites runtime, un audit automatisé et des
-  messages de statut en français. Les documents d'architecture et de
-  conformité sont dans le [dossier 5x05](system_vulnerabilities/5x05_hardened_shield/).
+  Il comprend un guide de démarrage, un Compose avec limites runtime, un audit
+  automatisé et des documents de sécurité et conformité.
+  Les détails et les documents sont dans le
+  [dossier 5x05](system_vulnerabilities/5x05_hardened_shield/).
 
 ## Python for Cybersecurity
 
