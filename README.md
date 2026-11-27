@@ -57,7 +57,8 @@ le durcissement Linux, l'identité et la sécurisation des conteneurs.
 - `5x05_hardened_shield` : capstone de durcissement Linux, identité, SSH,
   services et conteneurs.
   Il comprend un Compose avec limites runtime, un audit automatisé et des
-  messages de statut en français.
+  messages de statut en français, avec son architecture documentée dans
+  [`SECURITY.md`](system_vulnerabilities/5x05_hardened_shield/SECURITY.md).
 
 ## Python for Cybersecurity
 

@@ -143,6 +143,9 @@ de sortie est `0` si tous les contrôles passent, `1` si au moins un contrôle
 comme les capabilities et les montages en lecture seule, sont vérifiées au
 moment de l'exécution.
 
+La documentation de l'architecture, des contrôles, de l'utilisation, de
+l'audit et de l'entretien se trouve dans [`SECURITY.md`](SECURITY.md).
+
 Le dernier test de l'image Ubuntu 20.04 avec les options Compose a obtenu
 `75%` (`41/55`, statut `FAIL`). Les identités et le système de fichiers ont
 passé leurs contrôles. Les échecs restants concernent les paramètres noyau
@@ -153,6 +156,7 @@ et la racine du conteneur qui n'est pas montée en lecture seule.
 
 - `Dockerfile`: construit l'image et copie les scripts.
 - `docker-compose.yml`: publie les ports et applique les limites runtime.
+- `SECURITY.md`: décrit l'architecture et les pratiques de sécurité.
 - `config/nginx.conf`: configuration du serveur Web.
 - `config/sshd_config`: configuration du serveur SSH.
 - `scripts/init-hardening.sh`: applique les réglages système disponibles.
