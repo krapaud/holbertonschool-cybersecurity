@@ -7,7 +7,8 @@ Elle utilise Nginx pour le Web et SSH pour l'administration.
 
 Le Dockerfile utilise Ubuntu 20.04 et installe Nginx, SSH et les modules PAM.
 Les processus Nginx tournent avec le compte `appuser`. Le compte `shieldadmin`
-sert à l'accès SSH. La connexion root et les mots de passe SSH sont désactivés.
+sert à l'accès SSH. La connexion root et les mots de passe SSH sont
+désactivés.
 Il faut fournir une clé publique au démarrage. Aucun secret n'est écrit dans
 l'image. Le Dockerfile contient aussi des labels et un HEALTHCHECK.
 
@@ -18,9 +19,10 @@ avec Docker ou sur l'hôte.
 ## Construire et lancer
 
 ```sh
-docker build -t hardened-shield:latest system_vulnerabilities/5x05_hardened_shield
-docker run --rm -p 8080:80 -p 2222:22 \\
-  --mount type=bind,src=/secure/authorized_keys,dst=/run/secrets/authorized_keys,readonly \\
+docker build -t hardened-shield:latest \
+  system_vulnerabilities/5x05_hardened_shield
+docker run --rm -p 8080:80 -p 2222:22 \
+  -v /secure/authorized_keys:/run/secrets/authorized_keys:ro \
   hardened-shield:latest
 ```
 
@@ -37,16 +39,16 @@ inutiles, liste les fichiers SUID/SGID et écrit une bannière légale. Relancer
 le script ne duplique pas sa configuration.
 
 Le script retourne `0` quand les étapes se terminent, `1` s'il n'est pas lancé
-en root, `2` si l'inventaire SUID/SGID échoue, et `3` si la bannière ne peut pas
-être écrite. Si Docker refuse
-un paramètre sysctl, un avertissement indique qu'il faut le régler avec Docker
+en root, `2` si l'inventaire SUID/SGID échoue, et `3` si l'écriture de la
+bannière échoue. Si Docker refuse un paramètre sysctl, un avertissement
+indique qu'il faut le régler avec Docker
 ou sur l'hôte. Le script ne change pas les montages.
 
 Pour appliquer les protections de montage au démarrage, ajouter par exemple:
 
 ```sh
---tmpfs /tmp:rw,noexec,nosuid,nodev,size=64m \\
---tmpfs /var/tmp:rw,noexec,nosuid,nodev,size=64m \\
+--tmpfs /tmp:rw,noexec,nosuid,nodev,size=64m \
+--tmpfs /var/tmp:rw,noexec,nosuid,nodev,size=64m \
 --tmpfs /dev/shm:rw,noexec,nosuid,nodev,size=64m
 ```
 
@@ -62,8 +64,8 @@ caractères minimum, catégories de caractères, historique des cinq derniers
 mots de passe), le verrouillage après cinq échecs et les directives SSH.
 L'accès SSH est limité à `shieldadmin`, les mots de passe SSH et la connexion
 root sont désactivés, et le mot de passe du compte root est verrouillé.
-La clé publique montée dans `/run/secrets/authorized_keys` est aussi installée
-avec des permissions privées au démarrage.
+La clé publique montée dans `/run/secrets/authorized_keys` est installée avec
+des permissions privées au démarrage.
 
 Les fichiers PAM, SSH et les réglages pwquality/faillock déjà présents sont
 sauvegardés avec le suffixe `.backup` avant leur première modification. Le
@@ -98,6 +100,10 @@ les résultats de chaque contrôle, un score par catégorie et un score global.
 Le statut est `PASS` uniquement si tous les contrôles réussissent. Le script
 écrit aussi le rapport Markdown dans `audit_result.md`.
 
+Pour le noyau, il vérifie notamment le routage, les redirections et le filtrage
+IPv4/IPv6, les SYN cookies, les paquets martiens, la randomisation mémoire et
+les restrictions d'accès aux informations du noyau.
+
 Lancer l'audit dans le conteneur pour mesurer ses réglages actifs:
 
 ```sh
@@ -107,8 +113,8 @@ python3 /opt/hardened-shield/scripts/audit.py
 Un autre chemin de sortie peut être fourni avec `--output chemin.md`. Le code
 de sortie est `0` si tous les contrôles passent, `1` si au moins un contrôle
 échoue, et `2` si le rapport ne peut pas être écrit. Les options de lancement
-Docker, comme les capabilities et les montages en lecture seule, sont vérifiées
-sur l'environnement d'exécution.
+Les options Docker, comme les capabilities et les montages en lecture seule,
+sont vérifiées sur l'environnement d'exécution.
 
 ## Fichiers du projet
 
@@ -119,8 +125,9 @@ sur l'environnement d'exécution.
 - `scripts/init-identity.sh`: configure PAM, faillock, SSH et verrouille root.
 - `scripts/init-services.sh`: applique les préparations, démarre SSH et Nginx,
   puis contrôle leurs réponses.
-- `scripts/audit.py`: vérifie les contrôles actifs et produit `audit_result.md`.
+- `scripts/audit.py`: vérifie les contrôles actifs et produit
+  `audit_result.md`.
 - `audit_result.md`: emplacement du rapport Markdown généré par l'audit.
 
-Ce README sera complété à chaque tâche du projet avec les nouveaux contrôles,
-les commandes d'utilisation et les résultats observés.
+Ce README sera complété à chaque tâche avec les contrôles, les commandes
+d'utilisation et les résultats observés.

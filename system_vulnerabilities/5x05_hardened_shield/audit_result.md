@@ -1,12 +1,12 @@
 # Hardened Shield: rapport d'audit
 
-- Date: 2026-11-27 09:25:26 UTC
+- Date: 2026-11-27 09:26:52 UTC
 - Résultat global: **FAIL**
-- Score: **42%** (16/38)
+- Score: **41%** (22/54)
 
 ## Scores par catégorie
 
-- Kernel hardening: **67%** (4/6)
+- Kernel hardening: **45%** (10/22)
 - Filesystem security: **29%** (2/7)
 - Identity security: **50%** (7/14)
 - Service security: **20%** (1/5)
@@ -14,13 +14,29 @@
 
 ## Détails des contrôles
 
-### Kernel hardening: 67% (4/6)
+### Kernel hardening: 45% (10/22)
 
+- [FAIL] Routage IPv4 désactivé: 1
 - [PASS] Redirections IPv4 désactivées: 0
+- [FAIL] Redirections IPv4 par défaut désactivées: 1
+- [FAIL] Envoi de redirections IPv4 désactivé: 1
+- [FAIL] Envoi de redirections IPv4 par défaut désactivé: 1
 - [FAIL] Filtrage de route IPv4 activé: 0
+- [FAIL] Filtrage de route IPv4 par défaut activé: 0
 - [PASS] SYN cookies activés: 1
+- [PASS] Source routing IPv4 désactivé: 0
+- [FAIL] Source routing IPv4 par défaut désactivé: 1
+- [PASS] ICMP broadcast ignoré: 1
+- [FAIL] Paquets martiens journalisés: 0
+- [FAIL] Paquets martiens par défaut journalisés: 0
+- [FAIL] Redirections IPv6 désactivées: 1
+- [FAIL] Redirections IPv6 par défaut désactivées: 1
+- [PASS] Source routing IPv6 désactivé: 0
+- [PASS] Source routing IPv6 par défaut désactivé: 0
+- [PASS] Routage IPv6 désactivé: 0
 - [PASS] Randomisation mémoire activée: 2
 - [FAIL] Pointeurs noyau masqués: 0
+- [PASS] Accès aux logs noyau restreint: 1
 - [PASS] Dumps SUID désactivés: 0
 
 ### Filesystem security: 29% (2/7)
