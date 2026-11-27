@@ -1,175 +1,132 @@
 # The Hardened Shield
 
-Ce dossier contient l'image et les fichiers du projet The Hardened Shield.
-Elle utilise Nginx pour le Web et SSH pour l'administration.
+## Présentation
 
-## Tâche 0: Dockerfile
+Ce projet construit une image Ubuntu 20.04 avec Nginx pour le Web et
+OpenSSH pour l'administration. Des scripts appliquent des règles système,
+PAM et SSH au démarrage. Un outil Python vérifie ensuite les contrôles actifs
+et écrit un rapport d'audit.
 
-Le Dockerfile utilise Ubuntu 20.04 et installe Nginx, SSH et les modules PAM.
-Les processus Nginx tournent avec le compte `appuser`. Le compte `shieldadmin`
-sert à l'accès SSH. La connexion root et les mots de passe SSH sont
-désactivés.
-Il faut fournir une clé publique au démarrage. Aucun secret n'est écrit dans
-l'image. Le Dockerfile contient aussi des labels et un HEALTHCHECK.
+La clé publique SSH est fournie au lancement. L'image ne contient pas de clé
+privée ni de mot de passe codé en dur.
 
-Les scripts sont copiés dans l'image et lancés au démarrage. Les réglages du
-noyau et les options de montage qui sont bloqués dans un conteneur se règlent
-avec Docker ou sur l'hôte.
+## Démarrage rapide
 
-## Construire et lancer
-
-```sh
-docker build -t hardened-shield:latest \
-  system_vulnerabilities/5x05_hardened_shield
-docker run --rm -p 8080:80 -p 2222:22 \
-  -v /secure/authorized_keys:/run/secrets/authorized_keys:ro \
-  hardened-shield:latest
-```
-
-Ouvrir `http://localhost:8080/health` pour vérifier Nginx. Le fichier
-`/secure/authorized_keys` doit contenir la clé publique. Sans ce fichier, le
-conteneur démarre mais il n'est pas possible de se connecter en SSH. Pour un
-vrai déploiement, fournir la clé avec Docker Secrets ou un outil équivalent.
-
-## Démarrer avec Docker Compose
-
-Le fichier `docker-compose.yml` publie les ports 80 et 22, limite la mémoire,
-le CPU et le nombre de processus, retire les capabilities par défaut et
-active `no-new-privileges`. Il monte la clé publique de l’hôte en lecture
-seule, conserve les journaux Nginx dans un volume et protège les dossiers
-temporaires avec `noexec`, `nosuid` et `nodev`.
-
-Indiquer le chemin du fichier de clés avant le démarrage, puis lancer le
-conteneur en arrière-plan:
+Depuis la racine du dépôt, aller dans le dossier du projet :
 
 ```sh
 cd system_vulnerabilities/5x05_hardened_shield
+```
+
+Vérifier que le fichier choisi contient les clés publiques autorisées, puis
+indiquer son chemin et démarrer avec Compose :
+
+```sh
 export AUTHORIZED_KEYS_FILE="$HOME/.ssh/authorized_keys"
 docker compose up --build -d
 docker compose ps
 ```
 
-Arrêter le conteneur avec `docker compose down`. Les ports hôte 80 et 22
-doivent être libres.
-
-## Tâche 1: script de durcissement système
-
-Au démarrage, `scripts/init-hardening.sh` applique les réglages sysctl permis,
-protège les dossiers temporaires et certains fichiers, sécurise les journaux
-Nginx pour le master root et les workers `appuser`, arrête des services
-inutiles, liste les fichiers SUID/SGID et écrit une bannière légale. Les
-messages de statut et d'erreur des scripts sont affichés en français. Relancer
-le script ne duplique pas sa configuration.
-
-Le script retourne `0` quand les étapes se terminent, `1` s'il n'est pas lancé
-en root, `2` si l'inventaire SUID/SGID échoue, et `3` si l'écriture de la
-bannière échoue. Si Docker refuse un paramètre sysctl, un avertissement
-indique qu'il faut le régler avec Docker
-ou sur l'hôte. Le script ne change pas les montages.
-
-Pour appliquer les protections de montage au démarrage, ajouter par exemple:
+Le fichier doit exister et contenir au moins une clé publique. Le démarrage
+publie les ports hôte 80 et 22, qui doivent être libres. Nginx répond sur
+`http://localhost/health`. Pour se connecter avec la clé privée correspondante :
 
 ```sh
---tmpfs /tmp:rw,noexec,nosuid,nodev,size=64m \
---tmpfs /var/tmp:rw,noexec,nosuid,nodev,size=64m \
---tmpfs /dev/shm:rw,noexec,nosuid,nodev,size=64m
+ssh shieldadmin@localhost
 ```
 
-Les paramètres noyau refusés par Docker se règlent avec `--sysctl` ou sur
-l'hôte. La liste SUID/SGID se trouve dans
-`/run/hardened-shield-suid-audit.txt`. Je ne supprime pas ces permissions
-automatiquement, car certains programmes en ont besoin.
-
-## Tâche 2: script de durcissement de l'identité
-
-`scripts/init-identity.sh` configure les règles PAM de mot de passe (12
-caractères minimum, catégories de caractères, historique des cinq derniers
-mots de passe), le verrouillage après cinq échecs et les directives SSH.
-L'accès SSH est limité à `shieldadmin`, les mots de passe SSH et la connexion
-root sont désactivés, et le mot de passe du compte root est verrouillé.
-La clé publique montée dans `/run/secrets/authorized_keys` est installée avec
-des permissions privées au démarrage.
-
-Les fichiers PAM, SSH et les réglages pwquality/faillock déjà présents sont
-sauvegardés avec le suffixe `.backup` avant leur première modification. Le
-script peut être relancé: il remplace les règles qu'il gère et conserve les
-autres réglages. Les paramètres appliqués se trouvent dans
-`/etc/security/pwquality.conf` et `/etc/security/faillock.conf`.
-
-Le script retourne `0` si les réglages sont installés et vérifiés, `1` s'il
-n'est pas lancé en root ou si une commande manque, `2` si un fichier ou le
-module PAM faillock est absent, `3` si une sauvegarde ou une modification
-échoue, et `4` si la vérification finale échoue.
-
-## Tâche 3: démarrage et contrôle des services
-
-`scripts/init-services.sh` relance les scripts de durcissement de façon
-ordonnée, valide les configurations Nginx et SSH, démarre SSH, puis vérifie
-qu'il répond avec sa bannière sur le port 22. Nginx est lancé au premier plan
-pour que Docker suive son processus. Le script interroge `/health` jusqu'à dix
-secondes avant de déclarer le démarrage réussi. Si Nginx répond déjà à ce
-contrôle, le script ne lance pas un deuxième serveur.
-
-Les codes de sortie sont `0` si les contrôles réussissent ou si les services
-sont déjà disponibles, `1` si root ou une commande requise manque, `2` si une
-configuration de service est invalide, `3` si SSH ne démarre pas ou ne répond
-pas, et `4` si le contrôle Web échoue ou si Nginx s'arrête.
-
-## Tâche 4: audit de sécurité
-
-`scripts/audit.py` contrôle le noyau, les permissions et montages, PAM et SSH,
-les processus attendus et les restrictions visibles du conteneur. Il affiche
-les résultats de chaque contrôle, un score par catégorie et un score global.
-Les résultats `PASS` et `FAIL` sont conservés pour repérer rapidement les
-contrôles réussis ou échoués. Le script écrit aussi le rapport Markdown en
-français dans `audit_result.md`.
-
-Pour le noyau, il vérifie notamment le routage, les redirections et le filtrage
-IPv4/IPv6, les SYN cookies, les paquets martiens, la randomisation mémoire et
-les restrictions d'accès aux informations du noyau.
-Les valeurs du noyau sont d’abord lues avec `sysctl -a`. Si une valeur manque,
-le script essaie `sysctl -n`, puis lit le fichier correspondant dans
-`/proc/sys`. Les contrôles conteneur vérifient aussi le filtre Seccomp.
-
-Lancer l'audit dans le conteneur pour mesurer ses réglages actifs:
+Pour arrêter le conteneur :
 
 ```sh
-python3 /opt/hardened-shield/scripts/audit.py
+docker compose down
 ```
 
-Un autre chemin de sortie peut être fourni avec `--output chemin.md`. Le code
-de sortie est `0` si tous les contrôles passent, `1` si au moins un contrôle
-échoue, et `2` si le rapport ne peut pas être écrit. Les options Docker,
-comme les capabilities et les montages en lecture seule, sont vérifiées au
-moment de l'exécution.
+## Construction et lancement
 
-La documentation de l'architecture, des contrôles, de l'utilisation, de
-l'audit et de l'entretien se trouve dans [`SECURITY.md`](SECURITY.md).
+Pour construire l'image seule depuis ce dossier :
 
-Le rapport formel des contrôles et des risques résiduels est dans
-[`COMPLIANCE_REPORT.md`](COMPLIANCE_REPORT.md).
+```sh
+docker build -t hardened-shield:latest .
+```
 
-Le dernier test de l'image Ubuntu 20.04 avec les options Compose a obtenu
-`75%` (`41/55`, statut `FAIL`). Les identités et le système de fichiers ont
-passé leurs contrôles. Les échecs restants concernent les paramètres noyau
-contrôlés par l'hôte, Fail2ban qui n'est pas lancé par le script de services,
-et la racine du conteneur qui n'est pas montée en lecture seule.
+Pour démarrer l'image avec les limites et les options de sécurité du projet,
+utiliser Compose :
+
+```sh
+export AUTHORIZED_KEYS_FILE="$HOME/.ssh/authorized_keys"
+docker compose up --build -d
+```
+
+Compose limite la mémoire à 512 Mio, le CPU à 1 et le nombre de processus à
+128. Il publie les ports 80 et 22, retire les capabilities par défaut,
+applique `no-new-privileges`, protège les montages temporaires et conserve
+les journaux Nginx dans un volume.
+
+## Contrôles de sécurité
+
+- Nginx exécute ses workers sous le compte `appuser`.
+- SSH n'accepte pas les mots de passe ni la connexion directe de root.
+  Seul `shieldadmin` est autorisé, avec une clé publique.
+- PAM impose 12 caractères minimum, les quatre types de caractères,
+  l'historique des cinq derniers mots de passe et le verrouillage après cinq
+  échecs.
+- Le mot de passe root est verrouillé. Des fichiers sensibles et les
+  répertoires temporaires sont protégés.
+- Les scripts appliquent les réglages sysctl autorisés, valident Nginx et
+  SSH, démarrent les services et contrôlent `/health`.
+- L'audit vérifie le noyau, les fichiers, les identités, les services et les
+  protections du conteneur.
+
+Certains contrôles restent incomplets. Les réglages sysctl refusés dans un
+conteneur doivent être définis ou vérifiés sur l'hôte. Fail2ban est installé,
+mais son service n'est pas démarré. Le système de fichiers racine est en
+lecture-écriture. Google Authenticator est installé, mais TOTP n'est pas
+activé dans la configuration SSH.
+
+## Audit
+
+Lancer l'audit dans le conteneur :
+
+```sh
+docker compose exec hardened-shield \
+  python3 /opt/hardened-shield/scripts/audit.py
+```
+
+Le programme affiche les résultats avec les statuts `PASS` et `FAIL`. Il
+génère `audit_result.md` à la racine du projet et dans `scripts/`. Pour
+récupérer le rapport créé dans le conteneur :
+
+```sh
+docker cp hardened-shield:/opt/hardened-shield/audit_result.md \
+  ./audit_result.md
+```
+
+Le dernier audit versionné a obtenu `75%` (`41/55`), statut `FAIL`. Les
+contrôles du système de fichiers et des identités ont réussi. Les échecs
+restants sont détaillés dans [`audit_result.md`](audit_result.md).
 
 ## Fichiers du projet
 
-- `Dockerfile`: construit l'image et copie les scripts.
-- `docker-compose.yml`: publie les ports et applique les limites runtime.
-- `SECURITY.md`: décrit l'architecture et les pratiques de sécurité.
-- `COMPLIANCE_REPORT.md`: résume le périmètre, les résultats et les risques.
-- `config/nginx.conf`: configuration du serveur Web.
-- `config/sshd_config`: configuration du serveur SSH.
-- `scripts/init-hardening.sh`: applique les réglages système disponibles.
-- `scripts/init-identity.sh`: configure PAM, faillock, SSH et verrouille root.
-- `scripts/init-services.sh`: applique les préparations, démarre SSH et Nginx,
-  puis contrôle leurs réponses.
-- `scripts/audit.py`: vérifie les contrôles actifs et produit le rapport
-  `audit_result.md` à la racine du projet et dans le dossier `scripts/`.
-- `audit_result.md`: rapport Markdown généré par l'audit.
+```text
+5x05_hardened_shield/
+├── Dockerfile
+├── docker-compose.yml
+├── README.md
+├── SECURITY.md
+├── COMPLIANCE_REPORT.md
+├── audit_result.md
+├── config/
+│   ├── nginx.conf
+│   └── sshd_config
+└── scripts/
+    ├── init-hardening.sh
+    ├── init-identity.sh
+    ├── init-services.sh
+    ├── audit.py
+    └── audit_result.md
+```
 
-Ce README sera complété à chaque tâche avec les contrôles, les commandes
-d'utilisation et les résultats observés.
+`SECURITY.md` décrit l'architecture et les contrôles. `COMPLIANCE_REPORT.md`
+présente le périmètre, les tests, les risques résiduels et la décision de
+validation. Le rapport indique `FAIL`; l'image n'est pas approuvée pour la
+production tant que les risques restants ne sont pas traités.
