@@ -102,9 +102,9 @@ def processus_non_root(nom_voulu):
     return ""
 
 
-def resultat_kernel():
-    """Vérifie les protections noyau configurées par le script système."""
-    regles = {
+def check_kernel_hardening():
+    """Vérifie directement les paramètres sysctl de durcissement noyau."""
+    kernel_rules = {
         "Routage IPv4 désactivé": ("net.ipv4.ip_forward", "0"),
         "Redirections IPv4 désactivées": ("net.ipv4.conf.all.accept_redirects", "0"),
         "Redirections IPv4 par défaut désactivées": (
@@ -148,7 +148,7 @@ def resultat_kernel():
         "Accès aux logs noyau restreint": ("kernel.dmesg_restrict", "1"),
         "Dumps SUID désactivés": ("fs.suid_dumpable", "0"),
     }
-    for nom, (cle, attendu) in regles.items():
+    for nom, (cle, attendu) in kernel_rules.items():
         actuel = sysctl(cle)
         ajouter("Kernel hardening", nom, actuel == attendu, actuel or "indisponible")
 
@@ -390,7 +390,7 @@ def main():
     )
     arguments = parser.parse_args()
 
-    resultat_kernel()
+    check_kernel_hardening()
     resultat_filesystem()
     resultat_identite()
     resultat_services()
