@@ -7,6 +7,7 @@ import argparse
 import re
 import stat
 import subprocess
+import textwrap
 
 
 DOSSIER_PROJET = Path(__file__).resolve().parents[1]
@@ -303,33 +304,33 @@ def faire_rapport():
         f"- Résultat global: **{statut}**",
         f"- Score: **{pourcentage}%** ({reussis}/{total})",
         "",
+        "## Scores par catégorie",
+        "",
     ]
 
     for categorie in CATEGORIES:
         resultats = [r for r in RESULTATS if r["categorie"] == categorie]
         succes = sum(r["ok"] for r in resultats)
         score = round(succes * 100 / len(resultats)) if resultats else 0
-        lignes.extend([f"## {categorie}: {score}% ({succes}/{len(resultats)})", ""])
-        table = [("Contrôle", "Résultat", "Détail")]
+        lignes.append(f"- {categorie}: **{score}%** ({succes}/{len(resultats)})")
+
+    lignes.extend(["", "## Détails des contrôles", ""])
+    for categorie in CATEGORIES:
+        resultats = [r for r in RESULTATS if r["categorie"] == categorie]
+        succes = sum(r["ok"] for r in resultats)
+        score = round(succes * 100 / len(resultats)) if resultats else 0
+        lignes.extend(
+            [f"### {categorie}: {score}% ({succes}/{len(resultats)})", ""]
+        )
         for resultat in resultats:
             marque = "PASS" if resultat["ok"] else "FAIL"
             detail = resultat["detail"].replace("|", "\\|").replace("\n", " ")
-            table.append((resultat["nom"], marque, detail))
-        largeurs = [max(len(row[index]) for row in table) for index in range(3)]
-        lignes.append(
-            "| " + " | ".join(
-                table[0][index].ljust(largeurs[index]) for index in range(3)
-            ) + " |"
-        )
-        lignes.append(
-            "| " + " | ".join("-" * largeur for largeur in largeurs) + " |"
-        )
-        for row in table[1:]:
-            lignes.append(
-                "| " + " | ".join(
-                    row[index].ljust(largeurs[index]) for index in range(3)
-                ) + " |"
+            controle = f"[{marque}] {resultat['nom']}: {detail}"
+            controle_lignes = textwrap.wrap(
+                controle, width=76, subsequent_indent="  "
             )
+            lignes.append("- " + controle_lignes[0])
+            lignes.extend("  " + ligne for ligne in controle_lignes[1:])
         lignes.append("")
 
     lignes.extend([
