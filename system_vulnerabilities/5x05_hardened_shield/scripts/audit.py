@@ -126,11 +126,12 @@ def resultat_filesystem():
 
         options = options_montage(chemin)
         securise = {"noexec", "nosuid", "nodev"}.issubset(options)
+        options_utiles = options.intersection({"noexec", "nosuid", "nodev", "ro", "rw"})
         ajouter(
             "Filesystem security",
             f"Options noexec,nosuid,nodev sur {chemin}",
             securise,
-            ",".join(sorted(options)) or "options indisponibles",
+            ",".join(sorted(options_utiles)) or "options indisponibles",
         )
 
     for chemin in ("/etc/shadow", "/etc/gshadow"):
@@ -256,7 +257,7 @@ def resultat_conteneur():
     uid_worker = processus_non_root("nginx")
     ajouter(
         "Container security", "Worker Nginx non-root", bool(uid_worker),
-        f"UID {uid_worker}" if uid_worker else "aucun worker non-root détecté",
+        f"UID {uid_worker}" if uid_worker else "aucun worker actif",
     )
 
     status = lire("/proc/self/status")
@@ -275,9 +276,10 @@ def resultat_conteneur():
     )
 
     options = options_montage("/")
+    lecture = "ro" if "ro" in options else "rw"
     ajouter(
-        "Container security", "Système de fichiers racine en lecture seule",
-        "ro" in options, ",".join(sorted(options)) or "options indisponibles",
+        "Container security", "Rootfs en lecture seule",
+        "ro" in options, lecture,
     )
 
     dockerfile = lire(DOSSIER_PROJET / "Dockerfile")
