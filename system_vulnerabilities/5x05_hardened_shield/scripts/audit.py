@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Contrôle les réglages de sécurité du conteneur Hardened Shield."""
+"""check_kernel_hardening() vérifie kernel hardening avec sysctl -n.
+Audit aussi filesystem security.
+Vérifie aussi identity security, service security et container security.
+Calcule les scores par catégorie, le pourcentage global et le statut PASS/FAIL.
+Génère un rapport Markdown formaté dans audit_result.md.
+"""
 
 from datetime import datetime
 from pathlib import Path
