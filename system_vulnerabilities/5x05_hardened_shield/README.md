@@ -90,6 +90,26 @@ sont déjà disponibles, `1` si root ou une commande requise manque, `2` si une
 configuration de service est invalide, `3` si SSH ne démarre pas ou ne répond
 pas, et `4` si le contrôle Web échoue ou si Nginx s'arrête.
 
+## Tâche 4: audit de sécurité
+
+`scripts/audit.py` contrôle le noyau, les permissions et montages, PAM et SSH,
+les processus attendus et les restrictions visibles du conteneur. Il affiche
+les résultats de chaque contrôle, un score par catégorie et un score global.
+Le statut est `PASS` uniquement si tous les contrôles réussissent. Le script
+écrit aussi le rapport Markdown dans `audit_result.md`.
+
+Lancer l'audit dans le conteneur pour mesurer ses réglages actifs:
+
+```sh
+python3 /opt/hardened-shield/scripts/audit.py
+```
+
+Un autre chemin de sortie peut être fourni avec `--output chemin.md`. Le code
+de sortie est `0` si tous les contrôles passent, `1` si au moins un contrôle
+échoue, et `2` si le rapport ne peut pas être écrit. Les options de lancement
+Docker, comme les capabilities et les montages en lecture seule, sont vérifiées
+sur l'environnement d'exécution.
+
 ## Fichiers du projet
 
 - `Dockerfile`: construit l'image et copie les scripts.
@@ -99,7 +119,8 @@ pas, et `4` si le contrôle Web échoue ou si Nginx s'arrête.
 - `scripts/init-identity.sh`: configure PAM, faillock, SSH et verrouille root.
 - `scripts/init-services.sh`: applique les préparations, démarre SSH et Nginx,
   puis contrôle leurs réponses.
-- `scripts/audit.py`: vérifie quelques exigences du Dockerfile.
+- `scripts/audit.py`: vérifie les contrôles actifs et produit `audit_result.md`.
+- `audit_result.md`: emplacement du rapport Markdown généré par l'audit.
 
 Ce README sera complété à chaque tâche du projet avec les nouveaux contrôles,
 les commandes d'utilisation et les résultats observés.
