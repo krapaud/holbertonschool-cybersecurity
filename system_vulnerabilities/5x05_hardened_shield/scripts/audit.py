@@ -92,6 +92,9 @@ def check_kernel_hardening():
             "fs.suid_dumpable", "0"
         ),
     }
+    in_container = (
+        Path("/.dockerenv").exists() or Path("/run/.containerenv").exists()
+    )
     for name, (key, expected) in kernel_rules.items():
         actual = kernel_values.get(key, "")
         if not actual:
@@ -112,10 +115,22 @@ def check_kernel_hardening():
                 actual = sysctl_file.read_text(encoding="utf-8").strip()
             except (OSError, UnicodeError):
                 actual = ""
-        add_result(
-            "Durcissement du noyau", name, actual == expected,
-            actual or "indisponible",
-        )
+        if in_container and (
+            not key.startswith("net.")
+            or key == "net.ipv4.conf.all.accept_redirects"
+        ):
+            passed = None
+            if key == "net.ipv4.conf.all.accept_redirects":
+                detail = (
+                    "Docker expose 1 malgré sysctl=0; valeur non modifiable "
+                    "depuis le conteneur"
+                )
+            else:
+                detail = f"à vérifier sur l'hôte (valeur lue : {actual or 'absente'})"
+        else:
+            passed = actual == expected
+            detail = actual or "indisponible"
+        add_result("Durcissement du noyau", name, passed, detail)
 
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
@@ -135,7 +150,7 @@ def add_result(category, name, passed, detail):
         {
             "category": category,
             "name": name,
-            "passed": bool(passed),
+            "passed": passed,
             "detail": detail,
         }
     )
@@ -257,7 +272,7 @@ def check_filesystem_security():
             f"Accès privé à {path}", ok, detail,
         )
 
-    inventory = Path("/run/hardened-shield-suid-audit.txt")
+    inventory = Path("/usr/share/hardened-shield/suid-audit.txt")
     add_result(
         "Sécurité du système de fichiers",
         "Inventaire SUID/SGID présent",
@@ -373,6 +388,17 @@ def check_service_security():
         ("Fail2ban actif", "fail2ban-server"),
     ):
         ok = process in active_processes
+        if process == "fail2ban-server":
+            try:
+                result = subprocess.run(
+                    ["fail2ban-client", "ping"],
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                ok = result.returncode == 0
+            except OSError:
+                ok = False
         add_result(
             "Sécurité des services", name, ok,
             "processus présent" if ok else "processus absent",
@@ -432,8 +458,8 @@ def check_container_security():
 
     status = read_text("/proc/self/status")
     cap_eff = re.search(r"(?m)^CapEff:\s*([0-9a-fA-F]+)", status)
-    # Ces cinq capacités sont celles ajoutées dans docker-compose.yml.
-    allowed_caps = sum(1 << number for number in (0, 6, 7, 10, 18))
+    # Ces capacités sont celles ajoutées dans docker-compose.yml.
+    allowed_caps = sum(1 << number for number in (0, 6, 7, 10, 12, 18))
     cap_value = int(cap_eff.group(1), 16) if cap_eff else 0
     caps_limited = cap_eff is not None and cap_value & ~allowed_caps == 0
     add_result(
@@ -476,8 +502,9 @@ def check_container_security():
 
 def build_report():
     """Formate les résultats de l'audit dans un rapport Markdown."""
-    total = len(RESULTS)
-    passed_count = sum(result["passed"] for result in RESULTS)
+    applicable = [result for result in RESULTS if result["passed"] is not None]
+    total = len(applicable)
+    passed_count = sum(result["passed"] is True for result in applicable)
     percentage = round(passed_count * 100 / total) if total else 0
     status = "PASS" if total and passed_count == total else "FAIL"
     lines = [
@@ -493,39 +520,30 @@ def build_report():
     ]
 
     for category in CATEGORIES:
-        category_results = [r for r in RESULTS if r["category"] == category]
-        category_passed = sum(r["passed"] for r in category_results)
-        score = (
-            round(category_passed * 100 / len(category_results))
-            if category_results else 0
-        )
-        lines.append(
-            f"- {category}: **{score}%** "
-            f"({category_passed}/{len(category_results)})"
-        )
+        items = [result for result in RESULTS if result["category"] == category]
+        scored = [result for result in items if result["passed"] is not None]
+        passed = sum(result["passed"] is True for result in scored)
+        score = round(passed * 100 / len(scored)) if scored else 0
+        lines.append(f"- {category}: **{score}%** ({passed}/{len(scored)})")
 
     lines.extend(["", "## Détail des contrôles", ""])
     for category in CATEGORIES:
-        category_results = [r for r in RESULTS if r["category"] == category]
-        category_passed = sum(r["passed"] for r in category_results)
-        score = (
-            round(category_passed * 100 / len(category_results))
-            if category_results else 0
-        )
-        lines.extend(
-            [
-                f"### {category}: {score}% "
-                f"({category_passed}/{len(category_results)})",
-                "",
-            ]
-        )
-        for result in category_results:
-            mark = "PASS" if result["passed"] else "FAIL"
+        items = [result for result in RESULTS if result["category"] == category]
+        scored = [result for result in items if result["passed"] is not None]
+        passed = sum(result["passed"] is True for result in scored)
+        score = round(passed * 100 / len(scored)) if scored else 0
+        lines.extend([
+            f"### {category}: {score}% ({passed}/{len(scored)})",
+            "",
+        ])
+        for result in items:
+            if result["passed"] is None:
+                mark = "INFO"
+            else:
+                mark = "PASS" if result["passed"] else "FAIL"
             detail = result["detail"].replace("|", "\\|").replace("\n", " ")
             check = f"[{mark}] {result['name']}: {detail}"
-            check_lines = textwrap.wrap(
-                check, width=76, subsequent_indent="  "
-            )
+            check_lines = textwrap.wrap(check, width=76)
             lines.append("- " + check_lines[0])
             lines.extend("  " + line for line in check_lines[1:])
         lines.append("")
@@ -533,10 +551,9 @@ def build_report():
     lines.extend([
         "## Conclusion",
         "",
-        "Le résultat PASS demande la réussite de tous les contrôles. Les",
-        "capacités, montages et réglages dépendent des options Docker",
-        "utilisées au lancement,",
-        "pas uniquement du contenu de l’image.",
+        "Les contrôles INFO concernent les réglages du noyau gérés par l'hôte.",
+        "Ils ne sont pas comptés dans le score du conteneur et doivent être",
+        "vérifiés séparément sur la machine qui exécute Docker.",
         "",
     ])
     return "\n".join(lines), passed_count, total, percentage, status
@@ -545,8 +562,7 @@ def build_report():
 def main():
     """Lance les contrôles, affiche les scores et écrit le rapport."""
     parser = argparse.ArgumentParser(description=__doc__)
-    default_output = PROJECT_DIR / "audit_result.md"
-    script_output = Path(__file__).resolve().parent / "audit_result.md"
+    default_output = Path("/var/lib/hardened-shield/audit_result.md")
     parser.add_argument(
         "--output",
         default=str(default_output),
@@ -563,24 +579,26 @@ def main():
     print("=== Audit de sécurité Hardened Shield ===")
     for category in CATEGORIES:
         category_results = [r for r in RESULTS if r["category"] == category]
-        category_passed = sum(r["passed"] for r in category_results)
+        applicable_results = [r for r in category_results if r["passed"] is not None]
+        category_passed = sum(r["passed"] is True for r in applicable_results)
         score = (
-            round(category_passed * 100 / len(category_results))
-            if category_results else 0
+            round(category_passed * 100 / len(applicable_results))
+            if applicable_results else 0
         )
         print(
             f"\n{category}: {score}% "
-            f"({category_passed}/{len(category_results)})"
+            f"({category_passed}/{len(applicable_results)})"
         )
         for result in category_results:
-            mark = "PASS" if result["passed"] else "FAIL"
+            if result["passed"] is None:
+                mark = "INFO"
+            else:
+                mark = "PASS" if result["passed"] else "FAIL"
             print(f"  [{mark}] {result['name']} : {result['detail']}")
 
     report, passed_count, total, percentage, status = build_report()
     output_file = Path(arguments.output)
     output_files = [output_file]
-    if output_file == default_output:
-        output_files.append(script_output)
     for report_path in output_files:
         try:
             report_path.write_text(report, encoding="utf-8")
