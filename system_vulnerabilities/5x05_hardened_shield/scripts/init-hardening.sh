@@ -88,11 +88,11 @@ done
 # Je fais la liste des fichiers SUID/SGID pour pouvoir les vérifier.
 find /bin /sbin /usr/bin /usr/sbin /usr/local/bin /usr/local/sbin \
     -type f \( -perm -4000 -o -perm -2000 \) -print 2>/dev/null \
-    | sort -u > /run/hardened-shield-suid-audit.txt || {
+    | sort -u > /usr/share/hardened-shield/suid-audit.txt || {
         echo '[ERREUR] Impossible de faire l’audit SUID/SGID.' >&2
         exit 2
     }
-echo '[INFO] Résultat SUID/SGID : /run/hardened-shield-suid-audit.txt'
+echo '[INFO] Résultat SUID/SGID : /usr/share/hardened-shield/suid-audit.txt'
 
 # J'affiche le même avertissement sur la console et lors d'une connexion SSH.
 banner='Authorized access only. Activity may be monitored and recorded.'

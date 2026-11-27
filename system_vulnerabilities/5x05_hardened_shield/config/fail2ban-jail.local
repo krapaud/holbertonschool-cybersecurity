@@ -1,0 +1,9 @@
+[sshd]
+enabled = true
+port = 22
+filter = sshd
+logpath = /var/log/auth.log
+backend = polling
+maxretry = 5
+findtime = 900
+bantime = 900

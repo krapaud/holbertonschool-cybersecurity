@@ -7,7 +7,7 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-for tool in awk cp find grep install mktemp passwd rm sshd; do
+for tool in awk cp find grep install mktemp passwd rm runuser sshd; do
     if ! command -v "$tool" >/dev/null 2>&1; then
         echo "[ERREUR] Commande manquante : $tool" >&2
         exit 1
@@ -24,10 +24,8 @@ authorized_keys=/home/shieldadmin/.ssh/authorized_keys
 
 # Je charge la clé fournie au démarrage, sans la mettre dans l'image.
 if [ -r /run/secrets/authorized_keys ] && [ -s /run/secrets/authorized_keys ]; then
-    if ! install -d -o shieldadmin -g shieldadmin -m 0700 \
-        /home/shieldadmin/.ssh || \
-        ! install -o shieldadmin -g shieldadmin -m 0600 \
-            /run/secrets/authorized_keys "$authorized_keys"; then
+    if ! runuser -u shieldadmin -- install -m 0600 \
+        /run/secrets/authorized_keys "$authorized_keys"; then
         echo '[ERREUR] Impossible d’installer la clé SSH.' >&2
         exit 3
     fi
@@ -46,6 +44,21 @@ if ! find /lib /usr/lib -type f -name pam_faillock.so \
     -print -quit 2>/dev/null | grep -q .; then
     echo '[ERREUR] Le module pam_faillock.so est introuvable.' >&2
     exit 2
+fi
+
+# Au démarrage, je vérifie les réglages déjà préparés dans l'image.
+if grep -Eq '^[[:space:]]*password[[:space:]]+requisite[[:space:]]+pam_pwquality[.]so' "$pam_password" && \
+    grep -Eq '^[[:space:]]*password[[:space:]]+required[[:space:]]+pam_pwhistory[.]so.*remember=5.*use_authtok' "$pam_password" && \
+    grep -Eq '^[[:space:]]*auth[[:space:]]+required[[:space:]]+pam_faillock[.]so[[:space:]]+preauth' "$pam_auth" && \
+    grep -Eq '^[[:space:]]*auth[[:space:]]+\[default=die\][[:space:]]+pam_faillock[.]so[[:space:]]+authfail' "$pam_auth" && \
+    grep -Eq '^[[:space:]]*account[[:space:]]+required[[:space:]]+pam_faillock[.]so' "$pam_account" && \
+    grep -Eq '^[[:space:]]*minlen[[:space:]]*=[[:space:]]*12' "$quality_config" && \
+    grep -Eq '^[[:space:]]*deny[[:space:]]*=[[:space:]]*5' "$lock_config" && \
+    grep -Eq '^PermitRootLogin no$' "$ssh_config" && \
+    grep -Eq '^PasswordAuthentication no$' "$ssh_config" && \
+    grep -Eq '^AllowUsers shieldadmin$' "$ssh_config"; then
+    echo '[RÉUSSI] Les réglages d’identité sont déjà en place.'
+    exit 0
 fi
 
 # Je garde une copie initiale pour pouvoir revenir en arrière.

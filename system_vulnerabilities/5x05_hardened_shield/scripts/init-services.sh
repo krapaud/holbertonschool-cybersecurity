@@ -7,38 +7,51 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-for tool in curl grep nginx service sleep sshd; do
+for tool in curl fail2ban-client grep mkdir nginx service sleep sshd ssh-keygen; do
     if ! command -v "$tool" >/dev/null 2>&1; then
         echo "[ERREUR] Commande manquante : $tool" >&2
         exit 1
     fi
 done
 
-# Je lance les deux scripts de préparation et je garde leur code d'erreur.
-if /opt/hardened-shield/scripts/init-hardening.sh; then
-    echo '[RÉUSSI] Réglages système appliqués.'
-else
-    result=$?
-    echo '[ERREUR] Le durcissement système a échoué.' >&2
-    exit "$result"
-fi
-
+# Les réglages système et PAM sont préparés dans l'image.
 if /opt/hardened-shield/scripts/init-identity.sh; then
-    echo '[RÉUSSI] Réglages d’identité appliqués.'
+    echo '[RÉUSSI] Réglages d’identité vérifiés.'
 else
     result=$?
     echo '[ERREUR] Le durcissement de l’identité a échoué.' >&2
     exit "$result"
 fi
 
+# Je crée des clés d'hôte propres à chaque conteneur.
+if ! mkdir -p /run/ssh-host-keys || \
+    ! ssh-keygen -q -t ed25519 -N '' \
+        -f /run/ssh-host-keys/ssh_host_ed25519_key || \
+    ! ssh-keygen -q -t rsa -b 3072 -N '' \
+        -f /run/ssh-host-keys/ssh_host_rsa_key; then
+    echo '[ERREUR] Impossible de créer les clés d’hôte SSH.' >&2
+    exit 3
+fi
+chmod 0600 /run/ssh-host-keys/ssh_host_*_key
+
+if ! mkdir -p /run/sshd /run/ssh-host-keys /var/lib/nginx; then
+    echo '[ERREUR] Impossible de préparer les dossiers des services.' >&2
+    exit 3
+fi
+
 # Je valide la configuration avant de démarrer les services.
-if ! nginx -t >/dev/null 2>&1; then
+if ! nginx -t; then
     echo '[ERREUR] La configuration Nginx est invalide.' >&2
     exit 2
 fi
-if ! sshd -t >/dev/null 2>&1; then
+if ! sshd -t; then
     echo '[ERREUR] La configuration SSH est invalide.' >&2
     exit 2
+fi
+
+if ! service rsyslog start >/dev/null 2>&1; then
+    echo '[ERREUR] Le service rsyslog n’a pas démarré.' >&2
+    exit 3
 fi
 
 echo '[INFO] Démarrage de SSH...'
@@ -46,6 +59,14 @@ if ! service ssh start >/dev/null 2>&1; then
     echo '[ERREUR] Le service SSH n’a pas démarré.' >&2
     exit 3
 fi
+
+echo '[INFO] Démarrage de Fail2ban...'
+if ! service fail2ban start >/dev/null 2>&1 || \
+    ! fail2ban-client ping >/dev/null 2>&1; then
+    echo '[ERREUR] Fail2ban n’a pas démarré.' >&2
+    exit 3
+fi
+echo '[RÉUSSI] Fail2ban est actif.'
 
 # Je vérifie que SSH répond avec sa bannière, même si le service était déjà lancé.
 ssh_ready=0

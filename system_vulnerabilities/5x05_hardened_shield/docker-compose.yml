@@ -10,20 +10,30 @@ services:
     ports:
       - "80:80"
       - "22:22"
+    read_only: true
     volumes:
       # La clé reste sur l’hôte et est montée en lecture seule.
       - type: bind
         source: ${AUTHORIZED_KEYS_FILE:?Set AUTHORIZED_KEYS_FILE}
         target: /run/secrets/authorized_keys
         read_only: true
-      # Je garde les journaux Nginx dans un volume Docker.
+      # Nginx et rsyslog gardent leurs journaux dans un volume Docker.
       - type: volume
-        source: nginx-logs
-        target: /var/log/nginx
+        source: system-logs
+        target: /var/log
+      - type: volume
+        source: fail2ban-state
+        target: /var/lib/fail2ban
+      - type: volume
+        source: audit-data
+        target: /var/lib/hardened-shield
     tmpfs:
+      - /run:rw,noexec,nosuid,nodev,size=32m
       - /tmp:rw,noexec,nosuid,nodev,size=64m
       - /var/tmp:rw,noexec,nosuid,nodev,size=64m
       - /dev/shm:rw,noexec,nosuid,nodev,size=64m
+      - /var/lib/nginx:rw,noexec,nosuid,nodev,size=32m,mode=1777
+      - /home/shieldadmin/.ssh:rw,noexec,nosuid,nodev,size=1m,uid=1001,gid=1001,mode=0700
     cap_drop:
       - ALL
     cap_add:
@@ -33,11 +43,33 @@ services:
       - SETUID
       - SETGID
       - SYS_CHROOT
+      - NET_ADMIN
     security_opt:
       - no-new-privileges:true
     mem_limit: 512m
     cpus: 1.0
     pids_limit: 128
+    sysctls:
+      net.ipv4.ip_forward: "0"
+      net.ipv4.conf.all.accept_redirects: "0"
+      net.ipv4.conf.default.accept_redirects: "0"
+      net.ipv4.conf.all.send_redirects: "0"
+      net.ipv4.conf.default.send_redirects: "0"
+      net.ipv4.conf.all.rp_filter: "1"
+      net.ipv4.conf.default.rp_filter: "1"
+      net.ipv4.tcp_syncookies: "1"
+      net.ipv4.conf.all.accept_source_route: "0"
+      net.ipv4.conf.default.accept_source_route: "0"
+      net.ipv4.icmp_echo_ignore_broadcasts: "1"
+      net.ipv4.conf.all.log_martians: "1"
+      net.ipv4.conf.default.log_martians: "1"
+      net.ipv6.conf.all.accept_redirects: "0"
+      net.ipv6.conf.default.accept_redirects: "0"
+      net.ipv6.conf.all.accept_source_route: "0"
+      net.ipv6.conf.default.accept_source_route: "0"
+      net.ipv6.conf.all.forwarding: "0"
 
 volumes:
-  nginx-logs:
+  system-logs:
+  fail2ban-state:
+  audit-data:
