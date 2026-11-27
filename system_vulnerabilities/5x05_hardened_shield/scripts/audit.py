@@ -153,7 +153,7 @@ def check_kernel_hardening():
         ajouter("Kernel hardening", nom, actuel == attendu, actuel or "indisponible")
 
 
-def resultat_filesystem():
+def check_filesystem_security():
     """Vérifie les répertoires temporaires et les fichiers sensibles."""
     for chemin in ("/tmp", "/var/tmp"):
         mode = mode_fichier(chemin)
@@ -186,7 +186,7 @@ def resultat_filesystem():
     )
 
 
-def resultat_identite():
+def check_identity_security():
     """Vérifie PAM, faillock, SSH et le compte root."""
     pam_password = lire("/etc/pam.d/common-password")
     pam_auth = lire("/etc/pam.d/common-auth")
@@ -253,7 +253,7 @@ def resultat_identite():
     ajouter("Identity security", "Mot de passe root verrouillé", verrouille, "passwd -S")
 
 
-def resultat_services():
+def check_service_security():
     """Vérifie les services attendus et l'arrêt de services inutiles."""
     actifs = processus_actifs()
     for nom, processus in (("Nginx actif", "nginx"), ("SSH actif", "sshd"),
@@ -286,7 +286,7 @@ def resultat_services():
     )
 
 
-def resultat_conteneur():
+def check_container_security():
     """Vérifie les restrictions visibles depuis le conteneur courant."""
     marqueurs = Path("/.dockerenv").exists() or Path("/run/.containerenv").exists()
     ajouter("Container security", "Exécution dans un conteneur", marqueurs, "marqueur Docker/OCI")
@@ -391,10 +391,10 @@ def main():
     arguments = parser.parse_args()
 
     check_kernel_hardening()
-    resultat_filesystem()
-    resultat_identite()
-    resultat_services()
-    resultat_conteneur()
+    check_filesystem_security()
+    check_identity_security()
+    check_service_security()
+    check_container_security()
 
     print("=== Hardened Shield Security Audit ===")
     for categorie in CATEGORIES:
