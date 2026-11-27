@@ -76,6 +76,20 @@ n'est pas lancé en root ou si une commande manque, `2` si un fichier ou le
 module PAM faillock est absent, `3` si une sauvegarde ou une modification
 échoue, et `4` si la vérification finale échoue.
 
+## Tâche 3: démarrage et contrôle des services
+
+`scripts/init-services.sh` relance les scripts de durcissement de façon
+ordonnée, valide les configurations Nginx et SSH, démarre SSH, puis vérifie
+qu'il répond avec sa bannière sur le port 22. Nginx est lancé au premier plan
+pour que Docker suive son processus. Le script interroge `/health` jusqu'à dix
+secondes avant de déclarer le démarrage réussi. Si Nginx répond déjà à ce
+contrôle, le script ne lance pas un deuxième serveur.
+
+Les codes de sortie sont `0` si les contrôles réussissent ou si les services
+sont déjà disponibles, `1` si root ou une commande requise manque, `2` si une
+configuration de service est invalide, `3` si SSH ne démarre pas ou ne répond
+pas, et `4` si le contrôle Web échoue ou si Nginx s'arrête.
+
 ## Fichiers du projet
 
 - `Dockerfile`: construit l'image et copie les scripts.
@@ -83,7 +97,8 @@ module PAM faillock est absent, `3` si une sauvegarde ou une modification
 - `config/sshd_config`: configuration du serveur SSH.
 - `scripts/init-hardening.sh`: applique les réglages système disponibles.
 - `scripts/init-identity.sh`: configure PAM, faillock, SSH et verrouille root.
-- `scripts/init-services.sh`: prépare le conteneur et démarre les services.
+- `scripts/init-services.sh`: applique les préparations, démarre SSH et Nginx,
+  puis contrôle leurs réponses.
 - `scripts/audit.py`: vérifie quelques exigences du Dockerfile.
 
 Ce README sera complété à chaque tâche du projet avec les nouveaux contrôles,
