@@ -1,8 +1,8 @@
 # Hardened Shield: rapport d'audit
 
-- Date: 2026-11-27 09:31:08 UTC
+- Date: 2026-11-27 09:32:49 UTC
 - Résultat global: **FAIL**
-- Score: **41%** (22/54)
+- Score: **42%** (23/55)
 
 ## Scores par catégorie
 
@@ -10,7 +10,7 @@
 - Filesystem security: **29%** (2/7)
 - Identity security: **50%** (7/14)
 - Service security: **20%** (1/5)
-- Container security: **33%** (2/6)
+- Container security: **43%** (3/7)
 
 ## Détails des contrôles
 
@@ -74,12 +74,13 @@
 - [FAIL] Contrôle HTTP /health: endpoint non joignable
 - [PASS] Services inutiles arrêtés: aucun processus détecté
 
-### Container security: 33% (2/6)
+### Container security: 43% (3/7)
 
 - [PASS] Exécution dans un conteneur: marqueur Docker/OCI
 - [FAIL] Worker Nginx non-root: aucun worker actif
 - [FAIL] Aucune capability effective: 00000000a80425fb
 - [FAIL] no-new-privileges actif: 0
+- [PASS] Filtre Seccomp actif: 2
 - [FAIL] Rootfs en lecture seule: rw
 - [PASS] Aucun secret intégré au Dockerfile: Dockerfile
 
