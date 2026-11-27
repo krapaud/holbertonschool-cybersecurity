@@ -3,13 +3,13 @@
 set -euo pipefail
 
 if [ "$(id -u)" -ne 0 ]; then
-    echo '[ERROR] Lance ce script en root dans le conteneur.' >&2
+    echo '[ERREUR] Lance ce script en root dans le conteneur.' >&2
     exit 1
 fi
 
 for tool in awk cp find grep install mktemp passwd rm sshd; do
     if ! command -v "$tool" >/dev/null 2>&1; then
-        echo "[ERROR] Commande manquante: $tool" >&2
+        echo "[ERREUR] Commande manquante : $tool" >&2
         exit 1
     fi
 done
@@ -28,23 +28,23 @@ if [ -r /run/secrets/authorized_keys ] && [ -s /run/secrets/authorized_keys ]; t
         /home/shieldadmin/.ssh || \
         ! install -o shieldadmin -g shieldadmin -m 0600 \
             /run/secrets/authorized_keys "$authorized_keys"; then
-        echo '[ERROR] Impossible d’installer la clé SSH.' >&2
+        echo '[ERREUR] Impossible d’installer la clé SSH.' >&2
         exit 3
     fi
 else
-    echo '[INFO] Pas de clé fournie. La connexion SSH ne sera pas possible.'
+    echo '[INFO] Aucune clé fournie. La connexion SSH ne sera pas possible.'
 fi
 
 # Je vérifie les fichiers nécessaires avant de les modifier.
 for file in "$pam_password" "$pam_auth" "$pam_account" "$ssh_config"; do
     if [ ! -r "$file" ]; then
-        echo "[ERROR] Fichier de configuration introuvable: $file" >&2
+        echo "[ERREUR] Fichier de configuration introuvable : $file" >&2
         exit 2
     fi
 done
 if ! find /lib /usr/lib -type f -name pam_faillock.so \
     -print -quit 2>/dev/null | grep -q .; then
-    echo '[ERROR] Le module pam_faillock.so est introuvable.' >&2
+    echo '[ERREUR] Le module pam_faillock.so est introuvable.' >&2
     exit 2
 fi
 
@@ -52,7 +52,7 @@ fi
 for file in "$pam_password" "$pam_auth" "$pam_account" "$ssh_config"; do
     if [ ! -e "$file.backup" ]; then
         if ! cp -a "$file" "$file.backup"; then
-            echo "[ERROR] Impossible de sauvegarder $file." >&2
+            echo "[ERREUR] Impossible de sauvegarder $file." >&2
             exit 3
         fi
     fi
@@ -60,7 +60,7 @@ done
 for file in "$quality_config" "$lock_config"; do
     if [ -e "$file" ] && [ ! -e "$file.backup" ]; then
         if ! cp -a "$file" "$file.backup"; then
-            echo "[ERROR] Impossible de sauvegarder $file." >&2
+            echo "[ERREUR] Impossible de sauvegarder $file." >&2
             exit 3
         fi
     fi
@@ -106,7 +106,7 @@ if ! awk '
     { print }
     END { if (!added) exit 1 }
 ' "$pam_password" > "$new_password"; then
-    echo '[ERROR] Impossible de trouver pam_unix dans common-password.' >&2
+    echo '[ERREUR] Impossible de trouver pam_unix dans common-password.' >&2
     exit 3
 fi
 
@@ -125,7 +125,7 @@ if ! awk '
     }
     END { if (!added) exit 1 }
 ' "$pam_auth" > "$new_auth"; then
-    echo '[ERROR] Impossible de trouver pam_unix dans common-auth.' >&2
+    echo '[ERREUR] Impossible de trouver pam_unix dans common-auth.' >&2
     exit 3
 fi
 
@@ -139,7 +139,7 @@ if ! awk '
     { print }
     END { if (!added) exit 1 }
 ' "$pam_account" > "$new_account"; then
-    echo '[ERROR] Impossible de trouver pam_unix dans common-account.' >&2
+    echo '[ERREUR] Impossible de trouver pam_unix dans common-account.' >&2
     exit 3
 fi
 
@@ -188,7 +188,7 @@ if ! awk '
     tolower($1) in managed { next }
     { print }
 ' "$ssh_config" > "$new_ssh"; then
-    echo '[ERROR] Impossible de préparer sshd_config.' >&2
+    echo '[ERREUR] Impossible de préparer sshd_config.' >&2
     exit 3
 fi
 
@@ -199,15 +199,15 @@ if ! install -o root -g root -m 0644 "$new_quality" "$quality_config" || \
     ! install -o root -g root -m 0644 "$new_account" "$pam_account" || \
     ! install -o root -g root -m 0644 "$new_lock" "$lock_config" || \
     ! install -o root -g root -m 0644 "$new_ssh" "$ssh_config"; then
-    echo '[ERROR] Impossible d’installer les réglages d’identité.' >&2
+    echo '[ERREUR] Impossible d’installer les réglages d’identité.' >&2
     exit 3
 fi
 
 # Je désactive le mot de passe root, mais je ne supprime pas le compte.
 root_status=$(passwd -S root | awk '{ print $2 }')
 if [ "$root_status" != L ] && [ "$root_status" != LK ]; then
-    if ! passwd -l root; then
-        echo '[ERROR] Impossible de verrouiller le compte root.' >&2
+    if ! passwd -l root >/dev/null 2>&1; then
+        echo '[ERREUR] Impossible de verrouiller le compte root.' >&2
         exit 3
     fi
 fi
@@ -230,20 +230,20 @@ if ! grep -Eq '^[[:space:]]*password[[:space:]]+requisite[[:space:]]+pam_pwquali
     ! grep -Eq '^PasswordAuthentication no$' "$ssh_config" || \
     ! grep -Eq '^PubkeyAuthentication yes$' "$ssh_config" || \
     ! grep -Eq '^AllowUsers shieldadmin$' "$ssh_config"; then
-    echo '[ERROR] La vérification des réglages d’identité a échoué.' >&2
+    echo '[ERREUR] La vérification des réglages d’identité a échoué.' >&2
     exit 4
 fi
 
 root_status=$(passwd -S root | awk '{ print $2 }')
 if [ "$root_status" != L ] && [ "$root_status" != LK ]; then
-    echo '[ERROR] Le compte root n’est pas verrouillé.' >&2
+    echo '[ERREUR] Le compte root n’est pas verrouillé.' >&2
     exit 4
 fi
 
-if ! sshd -t; then
-    echo '[ERROR] sshd_config est invalide.' >&2
+if ! sshd -t >/dev/null 2>&1; then
+    echo '[ERREUR] sshd_config est invalide.' >&2
     exit 4
 fi
 
-echo '[OK] Politique PAM, verrouillage, SSH et compte root configurés.'
+echo '[RÉUSSI] Politique PAM, verrouillage, SSH et compte root configurés.'
 exit 0

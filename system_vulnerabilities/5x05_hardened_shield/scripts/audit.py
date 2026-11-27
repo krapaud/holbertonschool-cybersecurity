@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Security audit checks: kernel hardening, filesystem, identity, services,
-and container security. check_kernel_hardening uses sysctl -a to check kernel
-settings. The audit calculates category scores and overall PASS/FAIL status,
-then writes formatted results to a Markdown report.
+"""Vérifie le noyau, le système de fichiers, l'identité et les services.
+
+L'audit contrôle aussi les réglages du conteneur, calcule les scores par
+catégorie et le résultat général, puis écrit un rapport Markdown.
 """
 
 from datetime import datetime
@@ -15,7 +15,7 @@ import textwrap
 
 
 def check_kernel_hardening():
-    """Check kernel hardening settings from sysctl -a."""
+    """Vérifie les réglages du noyau avec sysctl -a."""
     kernel_values = {}
     sysctl_all_command = "sysctl -a"
     try:
@@ -33,54 +33,64 @@ def check_kernel_hardening():
         pass
 
     kernel_rules = {
-        "IPv4 forwarding disabled": ("net.ipv4.ip_forward", "0"),
-        "IPv4 redirects disabled": ("net.ipv4.conf.all.accept_redirects", "0"),
-        "Default IPv4 redirects disabled": (
+        "Routage IPv4 désactivé": ("net.ipv4.ip_forward", "0"),
+        "Redirections IPv4 désactivées": (
+            "net.ipv4.conf.all.accept_redirects", "0"
+        ),
+        "Redirections IPv4 par défaut désactivées": (
             "net.ipv4.conf.default.accept_redirects", "0"
         ),
-        "IPv4 redirect sending disabled": (
+        "Envoi de redirections IPv4 désactivé": (
             "net.ipv4.conf.all.send_redirects", "0"
         ),
-        "Default IPv4 redirect sending disabled": (
+        "Envoi de redirections IPv4 par défaut désactivé": (
             "net.ipv4.conf.default.send_redirects", "0"
         ),
-        "IPv4 reverse path filtering enabled": (
+        "Filtrage de chemin inverse IPv4 activé": (
             "net.ipv4.conf.all.rp_filter", "1"
         ),
-        "Default IPv4 reverse path filtering enabled": (
+        "Filtrage de chemin inverse IPv4 par défaut activé": (
             "net.ipv4.conf.default.rp_filter", "1"
         ),
-        "TCP SYN cookies enabled": ("net.ipv4.tcp_syncookies", "1"),
-        "IPv4 source routing disabled": (
+        "Cookies TCP SYN activés": (
+            "net.ipv4.tcp_syncookies", "1"
+        ),
+        "Routage source IPv4 désactivé": (
             "net.ipv4.conf.all.accept_source_route", "0"
         ),
-        "Default IPv4 source routing disabled": (
+        "Routage source IPv4 par défaut désactivé": (
             "net.ipv4.conf.default.accept_source_route", "0"
         ),
-        "ICMP broadcasts ignored": (
+        "Diffusions ICMP ignorées": (
             "net.ipv4.icmp_echo_ignore_broadcasts", "1"
         ),
-        "Martian packets logged": ("net.ipv4.conf.all.log_martians", "1"),
-        "Default martian packets logged": (
+        "Paquets martiens journalisés": (
+            "net.ipv4.conf.all.log_martians", "1"
+        ),
+        "Paquets martiens par défaut journalisés": (
             "net.ipv4.conf.default.log_martians", "1"
         ),
-        "IPv6 redirects disabled": ("net.ipv6.conf.all.accept_redirects", "0"),
-        "Default IPv6 redirects disabled": (
+        "Redirections IPv6 désactivées": (
+            "net.ipv6.conf.all.accept_redirects", "0"
+        ),
+        "Redirections IPv6 par défaut désactivées": (
             "net.ipv6.conf.default.accept_redirects", "0"
         ),
-        "IPv6 source routing disabled": (
+        "Routage source IPv6 désactivé": (
             "net.ipv6.conf.all.accept_source_route", "0"
         ),
-        "Default IPv6 source routing disabled": (
+        "Routage source IPv6 par défaut désactivé": (
             "net.ipv6.conf.default.accept_source_route", "0"
         ),
-        "IPv6 forwarding disabled": ("net.ipv6.conf.all.forwarding", "0"),
-        "Address space randomization enabled": (
+        "Routage IPv6 désactivé": ("net.ipv6.conf.all.forwarding", "0"),
+        "Randomisation de l’espace mémoire activée": (
             "kernel.randomize_va_space", "2"
         ),
-        "Kernel pointers restricted": ("kernel.kptr_restrict", "2"),
-        "Kernel log access restricted": ("kernel.dmesg_restrict", "1"),
-        "SUID core dumps disabled": ("fs.suid_dumpable", "0"),
+        "Accès aux pointeurs du noyau limité": ("kernel.kptr_restrict", "2"),
+        "Accès aux journaux du noyau limité": ("kernel.dmesg_restrict", "1"),
+        "Dumps mémoire des fichiers SUID désactivés": (
+            "fs.suid_dumpable", "0"
+        ),
     }
     for name, (key, expected) in kernel_rules.items():
         actual = kernel_values.get(key, "")
@@ -103,24 +113,24 @@ def check_kernel_hardening():
             except (OSError, UnicodeError):
                 actual = ""
         add_result(
-            "Kernel hardening", name, actual == expected,
-            actual or "unavailable",
+            "Durcissement du noyau", name, actual == expected,
+            actual or "indisponible",
         )
 
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 RESULTS = []
 CATEGORIES = [
-    "Kernel hardening",
-    "Filesystem security",
-    "Identity security",
-    "Service security",
-    "Container security",
+    "Durcissement du noyau",
+    "Sécurité du système de fichiers",
+    "Sécurité des identités",
+    "Sécurité des services",
+    "Sécurité du conteneur",
 ]
 
 
 def add_result(category, name, passed, detail):
-    """Add one check result to the audit."""
+    """Ajoute le résultat d'un contrôle à l'audit."""
     RESULTS.append(
         {
             "category": category,
@@ -132,7 +142,7 @@ def add_result(category, name, passed, detail):
 
 
 def read_text(path):
-    """Read a text file, returning an empty string when it is unavailable."""
+    """Lit un fichier texte ou renvoie une chaîne vide s'il manque."""
     try:
         return Path(path).read_text(encoding="utf-8").strip()
     except (OSError, UnicodeError):
@@ -140,7 +150,7 @@ def read_text(path):
 
 
 def get_directive(path, key):
-    """Return the last active setting for a key in a config file."""
+    """Renvoie la dernière valeur active d'une option de configuration."""
     value = ""
     for line in read_text(path).splitlines():
         parts = line.split("#", 1)[0].split()
@@ -150,7 +160,7 @@ def get_directive(path, key):
 
 
 def read_sysctl(name):
-    """Read a kernel setting with sysctl, then fall back to /proc/sys."""
+    """Lit un réglage noyau avec sysctl, puis essaie /proc/sys."""
     try:
         result = subprocess.run(
             ["sysctl", "-n", name], capture_output=True, text=True, check=False
@@ -165,7 +175,7 @@ def read_sysctl(name):
 
 
 def get_file_mode(path):
-    """Return file permissions in octal form."""
+    """Renvoie les permissions d'un fichier au format octal."""
     try:
         return stat.S_IMODE(Path(path).stat().st_mode)
     except OSError:
@@ -173,7 +183,7 @@ def get_file_mode(path):
 
 
 def get_mount_options(path):
-    """Find the mount options for the mount containing a path."""
+    """Trouve les options du montage qui contient le chemin indiqué."""
     target = str(Path(path).resolve())
     best = ("", set())
     try:
@@ -194,7 +204,7 @@ def get_mount_options(path):
 
 
 def get_running_processes():
-    """Return process names visible in /proc."""
+    """Renvoie les noms des processus visibles dans /proc."""
     names = set()
     for file_path in Path("/proc").glob("[0-9]*/comm"):
         name = read_text(file_path)
@@ -204,7 +214,7 @@ def get_running_processes():
 
 
 def find_non_root_process(wanted_name):
-    """Find a named process running with a non-root UID."""
+    """Cherche un processus indiqué qui ne tourne pas avec l'UID root."""
     for file_path in Path("/proc").glob("[0-9]*/comm"):
         if read_text(file_path) != wanted_name:
             continue
@@ -216,13 +226,14 @@ def find_non_root_process(wanted_name):
 
 
 def check_filesystem_security():
-    """Check temporary directories, sensitive files, and SUID inventory."""
+    """Vérifie les dossiers temporaires, fichiers sensibles et SUID/SGID."""
     for path in ("/tmp", "/var/tmp"):
         mode = get_file_mode(path)
         ok = mode is not None and mode & 0o1777 == 0o1777
         detail = f"{mode:04o}" if mode is not None else "absent"
         add_result(
-            "Filesystem security", f"Safe permissions on {path}", ok, detail
+            "Sécurité du système de fichiers",
+            f"Permissions sûres sur {path}", ok, detail,
         )
 
         options = get_mount_options(path)
@@ -231,10 +242,10 @@ def check_filesystem_security():
             {"noexec", "nosuid", "nodev", "ro", "rw"}
         )
         add_result(
-            "Filesystem security",
-            f"noexec,nosuid,nodev options on {path}",
+            "Sécurité du système de fichiers",
+            f"Options noexec,nosuid,nodev sur {path}",
             secure,
-            ",".join(sorted(relevant_options)) or "options unavailable",
+            ",".join(sorted(relevant_options)) or "options indisponibles",
         )
 
     for path in ("/etc/shadow", "/etc/gshadow"):
@@ -242,20 +253,21 @@ def check_filesystem_security():
         ok = mode is not None and mode & 0o077 == 0
         detail = f"{mode:04o}" if mode is not None else "absent"
         add_result(
-            "Filesystem security", f"Private access to {path}", ok, detail
+            "Sécurité du système de fichiers",
+            f"Accès privé à {path}", ok, detail,
         )
 
     inventory = Path("/run/hardened-shield-suid-audit.txt")
     add_result(
-        "Filesystem security",
-        "SUID/SGID inventory exists",
+        "Sécurité du système de fichiers",
+        "Inventaire SUID/SGID présent",
         inventory.is_file(),
-        str(inventory) if inventory.is_file() else "not generated",
+        str(inventory) if inventory.is_file() else "non créé",
     )
 
 
 def check_identity_security():
-    """Check PAM password policy, account lockout, SSH, and root access."""
+    """Vérifie PAM, le verrouillage des comptes, SSH et l'accès root."""
     pam_password = read_text("/etc/pam.d/common-password")
     pam_auth = read_text("/etc/pam.d/common-auth")
     pam_account = read_text("/etc/pam.d/common-account")
@@ -264,8 +276,8 @@ def check_identity_security():
     ssh_config = "/etc/ssh/sshd_config"
 
     add_result(
-        "Identity security",
-        "pam_pwquality enabled",
+        "Sécurité des identités",
+        "Module pam_pwquality activé",
         bool(re.search(
             r"(?m)^\s*password\s+requisite\s+pam_pwquality\.so",
             pam_password,
@@ -276,9 +288,9 @@ def check_identity_security():
                           ("ucredit", "-1"), ("lcredit", "-1"),
                           ("ocredit", "-1")):
         found = re.search(rf"(?m)^\s*{key}\s*=\s*([^\s#]+)", pwquality)
-        actual = found.group(1) if found else "missing"
+        actual = found.group(1) if found else "absent"
         add_result(
-            "Identity security", f"Password policy {key}",
+            "Sécurité des identités", f"Politique de mot de passe {key}",
             actual == expected, actual,
         )
 
@@ -288,7 +300,10 @@ def check_identity_security():
             pam_password,
         )
     )
-    add_result("Identity security", "Five password history", history_ok, "PAM")
+    add_result(
+        "Sécurité des identités", "Historique de cinq mots de passe",
+        history_ok, "PAM",
+    )
 
     faillock_ok = all(
         term in pam_auth + pam_account
@@ -299,7 +314,7 @@ def check_identity_security():
                            ("fail_interval", "900"))
     )
     add_result(
-        "Identity security", "Lockout after five failures",
+        "Sécurité des identités", "Verrouillage après cinq échecs",
         faillock_ok, "faillock.conf",
     )
 
@@ -311,8 +326,8 @@ def check_identity_security():
     ):
         actual = get_directive(ssh_config, key)
         add_result(
-            "Identity security", f"SSH {key}", actual == expected,
-            actual or "missing",
+            "Sécurité des identités", f"SSH {key}", actual == expected,
+            actual or "absent",
         )
 
     try:
@@ -321,12 +336,14 @@ def check_identity_security():
         )
         ssh_ok = ssh_check.returncode == 0
         ssh_detail = (
-            "configuration valid" if ssh_ok else "configuration invalid"
+            "configuration valide" if ssh_ok else "configuration invalide"
         )
     except OSError:
         ssh_ok = False
-        ssh_detail = "sshd unavailable"
-    add_result("Identity security", "sshd_config syntax", ssh_ok, ssh_detail)
+        ssh_detail = "sshd indisponible"
+    add_result(
+        "Sécurité des identités", "Syntaxe de sshd_config", ssh_ok, ssh_detail
+    )
 
     try:
         password_status = subprocess.run(
@@ -342,22 +359,23 @@ def check_identity_security():
     except OSError:
         root_locked = False
     add_result(
-        "Identity security", "Root password locked", root_locked, "passwd -S"
+        "Sécurité des identités", "Mot de passe root verrouillé",
+        root_locked, "passwd -S",
     )
 
 
 def check_service_security():
-    """Check required services, health endpoint, and unused services."""
+    """Vérifie les services, le contrôle santé et les services inutiles."""
     active_processes = get_running_processes()
     for name, process in (
-        ("Nginx active", "nginx"),
-        ("SSH active", "sshd"),
-        ("Fail2ban active", "fail2ban-server"),
+        ("Nginx actif", "nginx"),
+        ("SSH actif", "sshd"),
+        ("Fail2ban actif", "fail2ban-server"),
     ):
         ok = process in active_processes
         add_result(
-            "Service security", name, ok,
-            "process present" if ok else "process absent",
+            "Sécurité des services", name, ok,
+            "processus présent" if ok else "processus absent",
         )
 
     try:
@@ -368,67 +386,80 @@ def check_service_security():
             text=True,
             check=False,
         )
-        web_ok = web_check.returncode == 0 and web_check.stdout.strip() == "OK"
-        web_detail = web_check.stdout.strip() or "endpoint unavailable"
+        web_ok = (
+            web_check.returncode == 0
+            and web_check.stdout.strip() == "ok"
+        )
+        web_detail = (
+            web_check.stdout.strip() or "point de contrôle indisponible"
+        )
     except OSError:
         web_ok = False
-        web_detail = "curl unavailable"
-    add_result("Service security", "HTTP /health check", web_ok, web_detail)
+        web_detail = "curl indisponible"
+    add_result(
+        "Sécurité des services", "Contrôle HTTP /health",
+        web_ok, web_detail,
+    )
 
     unused_services = {"avahi-daemon", "cupsd", "rpcbind", "master", "snapd"}
     found_services = sorted(active_processes.intersection(unused_services))
     add_result(
-        "Service security",
-        "Unused services stopped",
+        "Sécurité des services",
+        "Services inutiles arrêtés",
         not found_services,
         ", ".join(found_services)
-        if found_services else "no processes detected",
+        if found_services else "aucun processus détecté",
     )
 
 
 def check_container_security():
-    """Check security restrictions visible from the current container."""
+    """Vérifie les protections visibles depuis le conteneur actuel."""
     markers = (
         Path("/.dockerenv").exists()
         or Path("/run/.containerenv").exists()
     )
     add_result(
-        "Container security", "Running in a container",
-        markers, "Docker/OCI marker",
+        "Sécurité du conteneur", "Exécution dans un conteneur",
+        markers, "marqueur Docker/OCI",
     )
 
     worker_uid = find_non_root_process("nginx")
     add_result(
-        "Container security", "Non-root Nginx worker", bool(worker_uid),
-        f"UID {worker_uid}" if worker_uid else "no active worker",
+        "Sécurité du conteneur",
+        "Worker Nginx sans privilèges root", bool(worker_uid),
+        f"UID {worker_uid}" if worker_uid else "aucun worker actif",
     )
 
     status = read_text("/proc/self/status")
     cap_eff = re.search(r"(?m)^CapEff:\s*([0-9a-fA-F]+)", status)
-    cap_zero = cap_eff is not None and int(cap_eff.group(1), 16) == 0
+    # Ces cinq capacités sont celles ajoutées dans docker-compose.yml.
+    allowed_caps = sum(1 << number for number in (0, 6, 7, 10, 18))
+    cap_value = int(cap_eff.group(1), 16) if cap_eff else 0
+    caps_limited = cap_eff is not None and cap_value & ~allowed_caps == 0
     add_result(
-        "Container security", "No effective capabilities", cap_zero,
-        cap_eff.group(1) if cap_eff else "unavailable",
+        "Sécurité du conteneur",
+        "Capacités limitées aux droits nécessaires", caps_limited,
+        cap_eff.group(1) if cap_eff else "indisponible",
     )
 
     no_new_privs = re.search(r"(?m)^NoNewPrivs:\s*(\d+)", status)
     add_result(
-        "Container security", "no-new-privileges enabled",
+        "Sécurité du conteneur", "Option no-new-privileges activée",
         no_new_privs is not None and no_new_privs.group(1) == "1",
-        no_new_privs.group(1) if no_new_privs else "unavailable",
+        no_new_privs.group(1) if no_new_privs else "indisponible",
     )
 
     seccomp = re.search(r"(?m)^Seccomp:\s*(\d+)", status)
     add_result(
-        "Container security", "Seccomp filter enabled",
+        "Sécurité du conteneur", "Filtre Seccomp activé",
         seccomp is not None and seccomp.group(1) == "2",
-        seccomp.group(1) if seccomp else "unavailable",
+        seccomp.group(1) if seccomp else "indisponible",
     )
 
     options = get_mount_options("/")
     access_mode = "ro" if "ro" in options else "rw"
     add_result(
-        "Container security", "Read-only root filesystem",
+        "Sécurité du conteneur", "Système de fichiers racine en lecture seule",
         "ro" in options, access_mode,
     )
 
@@ -438,26 +469,26 @@ def check_container_security():
         dockerfile,
     )
     add_result(
-        "Container security", "No secrets in Dockerfile",
+        "Sécurité du conteneur", "Aucun secret dans le Dockerfile",
         secret_absent, "Dockerfile",
     )
 
 
 def build_report():
-    """Format audit results as a Markdown report."""
+    """Formate les résultats de l'audit dans un rapport Markdown."""
     total = len(RESULTS)
     passed_count = sum(result["passed"] for result in RESULTS)
     percentage = round(passed_count * 100 / total) if total else 0
     status = "PASS" if total and passed_count == total else "FAIL"
     lines = [
-        "# Hardened Shield Security Audit",
+        "# Audit de sécurité Hardened Shield",
         "",
-        "- Date: "
+        "- Date : "
         f"{datetime.now().astimezone().strftime('%Y-%m-%d %H:%M:%S %Z')}",
-        f"- Overall status: **{status}**",
-        f"- Score: **{percentage}%** ({passed_count}/{total})",
+        f"- Résultat général : **{status}**",
+        f"- Score global : **{percentage}%** ({passed_count}/{total})",
         "",
-        "## Category scores",
+        "## Scores par catégorie",
         "",
     ]
 
@@ -473,7 +504,7 @@ def build_report():
             f"({category_passed}/{len(category_results)})"
         )
 
-    lines.extend(["", "## Check details", ""])
+    lines.extend(["", "## Détail des contrôles", ""])
     for category in CATEGORIES:
         category_results = [r for r in RESULTS if r["category"] == category]
         category_passed = sum(r["passed"] for r in category_results)
@@ -502,23 +533,24 @@ def build_report():
     lines.extend([
         "## Conclusion",
         "",
-        "PASS requires every check to succeed. Capability, mount, and runtime",
-        "checks reflect the Docker options used at container launch, not only",
-        "the contents of the image.",
+        "Le résultat PASS demande la réussite de tous les contrôles. Les",
+        "capacités, montages et réglages dépendent des options Docker",
+        "utilisées au lancement,",
+        "pas uniquement du contenu de l’image.",
         "",
     ])
     return "\n".join(lines), passed_count, total, percentage, status
 
 
 def main():
-    """Run the checks, display scores, and write the report."""
+    """Lance les contrôles, affiche les scores et écrit le rapport."""
     parser = argparse.ArgumentParser(description=__doc__)
     default_output = PROJECT_DIR / "audit_result.md"
     script_output = Path(__file__).resolve().parent / "audit_result.md"
     parser.add_argument(
         "--output",
         default=str(default_output),
-        help="Markdown output file",
+        help="Chemin du rapport Markdown",
     )
     arguments = parser.parse_args()
 
@@ -528,7 +560,7 @@ def main():
     check_service_security()
     check_container_security()
 
-    print("=== Hardened Shield Security Audit ===")
+    print("=== Audit de sécurité Hardened Shield ===")
     for category in CATEGORIES:
         category_results = [r for r in RESULTS if r["category"] == category]
         category_passed = sum(r["passed"] for r in category_results)
@@ -542,7 +574,7 @@ def main():
         )
         for result in category_results:
             mark = "PASS" if result["passed"] else "FAIL"
-            print(f"  [{mark}] {result['name']}: {result['detail']}")
+            print(f"  [{mark}] {result['name']} : {result['detail']}")
 
     report, passed_count, total, percentage, status = build_report()
     output_file = Path(arguments.output)
@@ -552,14 +584,17 @@ def main():
     for report_path in output_files:
         try:
             report_path.write_text(report, encoding="utf-8")
-        except OSError as error:
-            print(f"\n[ERROR] Could not write {report_path}: {error}")
+        except OSError:
+            print(f"\n[ERREUR] Impossible d’écrire le rapport : {report_path}")
             return 2
 
-    print(f"\nOverall: {percentage}% ({passed_count}/{total}) - {status}")
+    print(
+        f"\nBilan général : {percentage}% "
+        f"({passed_count}/{total}) - {status}"
+    )
     for report_path in output_files:
-        print(f"Markdown report: {report_path}")
-    return 0 if status == "PASS" else 1
+        print(f"Rapport Markdown : {report_path}")
+    return 0 if passed_count == total and total else 1
 
 
 if __name__ == "__main__":

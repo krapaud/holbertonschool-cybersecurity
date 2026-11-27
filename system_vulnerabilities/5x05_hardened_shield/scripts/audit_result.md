@@ -1,91 +1,92 @@
-# Hardened Shield Security Audit
+# Audit de sécurité Hardened Shield
 
-- Date: 2026-11-27 10:05:51 UTC
-- Overall status: **FAIL**
-- Score: **42%** (23/55)
+- Date : 2026-11-27 10:54:56 UTC
+- Résultat général : **FAIL**
+- Score global : **75%** (41/55)
 
-## Category scores
+## Scores par catégorie
 
-- Kernel hardening: **45%** (10/22)
-- Filesystem security: **29%** (2/7)
-- Identity security: **50%** (7/14)
-- Service security: **20%** (1/5)
-- Container security: **43%** (3/7)
+- Durcissement du noyau: **45%** (10/22)
+- Sécurité du système de fichiers: **100%** (7/7)
+- Sécurité des identités: **100%** (14/14)
+- Sécurité des services: **80%** (4/5)
+- Sécurité du conteneur: **86%** (6/7)
 
-## Check details
+## Détail des contrôles
 
-### Kernel hardening: 45% (10/22)
+### Durcissement du noyau: 45% (10/22)
 
-- [FAIL] IPv4 forwarding disabled: 1
-- [PASS] IPv4 redirects disabled: 0
-- [FAIL] Default IPv4 redirects disabled: 1
-- [FAIL] IPv4 redirect sending disabled: 1
-- [FAIL] Default IPv4 redirect sending disabled: 1
-- [FAIL] IPv4 reverse path filtering enabled: 0
-- [FAIL] Default IPv4 reverse path filtering enabled: 0
-- [PASS] TCP SYN cookies enabled: 1
-- [PASS] IPv4 source routing disabled: 0
-- [FAIL] Default IPv4 source routing disabled: 1
-- [PASS] ICMP broadcasts ignored: 1
-- [FAIL] Martian packets logged: 0
-- [FAIL] Default martian packets logged: 0
-- [FAIL] IPv6 redirects disabled: 1
-- [FAIL] Default IPv6 redirects disabled: 1
-- [PASS] IPv6 source routing disabled: 0
-- [PASS] Default IPv6 source routing disabled: 0
-- [PASS] IPv6 forwarding disabled: 0
-- [PASS] Address space randomization enabled: 2
-- [FAIL] Kernel pointers restricted: 0
-- [PASS] Kernel log access restricted: 1
-- [PASS] SUID core dumps disabled: 0
+- [FAIL] Routage IPv4 désactivé: 1
+- [PASS] Redirections IPv4 désactivées: 0
+- [FAIL] Redirections IPv4 par défaut désactivées: 1
+- [FAIL] Envoi de redirections IPv4 désactivé: 1
+- [FAIL] Envoi de redirections IPv4 par défaut désactivé: 1
+- [FAIL] Filtrage de chemin inverse IPv4 activé: 0
+- [FAIL] Filtrage de chemin inverse IPv4 par défaut activé: 0
+- [PASS] Cookies TCP SYN activés: 1
+- [PASS] Routage source IPv4 désactivé: 0
+- [FAIL] Routage source IPv4 par défaut désactivé: 1
+- [PASS] Diffusions ICMP ignorées: 1
+- [FAIL] Paquets martiens journalisés: 0
+- [FAIL] Paquets martiens par défaut journalisés: 0
+- [FAIL] Redirections IPv6 désactivées: 1
+- [FAIL] Redirections IPv6 par défaut désactivées: 1
+- [PASS] Routage source IPv6 désactivé: 0
+- [PASS] Routage source IPv6 par défaut désactivé: 0
+- [PASS] Routage IPv6 désactivé: 0
+- [PASS] Randomisation de l’espace mémoire activée: 2
+- [FAIL] Accès aux pointeurs du noyau limité: 0
+- [PASS] Accès aux journaux du noyau limité: 1
+- [PASS] Dumps mémoire des fichiers SUID désactivés: 0
 
-### Filesystem security: 29% (2/7)
+### Sécurité du système de fichiers: 100% (7/7)
 
-- [PASS] Safe permissions on /tmp: 1777
-- [FAIL] noexec,nosuid,nodev options on /tmp: rw
-- [PASS] Safe permissions on /var/tmp: 1777
-- [FAIL] noexec,nosuid,nodev options on /var/tmp: rw
-- [FAIL] Private access to /etc/shadow: 0640
-- [FAIL] Private access to /etc/gshadow: 0640
-- [FAIL] SUID/SGID inventory exists: not generated
+- [PASS] Permissions sûres sur /tmp: 1777
+- [PASS] Options noexec,nosuid,nodev sur /tmp: nodev,noexec,nosuid,rw
+- [PASS] Permissions sûres sur /var/tmp: 1777
+- [PASS] Options noexec,nosuid,nodev sur /var/tmp: nodev,noexec,nosuid,rw
+- [PASS] Accès privé à /etc/shadow: 0600
+- [PASS] Accès privé à /etc/gshadow: 0600
+- [PASS] Inventaire SUID/SGID présent: /run/hardened-shield-suid-audit.txt
 
-### Identity security: 50% (7/14)
+### Sécurité des identités: 100% (14/14)
 
-- [PASS] pam_pwquality enabled: common-password
-- [FAIL] Password policy minlen: missing
-- [FAIL] Password policy dcredit: missing
-- [FAIL] Password policy ucredit: missing
-- [FAIL] Password policy lcredit: missing
-- [FAIL] Password policy ocredit: missing
-- [FAIL] Five password history: PAM
-- [FAIL] Lockout after five failures: faillock.conf
+- [PASS] Module pam_pwquality activé: common-password
+- [PASS] Politique de mot de passe minlen: 12
+- [PASS] Politique de mot de passe dcredit: -1
+- [PASS] Politique de mot de passe ucredit: -1
+- [PASS] Politique de mot de passe lcredit: -1
+- [PASS] Politique de mot de passe ocredit: -1
+- [PASS] Historique de cinq mots de passe: PAM
+- [PASS] Verrouillage après cinq échecs: faillock.conf
 - [PASS] SSH PermitRootLogin: no
 - [PASS] SSH PasswordAuthentication: no
 - [PASS] SSH PubkeyAuthentication: yes
 - [PASS] SSH AllowUsers: shieldadmin
-- [PASS] sshd_config syntax: configuration valid
-- [PASS] Root password locked: passwd -S
+- [PASS] Syntaxe de sshd_config: configuration valide
+- [PASS] Mot de passe root verrouillé: passwd -S
 
-### Service security: 20% (1/5)
+### Sécurité des services: 80% (4/5)
 
-- [FAIL] Nginx active: process absent
-- [FAIL] SSH active: process absent
-- [FAIL] Fail2ban active: process absent
-- [FAIL] HTTP /health check: endpoint unavailable
-- [PASS] Unused services stopped: no processes detected
+- [PASS] Nginx actif: processus présent
+- [PASS] SSH actif: processus présent
+- [FAIL] Fail2ban actif: processus absent
+- [PASS] Contrôle HTTP /health: ok
+- [PASS] Services inutiles arrêtés: aucun processus détecté
 
-### Container security: 43% (3/7)
+### Sécurité du conteneur: 86% (6/7)
 
-- [PASS] Running in a container: Docker/OCI marker
-- [FAIL] Non-root Nginx worker: no active worker
-- [FAIL] No effective capabilities: 00000000a80425fb
-- [FAIL] no-new-privileges enabled: 0
-- [PASS] Seccomp filter enabled: 2
-- [FAIL] Read-only root filesystem: rw
-- [PASS] No secrets in Dockerfile: Dockerfile
+- [PASS] Exécution dans un conteneur: marqueur Docker/OCI
+- [PASS] Worker Nginx sans privilèges root: UID 999
+- [PASS] Capacités limitées aux droits nécessaires: 00000000000404c1
+- [PASS] Option no-new-privileges activée: 1
+- [PASS] Filtre Seccomp activé: 2
+- [FAIL] Système de fichiers racine en lecture seule: rw
+- [PASS] Aucun secret dans le Dockerfile: Dockerfile
 
 ## Conclusion
 
-PASS requires every check to succeed. Capability, mount, and runtime
-checks reflect the Docker options used at container launch, not only
-the contents of the image.
+Le résultat PASS demande la réussite de tous les contrôles. Les
+capacités, montages et réglages dépendent des options Docker
+utilisées au lancement,
+pas uniquement du contenu de l’image.

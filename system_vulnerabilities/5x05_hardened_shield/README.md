@@ -55,8 +55,10 @@ doivent être libres.
 ## Tâche 1: script de durcissement système
 
 Au démarrage, `scripts/init-hardening.sh` applique les réglages sysctl permis,
-protège les dossiers temporaires et certains fichiers, arrête des services
-inutiles, liste les fichiers SUID/SGID et écrit une bannière légale. Relancer
+protège les dossiers temporaires et certains fichiers, sécurise les journaux
+Nginx pour le master root et les workers `appuser`, arrête des services
+inutiles, liste les fichiers SUID/SGID et écrit une bannière légale. Les
+messages de statut et d'erreur des scripts sont affichés en français. Relancer
 le script ne duplique pas sa configuration.
 
 Le script retourne `0` quand les étapes se terminent, `1` s'il n'est pas lancé
@@ -118,8 +120,9 @@ pas, et `4` si le contrôle Web échoue ou si Nginx s'arrête.
 `scripts/audit.py` contrôle le noyau, les permissions et montages, PAM et SSH,
 les processus attendus et les restrictions visibles du conteneur. Il affiche
 les résultats de chaque contrôle, un score par catégorie et un score global.
-Le statut est `PASS` uniquement si tous les contrôles réussissent. Le script
-écrit aussi le rapport Markdown dans `audit_result.md`.
+Les résultats `PASS` et `FAIL` sont conservés pour repérer rapidement les
+contrôles réussis ou échoués. Le script écrit aussi le rapport Markdown en
+français dans `audit_result.md`.
 
 Pour le noyau, il vérifie notamment le routage, les redirections et le filtrage
 IPv4/IPv6, les SYN cookies, les paquets martiens, la randomisation mémoire et
@@ -139,6 +142,12 @@ de sortie est `0` si tous les contrôles passent, `1` si au moins un contrôle
 échoue, et `2` si le rapport ne peut pas être écrit. Les options Docker,
 comme les capabilities et les montages en lecture seule, sont vérifiées au
 moment de l'exécution.
+
+Le dernier test de l'image Ubuntu 20.04 avec les options Compose a obtenu
+`75%` (`41/55`, statut `FAIL`). Les identités et le système de fichiers ont
+passé leurs contrôles. Les échecs restants concernent les paramètres noyau
+contrôlés par l'hôte, Fail2ban qui n'est pas lancé par le script de services,
+et la racine du conteneur qui n'est pas montée en lecture seule.
 
 ## Fichiers du projet
 
