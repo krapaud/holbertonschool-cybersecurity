@@ -126,6 +126,8 @@ système de fichiers racine en lecture-écriture.
 
 Un réglage sysctl bloqué dans Docker ne signifie pas que l'hôte est protégé.
 Vérifier le réglage sur l'hôte ou le fournir explicitement avec Docker.
+Le bilan formel et les risques résiduels sont détaillés dans
+[`COMPLIANCE_REPORT.md`](COMPLIANCE_REPORT.md).
 
 ## 5. Entretien
 
